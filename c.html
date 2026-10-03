@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>طلبك مع ToGo</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<style>
+:root{--bg:#f1f3ef;--ink:#16212b;--blue:#0b57d0;--ok:#1b7f4b;--line:#cfd6cc}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:Tahoma,"Noto Naskh Arabic",system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column}
+#map{flex:0 0 45%;min-height:230px}
+#box{flex:1;overflow:auto;padding:14px}
+h2{margin:0 0 8px;font-size:20px}
+input{width:100%;font:inherit;padding:10px;margin:4px 0;border:1px solid var(--line);border-radius:8px}
+button{width:100%;font:inherit;border:0;border-radius:8px;padding:12px;background:var(--blue);color:#fff;font-weight:700;margin-top:6px}
+button.g{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.row{display:flex;gap:8px}
+.big{font-size:34px;font-weight:700;margin:6px 0}
+.err{color:#b3261e;min-height:20px}
+.pin{width:26px;height:26px;border-radius:50%;border:3px solid #fff;display:block}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="box"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+const FN='https://br-polished-fire-b7bwdesx-customer.compute.c-13.us-east-1.aws.neon.tech/';
+const T=new URLSearchParams(location.search).get('t')||'';
+const $=id=>document.getElementById(id), box=$('box');
+const map=L.map('map',{zoomControl:false}).setView([30.05,31.24],11);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+const dot=c=>L.divIcon({className:'',html:`<span class="pin" style="background:${c}"></span>`,iconSize:[26,26]});
+let pin=null, meM=null, drM=null, timer=null, mode='';
+
+function text(h){box.innerHTML=h}
+function form(name){
+  mode='form';
+  box.innerHTML=`<h2>أهلاً بيك</h2><p>اكتب بياناتك وحدد مكانك على الخريطة (اسحب الدبوس لو محتاج تظبطه).</p>
+  <input id="n" placeholder="اسمك"><input id="p" placeholder="رقم التليفون" inputmode="tel">
+  <input id="a" placeholder="العنوان"><div class="row"><input id="b" placeholder="رقم العمارة"><input id="f" placeholder="رقم الشقة"></div>
+  <button class="g" id="loc">استخدم موقعي الحالي</button><div class="err" id="e"></div><button id="go">تأكيد</button>`;
+  $('n').value=name||'';
+  pin=L.marker(map.getCenter(),{draggable:true,icon:dot('#0b57d0')}).addTo(map);
+  $('loc').onclick=()=>navigator.geolocation.getCurrentPosition(p=>{const c=[p.coords.latitude,p.coords.longitude];pin.setLatLng(c);map.setView(c,17)},()=>$('e').textContent='مقدرتش أوصل لموقعك. اسحب الدبوس بإيدك.',{enableHighAccuracy:true,timeout:8000});
+  $('go').onclick=async()=>{
+    const ll=pin.getLatLng(), v=i=>$(i).value.trim();
+    if(!v('n')||!v('a')){$('e').textContent='اكتب الاسم والعنوان';return}
+    if(map.getZoom()<13){$('e').textContent='قرّب الخريطة وحط الدبوس على بيتك';return}
+    $('go').disabled=true;
+    try{
+      const r=await fetch(FN,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({t:T,name:v('n'),phone:v('p'),address:v('a'),building:v('b'),apartment:v('f'),lat:ll.lat,lng:ll.lng})});
+      const j=await r.json(); if(!j.ok)throw 0;
+      map.removeLayer(pin);pin=null;load();
+    }catch(e){$('e').textContent='حصلت مشكلة، جرب تاني';$('go').disabled=false}
+  };
+}
+
+function track(d){
+  mode='track';
+  const who=document.createElement('h2');who.textContent='أهلاً '+(d.name||'');
+  let body='';
+  if(d.before==null)body='<p>طلبك اتسجل. هيظهر هنا الوقت المتوقع أول ما المندوب يبدأ مشواره.</p>';
+  else{
+    body=d.before===0?'<div class="big">أنت اللي جاي</div>':`<div class="big">${d.before} قبلك</div>`;
+    body+=d.eta!=null?`<p>الوقت المتوقع: حوالي <b>${d.eta}</b> دقيقة</p>`:'<p>الوقت المتوقع هيظهر لما موقع المندوب يتحدّث.</p>';
+    if(!d.courier)body+='<p>موقع المندوب هيظهر على الخريطة لما يقرب منك.</p>';
+  }
+  box.innerHTML='';box.appendChild(who);box.insertAdjacentHTML('beforeend',body);
+  if(meM)map.removeLayer(meM);if(drM)map.removeLayer(drM);
+  const pts=[];
+  if(d.me){meM=L.marker([d.me.lat,d.me.lng],{icon:dot('#1b7f4b')}).addTo(map);pts.push([d.me.lat,d.me.lng])}
+  if(d.courier){drM=L.marker([d.courier.lat,d.courier.lng],{icon:dot('#d93025')}).addTo(map);pts.push([d.courier.lat,d.courier.lng])}
+  if(pts.length)map.fitBounds(L.latLngBounds(pts).pad(.3),{maxZoom:16});
+}
+
+async function load(){
+  clearTimeout(timer);
+  if(!T){text('<h2>الرابط ناقص</h2><p>اطلب من المندوب يبعتلك الرابط تاني.</p>');return}
+  try{
+    const r=await fetch(FN+'?t='+encodeURIComponent(T));
+    if(r.status===404){text('<h2>الرابط مش شغال</h2><p>اطلب من المندوب رابط جديد.</p>');return}
+    const d=await r.json();
+    if(d.done){text('<h2>تم التسليم</h2><p>شكرًا لك.</p>');return}
+    if(!d.submitted){if(mode!=='form')form(d.name)}
+    else{track(d);timer=setTimeout(load,15000)}
+  }catch(e){if(mode!=='form'&&mode!=='track')text('<h2>مفيش اتصال</h2><p>جرب تاني بعد شوية.</p>');timer=setTimeout(load,15000)}
+}
+load();
+</script>
+</body>
+</html>
