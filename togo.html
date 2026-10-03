@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ToGo</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<style>
+:root{--bg:#f1f3ef;--ink:#16212b;--blue:#0b57d0;--ok:#1b7f4b;--line:#cfd6cc}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:Tahoma,"Noto Naskh Arabic",system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column}
+#map{flex:0 0 42%;min-height:220px}
+#panel{flex:1;overflow:auto;padding:12px}
+button{font:inherit;border:0;border-radius:8px;padding:11px 14px;background:var(--blue);color:#fff;font-weight:700}
+button.g{background:#fff;color:var(--ink);border:1px solid var(--line)}
+button.ok{background:var(--ok)}
+.row{display:flex;gap:8px;margin:8px 0}.row>*{flex:1}
+#next{background:#fff;border:2px solid var(--blue);border-radius:10px;padding:12px}
+#next h2{margin:0 0 6px;font-size:18px}
+#next p{margin:3px 0}
+.item{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.n{flex:0 0 28px;height:28px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:13px}
+.item div{flex:1;min-width:0}.item small{display:block;color:#566}
+.pin{background:var(--blue);color:#fff;border-radius:50%;width:26px;height:26px;display:grid;place-items:center;font-weight:700;border:2px solid #fff;font-size:12px}
+.pin.first{background:var(--ok);width:32px;height:32px;font-size:15px}
+dialog{width:92%;max-width:420px;border:0;border-radius:12px;padding:14px}
+dialog input,dialog textarea{width:100%;font:inherit;padding:9px;margin:4px 0;border:1px solid var(--line);border-radius:6px}
+#auth input{font:inherit;padding:11px;border:1px solid var(--line);border-radius:8px}
+#msg{color:#b3261e;font-size:13px;min-height:18px}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="panel">
+  <div id="next"></div>
+  <div class="row"><button id="add">+ نقطة جديدة</button><button class="g" id="opt">رتّب من مكاني</button><button class="g" id="out">خروج</button></div>
+  <div id="list"></div>
+</div>
+
+<dialog id="dlg">
+  <b>نقطة جديدة</b>
+  <textarea id="link" rows="2" placeholder="الصق اللوكيشن من واتساب"></textarea>
+  <input id="name" placeholder="اسم العميل">
+  <input id="phone" placeholder="رقم التليفون" inputmode="tel">
+  <input id="ord" placeholder="الأوردر">
+  <input id="addr" placeholder="العنوان">
+  <div class="row"><input id="bld" placeholder="رقم العمارة"><input id="apt" placeholder="رقم الشقة"></div>
+  <div id="msg"></div>
+  <div class="row"><button id="save">حفظ</button><button class="g" id="cancel">إلغاء</button></div>
+</dialog>
+
+<div id="auth" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;padding:24px;flex-direction:column;gap:8px;justify-content:center">
+  <h1>ToGo</h1>
+  <input id="em" type="email" placeholder="الإيميل">
+  <input id="pw" type="password" placeholder="كلمة السر">
+  <input id="nm" placeholder="الاسم (للحساب الجديد بس)">
+  <div class="row"><button id="in">دخول</button><button class="g" id="up">حساب جديد</button></div>
+  <div id="amsg" style="color:#b3261e"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script type="module">
+import {createClient} from 'https://esm.sh/@neondatabase/neon-js';
+const db=createClient({
+  auth:{url:'https://ep-noisy-feather-b72o2ma5.neonauth.c-13.us-east-1.aws.neon.tech/neondb/auth'},
+  dataApi:{url:'https://ep-noisy-feather-b72o2ma5.apirest.c-13.us-east-1.aws.neon.tech/neondb/rest/v1'}
+});
+let S=[], order=[], me=null, geo=null;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const map=L.map('map',{zoomControl:false}).setView([30.05,31.24],11);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+const layer=L.layerGroup().addTo(map); let line=null, meMarker=null;
+
+function parse(t){
+  t=decodeURIComponent(t||'');
+  const r=[/[?&](?:q|ll|query|destination|center)=(-?\d+\.\d+)[, ]+(-?\d+\.\d+)/,/@(-?\d+\.\d+),(-?\d+\.\d+)/,/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/,/(-?\d{1,2}\.\d{3,})\s*,\s*(-?\d{1,3}\.\d{3,})/];
+  for(const x of r){const m=t.match(x);if(m)return{lat:+m[1],lng:+m[2]}}
+  return null;
+}
+const hav=(a,b)=>{const R=6371,d=Math.PI/180,dl=(b.lat-a.lat)*d,dn=(b.lng-a.lng)*d,
+  x=Math.sin(dl/2)**2+Math.cos(a.lat*d)*Math.cos(b.lat*d)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(x))};
+
+function getMe(){return new Promise(res=>{
+  if(!navigator.geolocation)return res(null);
+  navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),()=>res(null),{enableHighAccuracy:true,timeout:8000});
+})}
+
+async function optimize(from){
+  const P=S.filter(s=>!s.done); geo=null;
+  if(!P.length){order=[];return render()}
+  if(!from){from=await getMe()}
+  if(from){me=from}
+  const start=from||P[0];
+  const pts=from?[from,...P]:P;
+  try{
+    const u='https://router.project-osrm.org/trip/v1/driving/'+pts.map(p=>p.lng+','+p.lat).join(';')+'?source=first&roundtrip=false&overview=full&geometries=geojson';
+    const j=await (await fetch(u)).json();
+    if(j.code!=='Ok')throw 0;
+    const off=from?1:0;
+    order=P.map((s,i)=>({s,k:j.waypoints[i+off].waypoint_index})).sort((a,b)=>a.k-b.k).map(o=>o.s.id);
+    geo=j.trips[0].geometry.coordinates.map(c=>[c[1],c[0]]);
+  }catch(e){
+    let cur=start,left=[...P];order=[];
+    while(left.length){left.sort((a,b)=>hav(cur,a)-hav(cur,b));cur=left.shift();order.push(cur.id)}
+    $('next').dataset.warn='1';
+  }
+  render(true);
+}
+
+function render(fit){
+  layer.clearLayers(); if(line){map.removeLayer(line);line=null}
+  const P=order.map(id=>S.find(s=>s.id===id)).filter(Boolean);
+  P.forEach((s,i)=>L.marker([s.lat,s.lng],{icon:L.divIcon({className:'',html:`<div class="pin${i?'':' first'}">${i+1}</div>`,iconSize:[32,32]})}).addTo(layer).bindPopup(esc(s.name||'عميل')));
+  if(me){L.circleMarker([me.lat,me.lng],{radius:8,color:'#fff',weight:3,fillColor:'#d93025',fillOpacity:1}).addTo(layer)}
+  const pts=geo||(me?[[me.lat,me.lng],...P.map(s=>[s.lat,s.lng])]:P.map(s=>[s.lat,s.lng]));
+  if(pts.length>1)line=L.polyline(pts,{color:'#0b57d0',weight:5,opacity:.8}).addTo(map);
+  if(fit&&pts.length)map.fitBounds(L.latLngBounds(pts).pad(.15));
+  const n=P[0];
+  $('next').innerHTML=n?`<h2>الجاية: ${esc(n.name||'عميل')}</h2>
+    ${n.phone?`<p><a href="tel:${esc(n.phone)}">${esc(n.phone)}</a></p>`:''}
+    ${n.ord?`<p><b>الأوردر:</b> ${esc(n.ord)}</p>`:''}
+    <p>${[n.addr,n.bld&&'عمارة '+n.bld,n.apt&&'شقة '+n.apt].filter(Boolean).map(esc).join(' - ')}</p>
+    <div class="row"><button class="ok" onclick="done('${n.id}')">تم التسليم</button><button class="g" onclick="del('${n.id}')">حذف</button></div>`
+    :'<p>مفيش نقاط. ضيف أول نقطة.</p>';
+  $('list').innerHTML=P.slice(1).map((s,i)=>`<div class="item"><span class="n">${i+2}</span><div><b>${esc(s.name||'عميل')}</b><small>${esc(s.ord)} ${esc(s.apt?'شقة '+s.apt:'')}</small></div><button class="g" onclick="del('${s.id}')">حذف</button></div>`).join('');
+}
+
+async function done(id){const s=S.find(x=>x.id===id);const{error}=await db.from('stops').update({done:true,done_at:new Date().toISOString()}).eq('id',id);if(error)return alert('ماتحفظش، جرب تاني');s.done=true;optimize({lat:s.lat,lng:s.lng})}
+async function del(id){if(!confirm('تحذف النقطة؟'))return;const{error}=await db.from('stops').delete().eq('id',id);if(error)return alert('ماتمسحش، جرب تاني');S=S.filter(x=>x.id!==id);optimize(me)}
+window.done=done;window.del=del;
+
+$('add').onclick=()=>{$('msg').textContent='';$('dlg').showModal()};
+$('cancel').onclick=()=>$('dlg').close();
+$('opt').onclick=()=>optimize(null);
+$('save').onclick=async()=>{
+  const c=parse($('link').value);
+  if(!c){$('msg').textContent='مش لاقي إحداثيات في اللينك. استخدم لوكيشن واتساب المباشر، مش اللينك المختصر.';return}
+  const{data,error}=await db.from('stops').insert({customer_name:$('name').value,phone:$('phone').value,order_details:$('ord').value,address:$('addr').value,building:$('bld').value,apartment:$('apt').value,lat:c.lat,lng:c.lng}).select().single();
+  if(error){$('msg').textContent='ماتحفظش: '+error.message;return}
+  S.push(row(data));
+  ['link','name','phone','ord','addr','bld','apt'].forEach(i=>$(i).value='');
+  $('dlg').close();optimize(me);
+};
+const row=r=>({id:r.id,lat:r.lat,lng:r.lng,name:r.customer_name,phone:r.phone,ord:r.order_details,addr:r.address,bld:r.building,apt:r.apartment,done:false});
+async function load(){const{data,error}=await db.from('stops').select('*').eq('done',false);S=error?[]:data.map(row);optimize(null)}
+async function boot(){const{data}=await db.auth.getSession();if(data&&data.session){$('auth').style.display='none';load()}else $('auth').style.display='flex'}
+async function enter(fn){$('amsg').textContent='';const r=await fn();if(r.error){$('amsg').textContent=r.error.message||'فشل';return}boot()}
+$('in').onclick=()=>enter(()=>db.auth.signIn.email({email:$('em').value,password:$('pw').value}));
+$('up').onclick=()=>enter(()=>db.auth.signUp.email({email:$('em').value,password:$('pw').value,name:$('nm').value||$('em').value}));
+$('out').onclick=async()=>{await db.auth.signOut();location.reload()};
+boot();
+</script>
+</body>
+</html>
