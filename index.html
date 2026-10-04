@@ -87,6 +87,15 @@ dialog::backdrop{background:rgba(8,24,38,.5)}
 #toast{position:fixed;z-index:950;inset-inline:12px;top:calc(96px + env(safe-area-inset-top));background:#0d2438;color:#fff;border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
 #toast[hidden]{display:none}
 #toast .ub{background:#12a150;min-height:38px;padding:0 16px;margin-inline-start:auto}
+#shift{border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:12px;background:#f6f9fb}
+#shift input{width:100%;font:inherit;font-size:16px;padding:12px 14px;border:1.5px solid var(--line);border-radius:14px;margin-bottom:8px;background:#fff}
+#shift button{width:100%}
+#shift .row{margin:0}
+.sr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-weight:600}
+.sr span{color:var(--mut);font-weight:500}
+.hint{margin:8px 0 0;font-size:12px;color:var(--mut)}
+#bk h2{margin:0 0 10px;font-size:20px}
+#bk .row{margin:8px 0}
 </style>
 </head>
 <body>
@@ -99,6 +108,7 @@ dialog::backdrop{background:rgba(8,24,38,.5)}
 </div>
 <div id="panel">
   <div id="mid">
+    <div id="shift"></div>
     <div id="bar"></div>
     <div id="next"></div>
     <div id="list"></div>
@@ -112,6 +122,13 @@ dialog::backdrop{background:rgba(8,24,38,.5)}
     </div>
   </div>
 </div>
+
+<dialog id="bk">
+  <h2>مدة الاستراحة</h2>
+  <div class="row"><button class="g" data-m="15">15 دقيقة</button><button class="g" data-m="30">30 دقيقة</button></div>
+  <div class="row"><button class="g" data-m="45">45 دقيقة</button><button class="g" data-m="60">60 دقيقة</button></div>
+  <button class="g" id="bkc" style="width:100%">إلغاء</button>
+</dialog>
 
 <dialog id="cf">
   <h2 id="cft"></h2><p id="cfp"></p>
@@ -283,6 +300,26 @@ function render(fit){
 async function done(id){const s=S.find(x=>x.id===id);const{error}=await db.from('stops').update({done:true,done_at:new Date().toISOString()}).eq('id',id);if(error)return alert('ماتحفظش، جرب تاني');s.done=true;toast('تم تسليم '+(s.name||'العميل'),'تراجع',()=>undo(id));optimize({lat:s.lat,lng:s.lng})}
 async function del(id){const dn=S.find(x=>x.id===id);if(!await ask('حذف النقطة','هتتمسح '+(dn&&dn.name||'النقطة')+' نهائيًا من المسار.','احذف',true))return;const{error}=await db.from('stops').delete().eq('id',id);if(error)return alert('ماتمسحش، جرب تاني');S=S.filter(x=>x.id!==id);optimize(me)}
 window.done=done;window.del=del;
+const brkLeft=()=>work.break_until?Math.max(0,Math.ceil((new Date(work.break_until)-Date.now())/60000)):0;
+async function loadWork(){const{data}=await db.from('courier_state').select('*').eq('courier_id',uid).maybeSingle();if(data)work={working:data.working,break_until:data.break_until,phone:data.phone||''};drawShift()}
+async function setWork(p){Object.assign(work,p);drawShift();const{error}=await db.from('courier_state').upsert({courier_id:uid,working:work.working,break_until:work.break_until,phone:work.phone,updated_at:new Date().toISOString()});if(error)alert('ماتحفظش حالة الشغل، جرب تاني')}
+function pickBreak(){return new Promise(res=>{const d=$('bk');d.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{d.close();res(+b.dataset.m)});$('bkc').onclick=()=>{d.close();res(0)};d.oncancel=()=>res(0);d.showModal()})}
+function drawShift(){
+  const el=$('shift'),b=brkLeft();
+  if(!work.working){
+    el.innerHTML='<input id="myph" inputmode="tel" placeholder="رقم تليفونك اللي هيظهر للعملاء"><button id="st">▶ ابدأ العمل</button><p class="hint">العملاء مش هيشوفوا موقعك ولا الوقت المتوقع قبل ما تبدأ.</p>';
+    $('myph').value=work.phone||'';
+    $('st').onclick=async()=>{const ph=$('myph').value.trim();if(!ph)return alert('اكتب رقم تليفونك الأول عشان العملاء يقدروا يتصلوا بيك');if(!await ask('بدء العمل','العملاء هيبدأوا يشوفوا الوقت المتوقع وموقعك لما تقرب منهم.','ابدأ'))return;setWork({working:true,phone:ph,break_until:null})};
+  }else if(b>0){
+    el.innerHTML=`<div class="sr"><b>☕ في استراحة</b><span>باقي ${b} دقيقة</span></div><button class="g" id="eb">إنهاء الاستراحة</button>`;
+    $('eb').onclick=async()=>{if(await ask('إنهاء الاستراحة','هترجع للشغل ووقت الوصول عند العملاء هيتحدّث.','رجوع للشغل'))setWork({break_until:null})};
+  }else{
+    el.innerHTML='<div class="sr"><b>🟢 شغال</b><span>العملاء شايفينك</span></div><div class="row"><button class="g" id="bkb">☕ استراحة</button><button class="g" id="en">⏹ إنهاء العمل</button></div>';
+    $('bkb').onclick=async()=>{const m=await pickBreak();if(!m)return;if(await ask('استراحة '+m+' دقيقة','المدة دي هتتضاف على وقت الوصول عند كل العملاء.','ابدأ الاستراحة'))setWork({break_until:new Date(Date.now()+m*60000).toISOString()})};
+    $('en').onclick=async()=>{if(await ask('إنهاء العمل','العملاء مش هيشوفوا موقعك ولا الوقت المتوقع بعد كده.','أنهي العمل',true))setWork({working:false,break_until:null})};
+  }
+}
+setInterval(()=>{if(work.working)drawShift()},30000);
 function ask(t,p,ok,danger){return new Promise(res=>{const d=$('cf'),y=$('cfy');$('cft').textContent=t;$('cfp').textContent=p||'';y.textContent=ok||'تأكيد';y.className=danger?'danger':'';y.onclick=()=>{d.close();res(true)};$('cfn').onclick=()=>{d.close();res(false)};d.oncancel=()=>res(false);d.showModal()})}
 let tt=null;
 function toast(msg,label,fn){const T=$('toast');T.hidden=false;T.innerHTML='<span></span><button class="ub"></button>';T.firstChild.textContent=msg;const b=T.querySelector('button');b.textContent=label;b.onclick=()=>{T.hidden=true;clearTimeout(tt);fn()};clearTimeout(tt);tt=setTimeout(()=>{T.hidden=true},8000)}
@@ -309,11 +346,12 @@ $('save').onclick=async()=>{
 const row=r=>({id:r.id,lat:r.lat,lng:r.lng,name:r.customer_name,phone:r.phone,ord:r.order_details,addr:r.address,bld:r.building,apt:r.apartment,done:false});
 async function load(){const{data,error}=await db.from('stops').select('*').eq('done',false);S=error?[]:data.map(row);optimize(null)}
 let uid=null,lastPush=0;
-function live(){if(!navigator.geolocation)return;navigator.geolocation.watchPosition(p=>{onFix(p);if(!uid||Date.now()-lastPush<10000)return;lastPush=Date.now();db.from('courier_live').upsert({courier_id:uid,lat:p.coords.latitude,lng:p.coords.longitude,updated_at:new Date().toISOString()}).then(()=>{})},()=>{},{enableHighAccuracy:true})}
+let work={working:false,break_until:null,phone:''};
+function live(){if(!navigator.geolocation)return;navigator.geolocation.watchPosition(p=>{onFix(p);if(!uid||!work.working||Date.now()-lastPush<10000)return;lastPush=Date.now();db.from('courier_live').upsert({courier_id:uid,lat:p.coords.latitude,lng:p.coords.longitude,updated_at:new Date().toISOString()}).then(()=>{})},()=>{},{enableHighAccuracy:true})}
 setInterval(async()=>{if(!uid)return;const{data}=await db.from('stops').select('*').eq('done',false);if(!data)return;const n=x=>x.filter(s=>s.lat!=null).length;if(n(data)!==n(S)||data.length!==S.length){S=data.map(row);optimize(me)}},20000);
 $('lnk').onclick=async()=>{if(!await ask('رابط عميل جديد','هيتعمل أوردر جديد ورابط خاص بيه، وبعدها تبعته للعميل.','اعمل الرابط'))return;const{data,error}=await db.from('stops').insert({}).select('token').single();if(error)return alert('ماتعملش الرابط، جرب تاني');const u=location.origin+location.pathname.replace(/[^/]*$/,'')+'c.html?'+data.token;S.push(row({id:null,lat:null}));const msg=`السلام عليكم 👋🏼\nمع حضرتك مندوب توصيل أوردر ${COMPANY}.\n\nممكن حضرتك تدخل على الرابط ده وتكتب بياناتك وتحدد موقعك، وتقدر كمان تتابع طلبك وهو في الطريق ليك، وده هيساعدنا نوصلك بسرعة 📍\n\n${u}\n\nشكراً لحضرتك!`;
   try{await navigator.share({text:msg})}catch(e){if(e.name!=='AbortError'){try{await navigator.clipboard.writeText(msg);alert('الرسالة اتنسخت، ابعتها للعميل')}catch(e2){prompt('انسخ الرسالة',msg)}}}load()};
-async function boot(){const{data}=await db.auth.getSession();if(data&&data.session){uid=(data.user||data.session.user||{}).id;$('auth').style.display='none';load();live()}else $('auth').style.display='flex'}
+async function boot(){const{data}=await db.auth.getSession();if(data&&data.session){uid=(data.user||data.session.user||{}).id;$('auth').style.display='none';load();live();loadWork()}else $('auth').style.display='flex'}
 async function enter(fn){$('amsg').textContent='';const r=await fn();if(r.error){$('amsg').textContent=r.error.message||'فشل';return}boot()}
 $('in').onclick=()=>enter(()=>db.auth.signIn.email({email:$('em').value,password:$('pw').value}));
 $('up').onclick=()=>enter(()=>db.auth.signUp.email({email:$('em').value,password:$('pw').value,name:$('nm').value||$('em').value}));

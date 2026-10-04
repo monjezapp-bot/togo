@@ -81,6 +81,7 @@ button:disabled{opacity:.6}
 #sec b{display:block;font-size:15px;margin-bottom:6px}
 #sec div{display:flex;gap:10px;font-size:13px;line-height:1.7;color:var(--mut);margin-top:6px}
 #sec div i{font-style:normal;flex:none}
+.callb{display:flex;align-items:center;justify-content:center;gap:8px;height:50px;border-radius:10px;background:var(--acc);color:#fff;font-weight:600;text-decoration:none;margin-top:14px}
 </style>
 </head>
 <body>
@@ -100,7 +101,17 @@ const T=location.search.replace(/^\?(t=)?/,'');
 const $=id=>document.getElementById(id), sh=$('sheet');
 maplibregl.setRTLTextPlugin('https://cdn.jsdelivr.net/npm/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js',true);
 const map=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/liberty',center:[31.24,30.05],zoom:11,attributionControl:{compact:true}});
-map.on('load',()=>map.getStyle().layers.forEach(l=>{if(l.type==='symbol'&&l.layout&&l.layout['text-field'])map.setLayoutProperty(l.id,'text-field',['coalesce',['get','name:ar'],['get','name']])}));
+let lineC=null;
+const EMPTY={type:'FeatureCollection',features:[]};
+function drawLine(){const s=map.getSource('line');if(s)s.setData(lineC&&lineC.length>1?{type:'Feature',geometry:{type:'LineString',coordinates:lineC}}:EMPTY)}
+map.on('load',()=>{
+  map.getStyle().layers.forEach(l=>{if(l.type==='symbol'&&l.layout&&l.layout['text-field'])map.setLayoutProperty(l.id,'text-field',['coalesce',['get','name:ar'],['get','name']])});
+  map.addSource('line',{type:'geojson',data:EMPTY});
+  const lay={'line-cap':'round','line-join':'round'};
+  map.addLayer({id:'line-case',type:'line',source:'line',layout:lay,paint:{'line-color':'#0a3f8f','line-width':12}});
+  map.addLayer({id:'line',type:'line',source:'line',layout:lay,paint:{'line-color':'#3aa0ff','line-width':7}});
+  drawLine();
+});
 const el=(ic,c)=>{const e=document.createElement('div');e.className='m '+(c||'');e.textContent=ic;return e};
 let meM=null,drM=null,timer=null,mode='';
 function msg(h,p){sh.innerHTML=`<h2>${h}</h2><p>${p}</p>`}
@@ -141,9 +152,10 @@ function track(d){
   const names=['تم استلام الطلب','في الطريق','قريب منك','تم التسليم'];
   const steps='<div class="steps">'+names.map((n,i)=>`<div class="st ${i<stage?'dn':i===stage?'on':''}"><i></i>${n}</div>`).join('')+'</div>';
   const pct=d.before==null?6:Math.max(10,Math.min(90,92-d.before*14));
-  let h=`<div class="hero"><span class="chip">${names[stage]}</span>`;
+  let h=`<div class="hero"><span class="chip">${d.brk?'المندوب في استراحة':names[stage]}</span>`;
   if(d.before==null)h+=`<div class="big2">تم تسجيل طلبك</div><div class="sub">سيظهر وقت الوصول فور بدء المندوب رحلة التوصيل.</div>`;
   else h+=d.eta!=null?`<div class="eta"><b>${d.eta}</b><span>دقيقة · الوصول المتوقع</span></div>`:`<div class="big2">جارٍ حساب وقت الوصول</div>`;
+  if(d.brk)h+=`<div class="sub" style="margin-top:8px">المندوب في استراحة قصيرة (حوالي ${d.brk} دقيقة)، وتم احتسابها ضمن وقت الوصول.</div>`;
   h+=`<div class="jour"><i style="inset-inline-start:${pct}%"><u>🛵</u></i><s>🏠</s></div></div>`;
   h+=steps+'<div class="info"></div>';
   sh.innerHTML=h;
@@ -155,6 +167,8 @@ function track(d){
   const box=sh.querySelector('.info');
   rows.forEach(([k,v])=>{const r=document.createElement('div'),a=document.createElement('span'),b=document.createElement('b');a.textContent=k;b.textContent=v;r.append(a,b);box.append(r)});
   if(!rows.length)box.remove();
+  if(d.phone){const a=document.createElement('a');a.className='callb';a.href='tel:'+String(d.phone).replace(/[^\d+]/g,'');a.textContent='📞 اتصال بالمندوب';sh.append(a)}
+  lineC=d.line||null;drawLine();
   if(meM)meM.remove();if(drM)drM.remove();
   const pts=[];
   if(d.me){meM=new maplibregl.Marker({element:el('🏠','me')}).setLngLat([d.me.lng,d.me.lat]).addTo(map);pts.push([d.me.lng,d.me.lat])}
