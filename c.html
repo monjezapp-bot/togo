@@ -3,42 +3,53 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>تتبّع طلبك | ToGo</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap">
+<title>تتبّع الطلب | ToGo</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
 <style>
-:root{--ink:#0d2438;--mut:#5d7183;--brand:#00a389;--org:#ff7a1a;--line:#dbe4ea;--bg:#eef3f6}
+:root{--ink:#0b1f33;--mut:#64778a;--acc:#0a7d6e;--accbg:#e7f3f1;--line:#e3e9ee;--bg:#f4f7f9;--org:#e8590c}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0}
-body{font-family:Cairo,Tahoma,system-ui,sans-serif;color:var(--ink);background:var(--bg);overflow:hidden}
+body{font-family:"IBM Plex Sans Arabic",Tahoma,system-ui,sans-serif;color:var(--ink);background:var(--bg);overflow:hidden;font-variant-numeric:tabular-nums}
 #map{position:fixed;inset:0;isolation:isolate}
-#top{position:fixed;top:0;inset-inline:0;z-index:600;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;display:flex;align-items:center;gap:8px;background:linear-gradient(#fff,rgba(255,255,255,0))}
-#top b{font-size:20px;font-weight:800;letter-spacing:.2px}
-#top i{font-style:normal;background:var(--brand);color:#fff;border-radius:8px;padding:0 8px;font-weight:800}
-#sheet{position:fixed;inset-inline:0;bottom:0;z-index:700;background:#fff;border-radius:24px 24px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(13,36,56,.18);max-height:78vh;overflow:auto}
-h2{margin:0 0 4px;font-size:21px;font-weight:800}
-p{margin:4px 0;color:var(--mut);line-height:1.7}
-label{display:block;font-size:13px;font-weight:600;margin:10px 0 4px}
-input{width:100%;font:inherit;font-size:16px;padding:0 14px;height:50px;border:1.5px solid var(--line);border-radius:14px;background:#fff;color:var(--ink)}
-input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(0,163,137,.18)}
-button{width:100%;font:inherit;font-weight:800;border:0;border-radius:14px;height:52px;background:var(--brand);color:#fff;font-size:17px;margin-top:12px}
-button.g{background:#eef3f6;color:var(--ink);font-weight:600;height:46px;margin-top:0}
+#top{position:fixed;top:0;inset-inline:0;z-index:600;display:flex;align-items:center;justify-content:space-between;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--ink);color:#fff}
+#top b{font-size:19px;font-weight:700;letter-spacing:.3px}
+#top b i{font-style:normal;color:#5fd3bf}
+#top span{font-size:12px;color:#9fb3c4;font-weight:500}
+#sheet{position:fixed;inset-inline:0;bottom:0;z-index:700;background:#fff;border-radius:20px 20px 0 0;padding:20px 18px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -10px 30px rgba(11,31,51,.16);max-height:80vh;overflow:auto}
+h2{margin:0 0 4px;font-size:20px;font-weight:700}
+p{margin:4px 0;color:var(--mut);line-height:1.8;font-size:14px}
+.sec{font-size:12px;font-weight:600;color:var(--mut);letter-spacing:.2px;margin:16px 0 2px}
+label{display:block;font-size:13px;font-weight:500;margin:10px 0 5px}
+input{width:100%;font:inherit;font-size:16px;padding:0 14px;height:50px;border:1px solid #cfd8e0;border-radius:10px;background:#fff;color:var(--ink)}
+input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(10,125,110,.16)}
+button{width:100%;font:inherit;font-weight:600;border:0;border-radius:10px;height:52px;background:var(--acc);color:#fff;font-size:16px;margin-top:14px}
+button.g{background:#fff;color:var(--ink);border:1px solid #cfd8e0;height:46px;margin-top:10px;font-weight:500}
 button:disabled{opacity:.6}
 .row{display:flex;gap:10px}.row>div{flex:1}
-.err{color:#c0392b;min-height:20px;font-size:14px;margin-top:6px}
-.safe{font-size:13px;color:var(--mut);display:flex;gap:6px;align-items:center;margin:2px 0 6px}
-#pin{position:fixed;left:50%;top:calc(50% - 150px);z-index:650;width:0;pointer-events:none;display:none}
-#pin span{position:absolute;left:-17px;top:-44px;width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--brand);border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.3)}
-.chip{display:inline-block;background:#e6f7f3;color:#007a66;font-weight:800;font-size:13px;border-radius:99px;padding:4px 12px}
-.eta{font-size:46px;font-weight:800;line-height:1.1;margin:6px 0 0}
-.eta small{font-size:18px;font-weight:600;color:var(--mut)}
-.track{display:flex;align-items:center;margin:16px 4px 8px}
-.track .d{width:14px;height:14px;border-radius:50%;background:var(--line);flex:none}
-.track .l{flex:1;height:3px;background:var(--line)}
-.track .d.c{background:var(--org);box-shadow:0 0 0 4px rgba(255,122,26,.2)}
-.track .d.h{width:26px;height:26px;background:var(--brand);display:grid;place-items:center;font-size:13px}
+.err{color:#c0392b;min-height:20px;font-size:13px;margin-top:8px}
+.safe{font-size:12px;color:var(--mut);margin-top:12px;text-align:center}
+#pin{position:fixed;left:50%;top:calc(50% - 130px);z-index:650;width:0;pointer-events:none;display:none}
+#pin span{position:absolute;left:-16px;top:-42px;width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--acc);border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.3)}
+.chip{display:inline-block;background:var(--accbg);color:var(--acc);font-weight:600;font-size:12px;border-radius:6px;padding:3px 10px}
+.eta{display:flex;align-items:baseline;gap:8px;margin:10px 0 2px}
+.eta b{font-size:48px;font-weight:700;line-height:1}
+.eta span{font-size:16px;color:var(--mut)}
+.lab{font-size:12px;color:var(--mut);font-weight:500}
+.steps{display:flex;margin:18px 0 6px}
+.st{flex:1;text-align:center;position:relative;font-size:11px;color:var(--mut);font-weight:500}
+.st::before{content:"";position:absolute;top:9px;inset-inline:-50% 50%;height:2px;background:var(--line)}
+.st:first-child::before{display:none}
+.st i{position:relative;z-index:1;display:block;width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid var(--line);margin:0 auto 6px}
+.st.on{color:var(--ink);font-weight:600}.st.on::before,.st.dn::before{background:var(--acc)}
+.st.dn i{background:var(--acc);border-color:var(--acc)}
+.st.on i{border-color:var(--acc);box-shadow:0 0 0 4px rgba(10,125,110,.18)}
+.info{border:1px solid var(--line);border-radius:12px;margin-top:14px}
+.info div{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;font-size:14px}
+.info div+div{border-top:1px solid var(--line)}
+.info span{color:var(--mut)}.info b{font-weight:600;text-align:left}
 .m{position:relative;width:34px;height:34px;border-radius:50%;background:#fff;border:3px solid var(--org);display:grid;place-items:center;font-size:17px;box-shadow:0 3px 10px rgba(0,0,0,.3)}
-.m.me{border-color:var(--brand)}
+.m.me{border-color:var(--acc)}
 .m.live::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:2px solid var(--org);animation:p 1.8s ease-out infinite}
 @keyframes p{from{transform:scale(1);opacity:.8}to{transform:scale(1.9);opacity:0}}
 @media (prefers-reduced-motion:reduce){.m.live::after{animation:none}}
@@ -46,83 +57,87 @@ button:disabled{opacity:.6}
 </head>
 <body>
 <div id="map"></div>
-<div id="top"><b>To<i>Go</i></b></div>
+<div id="top"><b>To<i>Go</i></b><span>تتبّع الطلب</span></div>
 <div id="pin"><span></span></div>
 <div id="sheet"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
 const FN='https://br-polished-fire-b7bwdesx-customer.compute.c-13.us-east-1.aws.neon.tech/';
-const T=new URLSearchParams(location.search).get('t')||'';
+const T=location.search.replace(/^\?(t=)?/,'');
 const $=id=>document.getElementById(id), sh=$('sheet');
-const map=L.map('map',{zoomControl:false,attributionControl:false}).setView([30.05,31.24],12);
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
-L.control.attribution({prefix:false,position:'bottomleft'}).addAttribution('© OpenStreetMap').addTo(map);
-const mk=(ic,c)=>L.divIcon({className:'',html:`<div class="m ${c||''}">${ic}</div>`,iconSize:[34,34],iconAnchor:[17,17]});
+maplibregl.setRTLTextPlugin('https://cdn.jsdelivr.net/npm/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js',true);
+const map=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/liberty',center:[31.24,30.05],zoom:11,attributionControl:{compact:true}});
+map.on('load',()=>map.getStyle().layers.forEach(l=>{if(l.type==='symbol'&&l.layout&&l.layout['text-field'])map.setLayoutProperty(l.id,'text-field',['coalesce',['get','name:ar'],['get','name']])}));
+const el=(ic,c)=>{const e=document.createElement('div');e.className='m '+(c||'');e.textContent=ic;return e};
 let meM=null,drM=null,timer=null,mode='';
-
 function msg(h,p){sh.innerHTML=`<h2>${h}</h2><p>${p}</p>`}
 
 function form(name){
   mode='form';$('pin').style.display='block';
-  sh.innerHTML=`<span class="chip">خطوة واحدة</span>
-  <h2 style="margin-top:8px">حدد مكان التسليم</h2>
-  <p>حرّك الخريطة لحد ما الدبوس يبقى على باب بيتك.</p>
-  <button class="g" id="loc" style="margin-top:8px">📍 استخدم موقعي الحالي</button>
+  sh.innerHTML=`<span class="chip">تأكيد بيانات التوصيل</span>
+  <h2 style="margin-top:8px">حدّد موقع التسليم</h2>
+  <p>حرّك الخريطة حتى يستقر الدبوس على مدخل المبنى.</p>
+  <button class="g" id="loc">استخدام موقعي الحالي</button>
+  <div class="sec">بيانات التواصل</div>
   <label>الاسم</label><input id="n" autocomplete="name">
-  <label>رقم التليفون</label><input id="p" inputmode="tel" autocomplete="tel">
-  <label>العنوان</label><input id="a" autocomplete="street-address">
-  <div class="row"><div><label>رقم العمارة</label><input id="b"></div><div><label>رقم الشقة</label><input id="f"></div></div>
+  <label>رقم الهاتف</label><input id="p" inputmode="tel" autocomplete="tel">
+  <div class="sec">العنوان</div>
+  <label>العنوان بالتفصيل</label><input id="a" autocomplete="street-address">
+  <div class="row"><div><label>رقم المبنى</label><input id="b"></div><div><label>رقم الشقة</label><input id="f"></div></div>
   <div class="err" id="e"></div>
-  <div class="safe">🔒 بياناتك بتوصل للمندوب اللي هيسلّمك طلبك بس.</div>
-  <button id="go">تأكيد الطلب</button>`;
+  <button id="go">تأكيد الطلب</button>
+  <div class="safe">تُشارَك بياناتك مع المندوب المسؤول عن توصيل طلبك فقط.</div>`;
   $('n').value=name||'';
-  $('loc').onclick=()=>navigator.geolocation.getCurrentPosition(p=>map.setView([p.coords.latitude,p.coords.longitude],18),()=>$('e').textContent='مقدرناش نحدد موقعك. حرّك الخريطة بإيدك.',{enableHighAccuracy:true,timeout:8000});
+  $('loc').onclick=()=>navigator.geolocation.getCurrentPosition(p=>map.easeTo({center:[p.coords.longitude,p.coords.latitude],zoom:18}),()=>$('e').textContent='تعذّر تحديد موقعك. حرّك الخريطة يدويًا.',{enableHighAccuracy:true,timeout:8000});
   $('go').onclick=async()=>{
     const c=map.getCenter(),v=i=>$(i).value.trim();
-    if(!v('n')||!v('a')){$('e').textContent='اكتب الاسم والعنوان.';return}
-    if(map.getZoom()<15){$('e').textContent='قرّب الخريطة أكتر عشان نظبط المكان.';return}
+    if(!v('n')||!v('a')){$('e').textContent='يرجى إدخال الاسم والعنوان.';return}
+    if(map.getZoom()<15){$('e').textContent='يرجى تقريب الخريطة لتحديد الموقع بدقة.';return}
     $('go').disabled=true;
     try{
       const r=await fetch(FN,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({t:T,name:v('n'),phone:v('p'),address:v('a'),building:v('b'),apartment:v('f'),lat:c.lat,lng:c.lng})});
       if(!(await r.json()).ok)throw 0;
       $('pin').style.display='none';load();
-    }catch(e){$('e').textContent='حصلت مشكلة، جرّب تاني.';$('go').disabled=false}
+    }catch(e){$('e').textContent='حدث خطأ. يرجى المحاولة مرة أخرى.';$('go').disabled=false}
   };
 }
 
 function track(d){
   mode='track';$('pin').style.display='none';
-  let h=`<span class="chip">${d.courier?'المندوب في الطريق':'طلبك اتسجّل'}</span>`;
-  if(d.before==null){
-    h+=`<h2 style="margin-top:8px">أهلاً <span id="nm"></span></h2><p>هيظهر هنا الوقت المتوقع أول ما المندوب يبدأ مشواره.</p>`;
-  }else{
-    h+=d.eta!=null?`<div class="eta">${d.eta} <small>دقيقة تقريبًا</small></div>`:`<div class="eta" style="font-size:30px">جاري حساب الوقت</div>`;
-    const n=Math.min(d.before,4);
-    let t='<div class="track"><span class="d c"></span>';
-    for(let i=0;i<n;i++)t+='<span class="l"></span><span class="d"></span>';
-    t+='<span class="l"></span><span class="d h">🏠</span></div>';
-    h+=t+`<p>${d.before===0?'أنت أول واحد في الدور.':`قدامك ${d.before} ${d.before<=2?'نقطة':'نقط'} قبل ما يوصلك.`}</p>`;
-    if(!d.courier)h+='<p>هتشوف المندوب على الخريطة لما يقرّب منك.</p>';
-  }
-  sh.innerHTML=h;if($('nm'))$('nm').textContent=d.name||'';
-  if(meM)map.removeLayer(meM);if(drM)map.removeLayer(drM);
+  const stage=d.before==null?0:(d.before<=3?2:1);
+  const names=['تم استلام الطلب','في الطريق','قريب منك','تم التسليم'];
+  const steps='<div class="steps">'+names.map((n,i)=>`<div class="st ${i<stage?'dn':i===stage?'on':''}"><i></i>${n}</div>`).join('')+'</div>';
+  let h=`<span class="chip">${names[stage]}</span>`;
+  if(d.before==null)h+=`<h2 style="margin-top:8px">تم تسجيل طلبك</h2><p>سيظهر وقت الوصول المتوقع فور بدء المندوب رحلة التوصيل.</p>`;
+  else h+=d.eta!=null?`<div class="eta"><b>${d.eta}</b><span>دقيقة · الوصول المتوقع</span></div>`:`<h2 style="margin-top:8px">جارٍ حساب وقت الوصول</h2>`;
+  h+=steps+'<div class="info"></div>';
+  sh.innerHTML=h;
+  const rows=[];
+  if(d.before!=null)rows.push(['عدد التوقفات قبلك',d.before===0?'أنت التالي':String(d.before)]);
+  if(d.name)rows.push(['الاسم',d.name]);
+  const ad=[d.addr,d.bld&&'مبنى '+d.bld,d.apt&&'شقة '+d.apt].filter(Boolean).join('، ');
+  if(ad)rows.push(['عنوان التسليم',ad]);
+  const box=sh.querySelector('.info');
+  rows.forEach(([k,v])=>{const r=document.createElement('div'),a=document.createElement('span'),b=document.createElement('b');a.textContent=k;b.textContent=v;r.append(a,b);box.append(r)});
+  if(!rows.length)box.remove();
+  if(meM)meM.remove();if(drM)drM.remove();
   const pts=[];
-  if(d.me){meM=L.marker([d.me.lat,d.me.lng],{icon:mk('🏠','me')}).addTo(map);pts.push([d.me.lat,d.me.lng])}
-  if(d.courier){drM=L.marker([d.courier.lat,d.courier.lng],{icon:mk('🛵','live')}).addTo(map);pts.push([d.courier.lat,d.courier.lng])}
-  if(pts.length)map.fitBounds(L.latLngBounds(pts),{paddingTopLeft:[40,80],paddingBottomRight:[40,Math.round(sh.offsetHeight)+30],maxZoom:17});
+  if(d.me){meM=new maplibregl.Marker({element:el('🏠','me')}).setLngLat([d.me.lng,d.me.lat]).addTo(map);pts.push([d.me.lng,d.me.lat])}
+  if(d.courier){drM=new maplibregl.Marker({element:el('🛵','live')}).setLngLat([d.courier.lng,d.courier.lat]).addTo(map);pts.push([d.courier.lng,d.courier.lat])}
+  if(pts.length){const b=pts.reduce((x,c)=>x.extend(c),new maplibregl.LngLatBounds(pts[0],pts[0]));map.fitBounds(b,{padding:{top:90,bottom:Math.round(sh.offsetHeight)+30,left:40,right:40},maxZoom:17,duration:600})}
 }
 
 async function load(){
   clearTimeout(timer);
-  if(!T){msg('الرابط ناقص','اطلب من المندوب يبعتلك الرابط تاني.');return}
+  if(!T){msg('الرابط غير مكتمل','يرجى طلب الرابط من المندوب مرة أخرى.');return}
   try{
     const r=await fetch(FN+'?t='+encodeURIComponent(T));
-    if(r.status===404){msg('الرابط ده مش شغال','اطلب من المندوب رابط جديد.');return}
+    if(r.status===404){msg('الرابط غير صالح','يرجى طلب رابط جديد من المندوب.');return}
     const d=await r.json();
-    if(d.done){$('pin').style.display='none';msg('تم التسليم ✅','شكرًا لك، نتمنى تكون الخدمة عجبتك.');return}
+    if(d.done){$('pin').style.display='none';msg('تم تسليم الطلب','شكرًا لاختيارك خدمتنا.');return}
     if(!d.submitted){if(mode!=='form')form(d.name)}
     else{track(d);timer=setTimeout(load,15000)}
-  }catch(e){if(!mode)msg('مفيش اتصال','اتأكد من النت وجرّب تاني.');timer=setTimeout(load,15000)}
+  }catch(e){if(!mode)msg('لا يوجد اتصال','يرجى التحقق من الإنترنت والمحاولة مجددًا.');timer=setTimeout(load,15000)}
 }
 load();
 </script>
