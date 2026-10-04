@@ -11,8 +11,9 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0}
 body{font-family:Cairo,Tahoma,system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column}
-#map{flex:0 0 46%;min-height:230px;isolation:isolate}
-#panel{flex:1;overflow:auto;padding:16px 16px calc(16px + env(safe-area-inset-bottom));background:#fff;margin-top:-22px;border-radius:24px 24px 0 0;position:relative;z-index:500;box-shadow:0 -8px 28px rgba(13,36,56,.14)}
+#mw{flex:1;min-height:220px;position:relative}
+#map{position:absolute;inset:0;isolation:isolate}
+#panel{flex:0 0 auto;max-height:46vh;display:flex;flex-direction:column;padding:16px 16px calc(16px + env(safe-area-inset-bottom));background:#fff;margin-top:-22px;border-radius:24px 24px 0 0;position:relative;z-index:500;box-shadow:0 -8px 28px rgba(13,36,56,.14)}
 button{font:inherit;font-weight:800;border:0;border-radius:14px;padding:0 14px;min-height:48px;background:var(--brand);color:#fff}
 button.g{background:var(--bg);color:var(--ink);font-weight:600}
 button.ok{background:var(--brand)}
@@ -45,22 +46,35 @@ dialog input:focus,dialog textarea:focus,#auth input:focus{outline:none;border-c
 #turn .tx{flex:1;min-width:0}
 #turn .dd{font-size:22px;font-weight:800}
 #turn .st{font-size:20px;color:#c9d6e0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fab{position:fixed;z-index:800;inset-inline-start:12px;top:calc(46vh - 70px);width:50px;min-height:50px;height:50px;border-radius:50%;background:#fff;color:var(--ink);box-shadow:0 3px 12px rgba(0,0,0,.3);font-size:22px;padding:0}
+.fab{position:absolute;z-index:800;inset-inline-start:12px;bottom:36px;width:50px;min-height:50px;height:50px;border-radius:50%;background:#fff;color:var(--ink);box-shadow:0 3px 12px rgba(0,0,0,.3);font-size:22px;padding:0}
 #bar{display:flex;align-items:baseline;gap:10px;margin:0 2px 12px}
 #bar b{font-size:26px;font-weight:800}
 #bar span{color:var(--mut)}
+#mid{flex:1;min-height:0;overflow:auto}
+#acts{padding-top:10px}
+#acts>button{width:100%;min-height:54px;font-size:17px}
+#acts .row{margin:8px 0 0}
+#acts .row button{white-space:nowrap;font-size:14px;min-height:46px;padding:0 6px}
+.fab.on{background:#2f7df6;color:#fff}
 </style>
 </head>
 <body>
-<div id="map"></div>
 <div id="turn" hidden></div>
-<button class="fab" id="nav">🧭</button>
-<button class="fab" id="loc" style="top:calc(46vh - 130px);color:#2f7df6;font-size:28px">◎</button>
+<div id="mw">
+  <div id="map"></div>
+  <button class="fab" id="nav">🧭</button>
+  <button class="fab" id="loc" style="bottom:96px;color:#2f7df6;font-size:28px">◎</button>
+</div>
 <div id="panel">
-  <div id="bar"></div>
-  <div id="next"></div>
-  <div class="row"><button id="add">+ نقطة جديدة</button><button class="g" id="opt">رتّب من مكاني</button><button class="g" id="lnk">رابط عميل</button><button class="g" id="out">خروج</button></div>
-  <div id="list"></div>
+  <div id="mid">
+    <div id="bar"></div>
+    <div id="next"></div>
+    <div id="list"></div>
+  </div>
+  <div id="acts">
+    <button id="add">+ نقطة جديدة</button>
+    <div class="row"><button class="g" id="opt">رتّب من مكاني</button><button class="g" id="lnk">رابط عميل</button><button class="g" id="out">خروج</button></div>
+  </div>
 </div>
 
 <dialog id="dlg">
@@ -95,6 +109,7 @@ let S=[], order=[], me=null, geo=null;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
+maplibregl.setRTLTextPlugin('https://cdn.jsdelivr.net/npm/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js',true);
 const map=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/liberty',center:[31.24,30.05],zoom:11,attributionControl:{compact:true}});
 let mk=[],meMk=null,ready=false,follow=false,leg=null,legAt=0;
 const emptyFC={type:'FeatureCollection',features:[]};
@@ -239,9 +254,9 @@ async function boot(){const{data}=await db.auth.getSession();if(data&&data.sessi
 async function enter(fn){$('amsg').textContent='';const r=await fn();if(r.error){$('amsg').textContent=r.error.message||'فشل';return}boot()}
 $('in').onclick=()=>enter(()=>db.auth.signIn.email({email:$('em').value,password:$('pw').value}));
 $('up').onclick=()=>enter(()=>db.auth.signUp.email({email:$('em').value,password:$('pw').value,name:$('nm').value||$('em').value}));
-$('nav').onclick=()=>{follow=!follow;$('nav').textContent=follow?'🗺️':'🧭';if(follow&&me)map.easeTo({center:[me.lng,me.lat],zoom:16.5,pitch:50,duration:800});else{map.easeTo({pitch:0,bearing:0});render(true)}};
+$('nav').onclick=()=>{follow=!follow;$('nav').textContent=follow?'🗺️':'🧭';$('nav').classList.toggle('on',follow);if(follow&&me)map.easeTo({center:[me.lng,me.lat],zoom:16.5,pitch:50,duration:800});else{map.easeTo({pitch:0,bearing:0});render(true)}};
 $('loc').onclick=()=>{if(!me)return alert('لسه مستني إشارة الـ GPS، اتأكد إن الموقع شغال');map.easeTo({center:[me.lng,me.lat],zoom:Math.max(map.getZoom(),16),duration:700})};
-map.on('dragstart',e=>{if(e.originalEvent&&follow){follow=false;$('nav').textContent='🧭'}});
+map.on('dragstart',e=>{if(e.originalEvent&&follow){follow=false;$('nav').textContent='🧭';$('nav').classList.remove('on')}});
 $('out').onclick=async()=>{await db.auth.signOut();location.reload()};
 boot();
 </script>
