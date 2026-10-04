@@ -53,13 +53,46 @@ button:disabled{opacity:.6}
 .m.live::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:2px solid var(--org);animation:p 1.8s ease-out infinite}
 @keyframes p{from{transform:scale(1);opacity:.8}to{transform:scale(1.9);opacity:0}}
 @media (prefers-reduced-motion:reduce){.m.live::after{animation:none}}
+#sheet::before{content:"";display:block;width:42px;height:4px;border-radius:4px;background:#d5dde4;margin:-10px auto 14px}
+#sheet.min .steps,#sheet.min .info{display:none}
+.hero{background:linear-gradient(135deg,#0b1f33 0%,#0a4d57 100%);color:#fff;border-radius:18px;padding:16px 16px 18px}
+.hero .chip{background:rgba(255,255,255,.14);color:#9ff0dd}
+.hero .eta b{color:#fff;font-size:54px}
+.hero .eta span{color:#a9c4d6}
+.big2{font-size:20px;font-weight:700;margin:10px 0 2px}
+.sub{font-size:13px;color:#a9c4d6;line-height:1.7}
+.jour{position:relative;height:30px;margin-top:16px}
+.jour::before{content:"";position:absolute;inset-inline:14px;top:14px;height:3px;border-radius:3px;background:rgba(255,255,255,.2)}
+.jour i{position:absolute;top:0;transform:translateX(50%);transition:inset-inline-start 1.2s ease}
+.jour i u{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#fff;font-size:16px;text-decoration:none;box-shadow:0 0 0 5px rgba(95,211,191,.35)}
+.jour s{position:absolute;inset-inline-end:0;top:2px;text-decoration:none;font-size:20px}
+.ok{text-align:center;padding:10px 0 4px}
+.ok svg{width:78px;height:78px;fill:none;stroke:var(--acc);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.ok circle{stroke-dasharray:152;stroke-dashoffset:152;animation:dr .7s ease forwards}
+.ok path{stroke-dasharray:40;stroke-dashoffset:40;animation:dr .5s .6s ease forwards}
+@keyframes dr{to{stroke-dashoffset:0}}
+.sk{height:18px;border-radius:8px;margin:12px 0;background:linear-gradient(90deg,#eef2f5,#f8fafb,#eef2f5);background-size:200% 100%;animation:sh 1.2s linear infinite}
+.sk.s2{width:60%;height:56px}
+@keyframes sh{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.sk,.ok circle,.ok path{animation:none;stroke-dashoffset:0}}
+.lock{width:auto;height:30px;margin:0;padding:0 12px;border-radius:99px;background:rgba(255,255,255,.12);color:#cfeee8;font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,.22)}
+.lock[hidden],#sec[hidden]{display:none}
+#sec{position:fixed;z-index:900;top:calc(60px + env(safe-area-inset-top));inset-inline:12px;background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 12px 32px rgba(11,31,51,.3)}
+#sec b{display:block;font-size:15px;margin-bottom:6px}
+#sec div{display:flex;gap:10px;font-size:13px;line-height:1.7;color:var(--mut);margin-top:6px}
+#sec div i{font-style:normal;flex:none}
 </style>
 </head>
 <body>
 <div id="map"></div>
-<div id="top"><b>To<i>Go</i></b><span>تتبّع الطلب</span></div>
+<div id="top"><b>To<i>Go</i></b><button class="lock" id="lk">🔒 اتصال آمن</button></div>
+<div id="sec" hidden><b>صفحة آمنة</b>
+<div><i>🔐</i><span>الاتصال بهذه الصفحة مشفّر (HTTPS)، فلا يستطيع أحد قراءة بياناتك أثناء إرسالها.</span></div>
+<div><i>🔗</i><span>هذا الرابط خاص بطلبك وحده، ولا يعرض بيانات أي عميل آخر.</span></div>
+<div><i>👤</i><span>تصل بياناتك إلى المندوب المسؤول عن توصيل طلبك فقط.</span></div>
+<div><i>🚫</i><span>لا تطلب هذه الصفحة أي بيانات دفع أو كلمة سر.</span></div></div>
 <div id="pin"><span></span></div>
-<div id="sheet"></div>
+<div id="sheet"><div class="sk"></div><div class="sk s2"></div><div class="sk"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
 const FN='https://br-polished-fire-b7bwdesx-customer.compute.c-13.us-east-1.aws.neon.tech/';
@@ -107,9 +140,11 @@ function track(d){
   const stage=d.before==null?0:(d.before<=3?2:1);
   const names=['تم استلام الطلب','في الطريق','قريب منك','تم التسليم'];
   const steps='<div class="steps">'+names.map((n,i)=>`<div class="st ${i<stage?'dn':i===stage?'on':''}"><i></i>${n}</div>`).join('')+'</div>';
-  let h=`<span class="chip">${names[stage]}</span>`;
-  if(d.before==null)h+=`<h2 style="margin-top:8px">تم تسجيل طلبك</h2><p>سيظهر وقت الوصول المتوقع فور بدء المندوب رحلة التوصيل.</p>`;
-  else h+=d.eta!=null?`<div class="eta"><b>${d.eta}</b><span>دقيقة · الوصول المتوقع</span></div>`:`<h2 style="margin-top:8px">جارٍ حساب وقت الوصول</h2>`;
+  const pct=d.before==null?6:Math.max(10,Math.min(90,92-d.before*14));
+  let h=`<div class="hero"><span class="chip">${names[stage]}</span>`;
+  if(d.before==null)h+=`<div class="big2">تم تسجيل طلبك</div><div class="sub">سيظهر وقت الوصول فور بدء المندوب رحلة التوصيل.</div>`;
+  else h+=d.eta!=null?`<div class="eta"><b>${d.eta}</b><span>دقيقة · الوصول المتوقع</span></div>`:`<div class="big2">جارٍ حساب وقت الوصول</div>`;
+  h+=`<div class="jour"><i style="inset-inline-start:${pct}%"><u>🛵</u></i><s>🏠</s></div></div>`;
   h+=steps+'<div class="info"></div>';
   sh.innerHTML=h;
   const rows=[];
@@ -134,11 +169,13 @@ async function load(){
     const r=await fetch(FN+'?t='+encodeURIComponent(T));
     if(r.status===404){msg('الرابط غير صالح','يرجى طلب رابط جديد من المندوب.');return}
     const d=await r.json();
-    if(d.done){$('pin').style.display='none';msg('تم تسليم الطلب','شكرًا لاختيارك خدمتنا.');return}
+    if(d.done){$('pin').style.display='none';sh.innerHTML='<div class="ok"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24"/><path d="M14 27l8 8 16-17"/></svg><h2>تم تسليم الطلب</h2><p>شكرًا لاختيارك خدمتنا.</p></div>';return}
     if(!d.submitted){if(mode!=='form')form(d.name)}
     else{track(d);timer=setTimeout(load,15000)}
   }catch(e){if(!mode)msg('لا يوجد اتصال','يرجى التحقق من الإنترنت والمحاولة مجددًا.');timer=setTimeout(load,15000)}
 }
+sh.addEventListener('click',e=>{if(e.clientY-sh.getBoundingClientRect().top<30)sh.classList.toggle('min')});
+(function(){const b=$('lk');if(location.protocol!=='https:'){b.hidden=true;return}b.onclick=e=>{e.stopPropagation();$('sec').hidden=!$('sec').hidden};document.addEventListener('click',()=>{$('sec').hidden=true})})();
 load();
 </script>
 </body>
