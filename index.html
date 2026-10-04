@@ -55,6 +55,7 @@ dialog input:focus,dialog textarea:focus,#auth input:focus{outline:none;border-c
 <div id="map"></div>
 <div id="turn" hidden></div>
 <button class="fab" id="nav">🧭</button>
+<button class="fab" id="loc" style="top:calc(46vh - 130px);color:#2f7df6;font-size:28px">◎</button>
 <div id="panel">
   <div id="bar"></div>
   <div id="next"></div>
@@ -239,6 +240,8 @@ async function enter(fn){$('amsg').textContent='';const r=await fn();if(r.error)
 $('in').onclick=()=>enter(()=>db.auth.signIn.email({email:$('em').value,password:$('pw').value}));
 $('up').onclick=()=>enter(()=>db.auth.signUp.email({email:$('em').value,password:$('pw').value,name:$('nm').value||$('em').value}));
 $('nav').onclick=()=>{follow=!follow;$('nav').textContent=follow?'🗺️':'🧭';if(follow&&me)map.easeTo({center:[me.lng,me.lat],zoom:16.5,pitch:50,duration:800});else{map.easeTo({pitch:0,bearing:0});render(true)}};
+$('loc').onclick=()=>{if(!me)return alert('لسه مستني إشارة الـ GPS، اتأكد إن الموقع شغال');map.easeTo({center:[me.lng,me.lat],zoom:Math.max(map.getZoom(),16),duration:700})};
+map.on('dragstart',e=>{if(e.originalEvent&&follow){follow=false;$('nav').textContent='🧭'}});
 $('out').onclick=async()=>{await db.auth.signOut();location.reload()};
 boot();
 </script>
