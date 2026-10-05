@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111827">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <title>ToGo</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&display=swap">
@@ -89,6 +94,7 @@ body.night .maplibregl-canvas{filter:invert(.92) hue-rotate(180deg) saturate(.75
   <input id="nm" placeholder="الاسم (للحساب الجديد فقط)">
   <div class="row"><button class="p" id="in">دخول</button><button id="up">حساب جديد</button></div>
   <div id="amsg"></div>
+  <button class="w" id="ia" hidden style="margin-top:16px;background:#ffffff22;color:#fff">تثبيت التطبيق على الهاتف</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
@@ -100,6 +106,12 @@ const db=createClient({
   dataApi:{url:'https://ep-noisy-feather-b72o2ma5.apirest.c-13.us-east-1.aws.neon.tech/neondb/rest/v1'}
 });
 const $=id=>document.getElementById(id);
+let inst=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();inst=e});
+const isApp=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+if(!isApp)$('ia').hidden=false;
+$('ia').onclick=async()=>{if(inst){inst.prompt();inst=null;return}await modal('<h2>تثبيت التطبيق</h2><p class="mut">افتح قائمة المتصفح ⋮ ثم اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».</p><p class="mut">على الآيفون: اضغط زر المشاركة ثم «إضافة إلى الشاشة الرئيسية».</p><button class="p w" data-r="ok" style="margin-top:12px">حسنًا</button>')};
+addEventListener('appinstalled',()=>{$('ia').hidden=true;inst=null});
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 const theme=()=>{const h=new Date().getHours();document.body.classList.toggle('night',h>=18||h<6)};theme();setInterval(theme,60000);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const hav=(a,b)=>{const d=Math.PI/180,x=Math.sin((b.lat-a.lat)*d/2)**2+Math.cos(a.lat*d)*Math.cos(b.lat*d)*Math.sin((b.lng-a.lng)*d/2)**2;return 12742*Math.asin(Math.sqrt(x))};
@@ -260,12 +272,13 @@ async function undo(n){const{error}=await db.from('stops').update({done:false,do
 
 /* ---------- menu & pages ---------- */
 const PAGES=[['home','الخريطة'],['orders','الطلبات'],['wallet','المحفظة'],['profile','الملف الشخصي']];
-function menu(){$('nav').innerHTML=`<h2>${esc(PF.name||'ToGo')}</h2><p class="mut" style="margin-bottom:10px" dir="ltr">${esc(PF.phone||'')}</p>`+PAGES.map(([k,t])=>`<button data-p="${k}" class="${k===page?'on':''}">${t}</button>`).join('')+`<button data-p="out" style="margin-top:auto;color:var(--bad)">تسجيل الخروج</button>`;$('menu').classList.add('on')}
+function menu(){$('nav').innerHTML=`<h2>${esc(PF.name||'ToGo')}</h2><p class="mut" style="margin-bottom:10px" dir="ltr">${esc(PF.phone||'')}</p>`+PAGES.map(([k,t])=>`<button data-p="${k}" class="${k===page?'on':''}">${t}</button>`).join('')+(inst?`<button data-p="install">تثبيت التطبيق على الشاشة</button>`:'')+`<button data-p="out" style="margin-top:auto;color:var(--bad)">تسجيل الخروج</button>`;$('menu').classList.add('on')}
 $('mn').onclick=menu;
 $('menu').onclick=e=>{const b=e.target.closest('[data-p]');if(b){$('menu').classList.remove('on');go(b.dataset.p)}else if(e.target===$('menu'))$('menu').classList.remove('on')};
 $('vx').onclick=()=>go('home');
 function go(p){
   if(p==='out')return signOut();
+  if(p==='install'){if(inst){inst.prompt();inst=null}return}
   page=p;const v=$('view');
   if(p==='home'){v.classList.remove('on');return}
   $('vt').textContent=PAGES.find(x=>x[0]===p)[1];v.classList.add('on');({orders:pOrders,wallet:pWallet,profile:pProfile})[p]();
