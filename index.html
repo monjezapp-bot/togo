@@ -79,7 +79,7 @@ dialog.out{animation:dgout .3s cubic-bezier(.4,0,1,1) forwards}dialog.out::backd
 @keyframes dgin{from{transform:translateY(100%)}}@keyframes dgout{to{transform:translateY(100%)}}@keyframes bdin{from{opacity:0}}@keyframes bdout{to{opacity:0}}
 #toast{animation:tin .4s cubic-bezier(.22,1,.36,1)}@keyframes tin{from{transform:translateY(-14px);opacity:0}}
 #splash{position:fixed;inset:0;z-index:50;background:#0f2238;display:grid;place-items:center;transition:opacity .5s ease,visibility 0s .5s}#splash.off{opacity:0;visibility:hidden}
-#splash img,#auth img{width:min(60vw,230px);height:auto;animation:pop .7s cubic-bezier(.22,1,.36,1)}#auth img{margin:0 auto 18px}#splash img{width:170px;height:170px}@keyframes pop{from{transform:scale(.8);opacity:0}}
+#splash img,#auth img{width:min(60vw,230px);height:auto;animation:pop .7s cubic-bezier(.22,1,.36,1)}#auth img{margin:0 auto 18px}#splash img{width:min(70vw,300px)}@keyframes pop{from{transform:scale(.8);opacity:0}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
 #loc{position:absolute;inset-inline-start:16px;top:-64px}
 .spin{animation:sp .8s linear infinite}@keyframes sp{to{transform:rotate(-360deg)}}
@@ -92,7 +92,7 @@ dialog.out{animation:dgout .3s cubic-bezier(.4,0,1,1) forwards}dialog.out::backd
 </head>
 <body>
 <div id="map"></div>
-<div id="splash"><img src="icon-192.png" alt=""></div>
+<div id="splash"><img src="logo.png" alt="ToGo"></div>
 <div class="top"><button class="rb" id="mn" aria-label="القائمة">☰</button><div class="prog" id="prog"></div><button class="rb" id="rf" aria-label="تحديث">↻</button></div>
 <div id="plist"></div>
 <div id="sheet"><button class="rb on" id="loc" aria-label="موقعي">◎</button><div id="sc"></div></div>
