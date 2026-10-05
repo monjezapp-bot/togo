@@ -27,7 +27,7 @@ h2{margin:0;font-size:22px;line-height:1.3}
 .prog{flex:1;background:var(--ink);color:#fff;border-radius:99px;padding:8px 18px;box-shadow:0 4px 14px #0004;text-align:center}
 .prog b{font-size:20px}.prog span{color:#aab4c3;font-size:13px;margin-inline-start:6px}
 .bar{height:4px;border-radius:4px;background:#ffffff33;margin-top:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--pri)}
-#sheet{position:fixed;z-index:6;inset-inline:0;bottom:0;max-height:74vh;overflow:auto;background:#fff;border-radius:24px 24px 0 0;padding:8px 16px calc(16px + env(safe-area-inset-bottom));box-shadow:0 -8px 28px #0003}
+#sheet{position:fixed;z-index:6;inset-inline:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;padding:0 16px;box-shadow:0 -8px 28px #0003;transform:translateY(var(--y,0));transition:transform .55s cubic-bezier(.22,1,.36,1);will-change:transform}#sheet.nt{transition:none}#peek{padding-bottom:calc(14px + env(safe-area-inset-bottom))}#peek.dr{touch-action:none}#det{max-height:52vh;overflow:auto;overscroll-behavior:contain;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
 .grab{height:22px;display:grid;place-items:center;touch-action:none}.grab i{width:40px;height:4px;border-radius:4px;background:#cfd6df}
 .hd{display:flex;gap:12px;align-items:center}.hd>div{flex:1;min-width:0}
 .num{flex:none;width:44px;height:44px;border-radius:50%;background:var(--pri);color:#fff;display:grid;place-items:center;font-weight:700;font-size:20px}
@@ -167,25 +167,45 @@ function render(fit){
 }
 
 /* ---------- home: progress + bottom sheet ---------- */
+let lastKey='';
+const etaTxt=()=>leg?`${Math.max(1,Math.round(leg.duration/60))} دقيقة · ${(leg.distance/1000).toFixed(1)} كم`:'بحسب المسافة...';
 function draw(){
   const d=doneToday().length,left=active().length,tot=d+left;
   $('prog').innerHTML=`<b>${d} من ${tot}</b><span>أوردر</span><div class="bar"><i style="width:${tot?d/tot*100:0}%"></i></div>`;
-  const n=nextStop();let h='';
+  const n=nextStop(),key=[work,n&&n.id,wasNear,n&&[n.name,n.phone,n.addr,n.bld,n.apt,n.ord,n.amt,n.cash].join('|'),left].join('~');
+  if(key===lastKey){const e=$('eta');if(e)e.textContent=etaTxt();return}
+  lastKey=key;let h;
   if(!work){
-    h=`<div class="grab"><i></i></div><p class="mut" style="text-align:center;margin-bottom:10px">${left?`عندك ${left} أوردر النهارده`:'مفيش أوردرات النهارده'}</p><button class="p w big" data-a="start">ابدأ الشغل</button>`;
+    h=`<div id="peek"><div class="grab"><i></i></div><p class="mut" style="text-align:center;margin-bottom:10px">${left?`عندك ${left} أوردر النهارده`:'مفيش أوردرات النهارده'}</p><button class="p w big" data-a="start">ابدأ الشغل</button></div>`;
   }else if(!n){
-    h=`<div class="grab"><i></i></div><h2>مفيش أوردر جاي</h2><p class="mut">كل أوردرات النهارده اتسلّمت، أو محتاجة موقع.</p><button class="link" data-a="stop">إنهاء الشفت</button>`;
+    h=`<div id="peek"><div class="grab"><i></i></div><h2>مفيش أوردر جاي</h2><p class="mut">كل أوردرات النهارده اتسلّمت، أو محتاجة موقع.</p><button class="link" data-a="stop">إنهاء الشفت</button></div>`;
   }else{
     const ph=n.phone?String(n.phone).replace(/[^\d+]/g,''):'';
-    const eta=leg?`${Math.max(1,Math.round(leg.duration/60))} دقيقة · ${(leg.distance/1000).toFixed(1)} كم`:'بحسب المسافة...';
-    h=`<div class="grab" id="grab"><i></i></div><div class="hd"><span class="num">${order.length?1:''}</span><div><h2>${esc(n.name||'عميل')}</h2><p class="mut">${eta}</p></div>${ph?`<a class="call" href="tel:${esc(ph)}" aria-label="اتصال">✆</a>`:''}</div>`;
-    if(open)h+=`<p class="addr">${esc(n.addr||'بدون عنوان')}</p><div class="facts">${n.bld?`<div class="fact"><small>عمارة</small><b>${esc(n.bld)}</b></div>`:''}${n.apt?`<div class="fact"><small>شقة</small><b>${esc(n.apt)}</b></div>`:''}<div class="fact ${n.cash?'cash':'visa'}"><small>${n.cash?'كاش':'الدفع'}</small><b>${n.cash?money(n.amt):'فيزا'}</b></div></div>${n.ord?`<p class="mut">${esc(n.ord)}</p>`:''}${ph?`<a class="call" style="width:100%;border-radius:var(--r);height:52px;background:#128c4a;font-size:16px;margin-top:10px" href="https://wa.me/${waNum(ph)}" target="_blank" rel="noopener">واتساب</a>`:''}`;
-    else h+=`<p class="mut" style="margin-top:8px;font-size:13px">اسحب لفوق لتفاصيل العنوان</p>`;
-    if(wasNear)h+=`<button class="ok w big" data-a="deliver" style="margin-top:12px">تسليم الطلب</button>`;
-    h+=`<button class="link" data-a="stop">إنهاء الشفت</button>`;
+    h=`<div id="peek" class="dr"><div class="grab"><i></i></div><div class="hd"><span class="num">1</span><div><h2>${esc(n.name||'عميل')}</h2><p class="mut" id="eta">${etaTxt()}</p></div>${ph?`<a class="call" href="tel:${esc(ph)}" aria-label="اتصال">✆</a>`:''}</div>${wasNear?`<button class="ok w big" data-a="deliver" style="margin-top:12px">تسليم الطلب</button>`:''}</div>
+    <div id="det"><p class="addr" style="margin-top:0">${esc(n.addr||'بدون عنوان')}</p><div class="facts">${n.bld?`<div class="fact"><small>عمارة</small><b>${esc(n.bld)}</b></div>`:''}${n.apt?`<div class="fact"><small>شقة</small><b>${esc(n.apt)}</b></div>`:''}<div class="fact ${n.cash?'cash':'visa'}"><small>${n.cash?'كاش':'الدفع'}</small><b>${n.cash?money(n.amt):'فيزا'}</b></div></div>${n.ord?`<p class="mut">${esc(n.ord)}</p>`:''}${ph?`<a class="call" style="width:100%;border-radius:var(--r);height:52px;background:#128c4a;font-size:16px;margin-top:10px" href="https://wa.me/${waNum(ph)}" target="_blank" rel="noopener">واتساب</a>`:''}<button class="link" data-a="stop">إنهاء الشفت</button></div>`;
   }
-  $('sheet').innerHTML=h;
-  const g=$('grab');if(g){let y0=null;g.onpointerdown=e=>{y0=e.clientY;g.setPointerCapture(e.pointerId)};g.onpointerup=e=>{if(y0==null)return;const dy=e.clientY-y0;y0=null;if(dy<-25)open=true;else if(dy>25)open=false;else open=!open;draw()}}
+  const sh=$('sheet');sh.innerHTML=h;
+  if(work&&n)initDrag();else sh.style.setProperty('--y','0px');
+}
+function initDrag(){
+  const sh=$('sheet'),pk=$('peek'),dt=$('det'),off=()=>dt.offsetHeight,set=y=>sh.style.setProperty('--y',y+'px');
+  sh.classList.add('nt');set(open?0:off());
+  requestAnimationFrame(()=>requestAnimationFrame(()=>sh.classList.remove('nt')));
+  let y0=null,base=0,t0=0,drag=false,ly=0;
+  pk.onpointerdown=e=>{y0=e.clientY;base=open?0:off();t0=performance.now();drag=false;ly=base};
+  pk.onpointermove=e=>{
+    if(y0==null)return;const dy=e.clientY-y0;
+    if(!drag&&Math.abs(dy)>6){drag=true;pk.setPointerCapture(e.pointerId);sh.classList.add('nt')}
+    if(!drag)return;
+    const o=off();let y=base+dy;y=y<0?y/4:y>o?o+(y-o)/4:y;ly=y;set(y);
+  };
+  const end=e=>{
+    if(y0==null)return;const v=(e.clientY-y0)/Math.max(1,performance.now()-t0),o=off();y0=null;sh.classList.remove('nt');
+    if(!drag){if(e.target.closest&&e.target.closest('a,button'))return;open=!open}
+    else open=v<-.3?true:v>.3?false:ly<o/2;
+    set(open?0:o);
+  };
+  pk.onpointerup=end;pk.onpointercancel=end;
 }
 $('sheet').onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;({start:()=>setWork(true),stop:endWork,deliver:()=>deliver(nextStop())})[b.dataset.a]()};
 
