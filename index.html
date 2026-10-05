@@ -107,15 +107,14 @@ dialog.out{animation:dgout .3s cubic-bezier(.4,0,1,1) forwards}dialog.out::backd
   <p id="atag">سجّل دخولك وابدأ شغلك.</p>
   <div id="f-in">
     <input id="lp" type="tel" inputmode="tel" placeholder="رقم التليفون" autocomplete="username">
-    <input id="lw" type="password" placeholder="كلمة السر" autocomplete="current-password">
+    <input id="lw" type="password" inputmode="numeric" placeholder="كلمة السر" autocomplete="current-password">
     <button class="p w big" id="in" style="margin-top:14px">دخول</button>
     <button class="alt" id="to-up">معندكش حساب؟ <b>سجّل حساب جديد</b></button>
   </div>
   <div id="f-up" hidden>
     <input id="sn" placeholder="الاسم" autocomplete="name">
     <input id="sp" type="tel" inputmode="tel" placeholder="رقم التليفون" autocomplete="tel">
-    <input id="se" type="email" placeholder="الإيميل" autocomplete="email">
-    <input id="sw" type="password" placeholder="كلمة السر (٨ حروف على الأقل)" autocomplete="new-password">
+    <input id="sw" type="password" inputmode="numeric" maxlength="6" placeholder="كلمة السر (٦ أرقام)" autocomplete="new-password">
     <button class="p w big" id="up" style="margin-top:14px">إنشاء الحساب</button>
     <button class="alt" id="to-in">عندك حساب؟ <b>سجّل دخولك</b></button>
   </div>
@@ -422,12 +421,15 @@ async function boot(){
   if(!(data&&data.session)){$('auth').style.display='flex';hideSplash();if(pending){show(false);amsg('اتعمل الحساب. سجّل دخولك دلوقتي.')}return}
   const u=data.user||data.session.user||{};uid=u.id;$('auth').style.display='none';
   if(!PF.name&&u.name){PF.name=u.name;sv('togo_profile',PF)}
-  if(pending){const r0={courier_id:uid,full_name:pending.name,phone:pending.phone,updated_at:new Date().toISOString()};const q=await db.from('courier_state').upsert({...r0,email:pending.email});if(q.error)await db.from('courier_state').upsert(r0);pending=null}
+  if(pending){const r0={courier_id:uid,full_name:pending.name,phone:pending.phone,updated_at:new Date().toISOString()};await db.from('courier_state').upsert(r0);pending=null}
   const w=await db.from('courier_state').select('working,full_name,phone,rate').eq('courier_id',uid).maybeSingle();work=!!(w.data&&w.data.working);if(w.data){if(w.data.full_name)PF.name=w.data.full_name;if(w.data.phone)PF.phone=w.data.phone;if(w.data.rate!=null)PF.rate=+w.data.rate;sv('togo_profile',PF)}
   live();load();hideSplash();setInterval(load,30000);
 }
 const normPhone=v=>{let d=String(v||'').replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/\D/g,'');if(d.startsWith('0020'))d='0'+d.slice(4);else if(d.startsWith('20')&&d.length>=12)d='0'+d.slice(2);else if(d.length===10&&d.startsWith('1'))d='0'+d;return d};
 const phoneEmail=p=>p+'@togo-app.com';
+const ar2en=v=>String(v||'').replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c));
+const pwOf=d=>ar2en(d)+'@togo';
+$('lp').oninput=()=>{$('lw').inputMode=$('lp').value.includes('@')?'text':'numeric'};
 let pending=null;
 const amsg=t=>{$('amsg').textContent=t};
 const show=up=>{$('f-in').hidden=up;$('f-up').hidden=!up;$('atag').textContent=up?'أنشئ حسابك وابدأ شغلك.':'سجّل دخولك وابدأ شغلك.';amsg('')};
@@ -437,15 +439,14 @@ $('in').onclick=()=>{
   const id=$('lp').value.trim(),pw=$('lw').value;
   if(!id||!pw)return amsg('اكتب رقم التليفون وكلمة السر');
   const email=id.includes('@')?id:phoneEmail(normPhone(id));
-  run($('in'),async()=>{const r=await db.auth.signIn.email({email,password:pw});if(r.error){amsg('رقم التليفون أو كلمة السر غلط');return}amsg('');boot()});
+  run($('in'),async()=>{const r=await db.auth.signIn.email({email,password:id.includes('@')?pw:pwOf(pw)});if(r.error){amsg('رقم التليفون أو كلمة السر غلط');return}amsg('');boot()});
 };
 $('up').onclick=()=>{
-  const name=$('sn').value.trim(),ph=normPhone($('sp').value),em=$('se').value.trim(),pw=$('sw').value;
+  const name=$('sn').value.trim(),ph=normPhone($('sp').value),pw=$('sw').value;
   if(!name)return amsg('اكتب اسمك');
   if(ph.length<10||ph.length>13)return amsg('رقم التليفون مش صحيح');
-  if(!/^\S+@\S+\.\S+$/.test(em))return amsg('الإيميل مش صحيح');
-  if(pw.length<8)return amsg('كلمة السر لازم ٨ حروف على الأقل');
-  run($('up'),async()=>{const r=await db.auth.signUp.email({email:phoneEmail(ph),password:pw,name});if(r.error){amsg(/exist|already|taken/i.test(r.error.message||'')?'الرقم ده مسجّل قبل كده. سجّل دخولك.':(r.error.message||'ماتسجّلش، جرّب تاني'));return}pending={name,phone:ph,email:em};PF={...PF,name,phone:ph};sv('togo_profile',PF);amsg('');boot()});
+  if(!/^\d{6}$/.test(ar2en(pw)))return amsg('كلمة السر لازم ٦ أرقام');
+  run($('up'),async()=>{const r=await db.auth.signUp.email({email:phoneEmail(ph),password:pwOf(pw),name});if(r.error){amsg(/exist|already|taken/i.test(r.error.message||'')?'الرقم ده مسجّل قبل كده. سجّل دخولك.':(r.error.message||'ماتسجّلش، جرّب تاني'));return}pending={name,phone:ph};PF={...PF,name,phone:ph};sv('togo_profile',PF);amsg('');boot()});
 };
 async function signOut(){if(!await ask('تسجيل الخروج','هتحتاج تدخل بالإيميل وكلمة السر تاني.','اخرج',true))return;await db.auth.signOut();location.reload()}
 draw();boot();
