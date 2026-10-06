@@ -318,10 +318,10 @@ async function shareApp(){
   try{if(navigator.share){await navigator.share(data);return}}catch(e){if(e&&e.name==='AbortError')return}
   try{await navigator.clipboard.writeText(url);toast('اتنسخ لينك التطبيق')}catch(e){window.open('https://wa.me/?text='+encodeURIComponent(data.text+' '+url),'_blank')}
 }
-function menu(){$('nav').innerHTML=`<h2>${esc(PF.name||'ToGo')}</h2><p class="mut" style="margin-bottom:10px" dir="ltr">${esc(PF.phone||'')}</p>`+PAGES.map(([k,t])=>`<button data-p="${k}" class="${k===page?'on':''}">${t}</button>`).join('')+(inst?`<button data-p="install">ثبّت التطبيق على الشاشة</button>`:'')+`<button data-p="share">مشاركة تطبيق ToGo</button><button data-p="out" style="margin-top:auto;color:var(--bad)">تسجيل الخروج</button>`;$('menu').classList.add('on')}
+function menu(){if(open&&sheetSet)sheetSet(false);$('plist').classList.remove('on');$('nav').innerHTML=`<h2>${esc(PF.name||'ToGo')}</h2><p class="mut" style="margin-bottom:10px" dir="ltr">${esc(PF.phone||'')}</p>`+PAGES.map(([k,t])=>`<button data-p="${k}" class="${k===page?'on':''}">${t}</button>`).join('')+(inst?`<button data-p="install">ثبّت التطبيق على الشاشة</button>`:'')+`<button data-p="share">مشاركة تطبيق ToGo</button><button data-p="out" style="margin-top:auto;color:var(--bad)">تسجيل الخروج</button>`;$('menu').classList.add('on')}
 $('mn').onclick=menu;
 $('menu').onclick=e=>{const b=e.target.closest('[data-p]');if(b){$('menu').classList.remove('on');go(b.dataset.p)}else if(e.target===$('menu'))$('menu').classList.remove('on')};
-$('vx').onclick=()=>go('home');
+$('vx').onclick=()=>{go('home');menu()};
 function go(p){
   if(p==='out')return signOut();
   if(p==='share')return shareApp();
@@ -452,7 +452,7 @@ function closeTop(){
   if(dg.open&&!dg.classList.contains('out')){dg.onclose=null;if(curRes)curRes(null);shut();return true}
   if($('menu').classList.contains('on')){$('menu').classList.remove('on');return true}
   if($('plist').classList.contains('on')){$('plist').classList.remove('on');return true}
-  if(page!=='home'){go('home');return true}
+  if(page!=='home'){go('home');menu();return true}
   if(open&&sheetSet){sheetSet(false);return true}
   return false;
 }
