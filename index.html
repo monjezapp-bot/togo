@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#0f2238">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -17,8 +17,8 @@
 <style>
 :root{--ink:#111827;--mut:#64748b;--line:#e5e9ef;--bg:#f1f4f8;--pri:#f26a1b;--ok:#15803d;--bad:#dc2626;--r:14px}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;margin:0;overflow:hidden}
-body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;overscroll-behavior:none;font:500 16px/1.5 "Readex Pro",Tahoma,sans-serif;color:var(--ink);background:var(--bg)}
+html,body,dialog{touch-action:pan-x pan-y}html,body{height:100%;margin:0;overflow:hidden}
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:pan-x pan-y;overscroll-behavior:none;font:500 16px/1.5 "Readex Pro",Tahoma,sans-serif;color:var(--ink);background:var(--bg)}
 #map{position:fixed;inset:0}
 button{font:inherit;font-weight:600;border:0;border-radius:var(--r);min-height:52px;padding:0 16px;background:var(--bg);color:var(--ink)}
 button:active{transform:scale(.97)}
@@ -63,7 +63,7 @@ h2{margin:0;font-size:22px;line-height:1.3}
 .owe{background:var(--ink);color:#fff;border-radius:18px;padding:20px;margin-bottom:12px}.owe small{color:#aab4c3}.owe div{font-size:38px;font-weight:700}
 .fab{position:fixed;z-index:11;inset-inline-start:16px;bottom:calc(20px + env(safe-area-inset-bottom));box-shadow:0 6px 18px #0004}
 dialog{margin:auto 0 0;width:100%;max-width:none;border:0;border-radius:24px 24px 0 0;padding:20px 16px calc(16px + env(safe-area-inset-bottom));font:inherit;color:var(--ink);max-height:92vh}
-dialog::backdrop{background:#0b1220aa}dialog h2{margin-bottom:6px}
+.cx{position:absolute;top:12px;right:12px;width:36px;height:36px;min-height:0;padding:0;border-radius:50%;display:grid;place-items:center;font-size:18px;line-height:1;background:var(--bg);color:var(--mut)}.cxh{padding-right:44px}.item .tag{flex:none}.item .sm{min-height:36px;padding:0 10px;font-size:13px;flex:none}dialog::backdrop{background:#0b1220aa}dialog h2{margin-bottom:6px}
 input,textarea{width:100%;font:inherit;font-size:16px;padding:13px 14px;margin-top:8px;border:1.5px solid var(--line);border-radius:var(--r);background:#fff;color:var(--ink)}
 .seg{display:flex;gap:6px}.seg button{flex:1}.seg .on{background:var(--ink);color:#fff}
 label small{display:block;color:var(--mut);margin-top:10px}
@@ -145,6 +145,7 @@ if(!isApp)$('ia').hidden=false;
 $('ia').onclick=async()=>{if(inst){inst.prompt();inst=null;return}await modal('<h2>تثبيت التطبيق</h2><p class="mut">افتح قائمة المتصفح ⋮ وبعدين اختار «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».</p><p class="mut">على الآيفون: دوس زرار المشاركة وبعدين «إضافة إلى الشاشة الرئيسية».</p><button class="p w" data-r="ok" style="margin-top:12px">تمام</button>')};
 addEventListener('appinstalled',()=>{$('ia').hidden=true;inst=null});
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+['gesturestart','gesturechange','gestureend'].forEach(t=>addEventListener(t,e=>e.preventDefault()));
 const theme=()=>{const h=new Date().getHours();document.body.classList.toggle('night',h>=18||h<6)};theme();setInterval(theme,60000);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const hav=(a,b)=>{const d=Math.PI/180,x=Math.sin((b.lat-a.lat)*d/2)**2+Math.cos(a.lat*d)*Math.cos(b.lat*d)*Math.sin((b.lng-a.lng)*d/2)**2;return 12742*Math.asin(Math.sqrt(x))};
@@ -348,7 +349,7 @@ function pOrders(){
   const days=[...Array(7)].map((_,i)=>{const d=new Date(s0);d.setDate(s0.getDate()+i);return d});
   const cnt=k=>S.filter(s=>(s.done&&s.at?ymd(new Date(s.at)):dayOf(s))===k).length;
   const L=S.filter(s=>(s.done&&s.at?ymd(new Date(s.at)):dayOf(s))===selDay);
-  $('vb').innerHTML=`<div class="row" style="margin:0 0 10px"><button data-w="-7">‹ الأسبوع اللي فات</button><button data-w="7">الأسبوع الجاي ›</button></div><div class="days">${days.map(d=>{const k=ymd(d);return `<button class="day ${k===selDay?'on':''} ${k===today()?'t':''}" data-d="${k}">${DN[d.getDay()]}<b>${d.getDate()}</b>${cnt(k)} أوردر</button>`}).join('')}</div><div class="card" style="margin-top:12px;padding:4px 16px">${L.length?L.map(s=>`<div class="item" data-o="${s.id}"><b class="nm">${esc(s.name||'عميل')}</b>${s.done?'<span class="tag d">تم</span>':''}</div>`).join(''):'<p class="mut" style="padding:16px 0">مفيش أوردرات في اليوم ده.</p>'}</div><button class="p big fab" data-add="1">+ أوردر جديد</button>`;
+  $('vb').innerHTML=`<div class="row" style="margin:0 0 10px"><button data-w="-7">‹ الأسبوع اللي فات</button><button data-w="7">الأسبوع الجاي ›</button></div><div class="days">${days.map(d=>{const k=ymd(d);return `<button class="day ${k===selDay?'on':''} ${k===today()?'t':''}" data-d="${k}">${DN[d.getDay()]}<b>${d.getDate()}</b>${cnt(k)} أوردر</button>`}).join('')}</div><div class="card" style="margin-top:12px;padding:4px 16px">${L.length?L.map(s=>`<div class="item" data-o="${s.id}"><b class="nm">${esc(s.name||'عميل')}</b>${s.done?'<span class="tag d">تم</span>':`<span class="tag">لسه</span><button class="sm" data-e="${s.id}">تعديل</button><button class="sm" data-pp="${s.id}">تأجيل</button>`}</div>`).join(''):'<p class="mut" style="padding:16px 0">مفيش أوردرات في اليوم ده.</p>'}</div><button class="p big fab" data-add="1">+ أوردر جديد</button>`;
 }
 $('vb').onclick=async e=>{
   const t=e.target.closest('button');if(!t){const r=e.target.closest('[data-o]');if(r)detail(S.find(s=>s.id===r.dataset.o));return}const g=k=>t.dataset[k];
@@ -364,8 +365,8 @@ async function detail(s){
   const ph=s.phone?String(s.phone).replace(/[^\d+]/g,''):'';
   const R=(l,v)=>v?`<div><span>${l}</span><b>${v}</b></div>`:'';
   const day=s.done&&s.at?ymd(new Date(s.at)):dayOf(s);
-  const x=await modal(`<h2>${esc(s.name||'عميل')}</h2><div class="inv">${ph?`<div><span>التليفون</span><b class="ph"><bdi dir="ltr">${esc(s.phone)}</bdi>${ctl(ph,!s.done)}</b></div>`:''}${R('العنوان',esc(s.addr))}${R('عمارة',esc(s.bld))}${R('شقة',esc(s.apt))}${R('الأوردر',esc(s.ord))}${R('رقم الفاتورة',esc(s.inv))}${R('الدفع',s.cash?'كاش'+(s.amt!=null?' · '+money(s.amt):''):'فيزا')}${R('الميعاد',DN[new Date(day+'T12:00').getDay()]+' '+day)}${R('الحالة',s.done?'اتسلّم'+(s.got!=null?' · استلمت '+money(s.got):''):'مستني التسليم')}${s.lat==null&&!s.done?R('الموقع','مش محدد'):''}</div><div class="row" style="margin-top:14px"><button data-r="x">رجوع</button>${s.done?'':'<button class="p" data-r="edit">تعديل</button>'}</div>${s.done?'':'<div class="row" style="margin-top:8px"><button data-r="pp">تأجيل</button><button class="bad" data-r="del">حذف</button></div>'}`);
-  if(x&&x.r==='edit')orderForm(s);else if(x&&x.r==='pp')postpone(s);else if(x&&x.r==='del')del(s);
+  const x=await modal(`<button class="cx" data-r="x" aria-label="إغلاق">✕</button><h2 class="cxh">${esc(s.name||'عميل')}</h2><div class="inv">${ph?`<div><span>التليفون</span><b class="ph"><bdi dir="ltr">${esc(s.phone)}</bdi>${ctl(ph,!s.done)}</b></div>`:''}${R('العنوان',esc(s.addr))}${R('عمارة',esc(s.bld))}${R('شقة',esc(s.apt))}${R('الأوردر',esc(s.ord))}${R('رقم الفاتورة',esc(s.inv))}${R('الدفع',s.cash?'كاش'+(s.amt!=null?' · '+money(s.amt):''):'فيزا')}${R('الميعاد',DN[new Date(day+'T12:00').getDay()]+' '+day)}${R('الحالة',s.done?'اتسلّم'+(s.got!=null?' · استلمت '+money(s.got):''):'مستني التسليم')}${s.lat==null&&!s.done?R('الموقع','مش محدد'):''}</div>${s.done?'':'<div class="row" style="margin-top:14px"><button class="p" data-r="edit">تعديل</button><button class="bad" data-r="del">حذف</button></div>'}`);
+  if(x&&x.r==='edit')orderForm(s);else if(x&&x.r==='del')del(s);
 }
 async function deleteAccount(){
   const x=await modal(`<h2>حذف الحساب نهائيًا</h2><p class="mut">هيتمسح حسابك وكل أوردراتك وسجل التسليم والمحفظة، ومش هينفع نرجّعهم. اكتب كلمة «حذف» للتأكيد.</p><input id="dc" placeholder="اكتب: حذف"><div class="row" style="margin-top:14px"><button data-r="x">إلغاء</button><button class="bad" data-r="y">احذف حسابي</button></div>`,()=>$('dc').value.trim());
@@ -410,7 +411,7 @@ async function orderForm(s){
   const get=()=>{const g=i=>$('f-'+i).value.trim();return{name:g('name'),phone:g('phone'),addr:g('addr'),bld:g('bld'),apt:g('apt'),ord:g('ord'),inv:g('inv'),amt:g('amt'),date:g('date'),link:g('link')}};
   const wire=()=>{$('f-ph').onchange=ocrFill;$('f-ph2').onchange=ocrFill;$('f-cash').onclick=()=>{cash=true;$('f-cash').classList.add('on');$('f-visa').classList.remove('on')};$('f-visa').onclick=()=>{cash=false;$('f-visa').classList.add('on');$('f-cash').classList.remove('on')}};
   while(true){
-    const p=modal(`<h2>${s?'تعديل الأوردر':'أوردر جديد'}</h2><div class="row" style="margin:8px 0"><label class="p big" for="f-ph" style="display:grid;place-items:center;border-radius:18px;font-weight:600;font-size:17px;text-align:center">تصوير الفاتورة</label><label class="big" for="f-ph2" style="display:grid;place-items:center;border-radius:18px;font-weight:600;font-size:17px;text-align:center;background:var(--bg)">من المعرض</label></div><input type="file" id="f-ph" accept="image/*" capture="environment" hidden><input type="file" id="f-ph2" accept="image/*" hidden><p class="mut" id="f-ocr"></p><input id="f-name" placeholder="اسم العميل" value="${esc(v.name)}"><input id="f-phone" placeholder="رقم التليفون" inputmode="tel" value="${esc(v.phone)}"><input id="f-addr" placeholder="العنوان" value="${esc(v.addr)}"><div class="row"><input id="f-bld" placeholder="عمارة" value="${esc(v.bld)}"><input id="f-apt" placeholder="شقة" value="${esc(v.apt)}"></div><input id="f-ord" placeholder="المنتجات" value="${esc(v.ord)}"><div class="row"><input id="f-inv" placeholder="رقم الفاتورة" value="${esc(v.inv)}"><input id="f-amt" placeholder="المبلغ" inputmode="decimal" value="${v.amt??''}"></div><div class="seg" style="margin-top:8px"><button type="button" id="f-cash" class="${cash?'on':''}">كاش</button><button type="button" id="f-visa" class="${cash?'':'on'}">فيزا</button></div><label><small>موعد التسليم</small><input type="date" id="f-date" value="${s?dayOf(s):selDay>=today()?selDay:today()}" min="${today()}"></label><textarea id="f-link" rows="2" placeholder="لينك الموقع (اختياري)"></textarea><div class="row"><button class="p" data-r="save">حفظ</button><button data-r="x">إلغاء</button></div>`,get,wire);
+    const p=modal(`<button class="cx" data-r="x" aria-label="إغلاق">✕</button><h2 class="cxh">${s?'تعديل الأوردر':'أوردر جديد'}</h2><div class="row" style="margin:8px 0"><label class="p big" for="f-ph" style="display:grid;place-items:center;border-radius:18px;font-weight:600;font-size:17px;text-align:center">تصوير الفاتورة</label><label class="big" for="f-ph2" style="display:grid;place-items:center;border-radius:18px;font-weight:600;font-size:17px;text-align:center;background:var(--bg)">من المعرض</label></div><input type="file" id="f-ph" accept="image/*" capture="environment" hidden><input type="file" id="f-ph2" accept="image/*" hidden><p class="mut" id="f-ocr"></p><input id="f-name" placeholder="اسم العميل" value="${esc(v.name)}"><input id="f-phone" placeholder="رقم التليفون" inputmode="tel" value="${esc(v.phone)}"><input id="f-addr" placeholder="العنوان" value="${esc(v.addr)}"><div class="row"><input id="f-bld" placeholder="عمارة" value="${esc(v.bld)}"><input id="f-apt" placeholder="شقة" value="${esc(v.apt)}"></div><input id="f-ord" placeholder="المنتجات" value="${esc(v.ord)}"><div class="row"><input id="f-inv" placeholder="رقم الفاتورة" value="${esc(v.inv)}"><input id="f-amt" placeholder="المبلغ" inputmode="decimal" value="${v.amt??''}"></div><div class="seg" style="margin-top:8px"><button type="button" id="f-cash" class="${cash?'on':''}">كاش</button><button type="button" id="f-visa" class="${cash?'':'on'}">فيزا</button></div><label><small>موعد التسليم</small><input type="date" id="f-date" value="${s?dayOf(s):selDay>=today()?selDay:today()}" min="${today()}"></label><textarea id="f-link" rows="2" placeholder="لينك الموقع (اختياري)"></textarea><div class="row"><button class="p" data-r="save">حفظ</button></div>`,get,wire);
     const x=await p;if(!x||x.r==='x')return;const f=x.v;
     if(!f.name&&!f.phone){toast('اكتب اسم العميل أو رقمه');Object.assign(v,f);continue}
     let c=null;if(f.link){c=await coordsFrom(f.link);if(!c){toast('مش قادر أطلّع المكان من اللينك');Object.assign(v,f);continue}}
