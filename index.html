@@ -63,7 +63,16 @@ h2{margin:0;font-size:22px;line-height:1.3}
 .owe{background:var(--ink);color:#fff;border-radius:18px;padding:20px;margin-bottom:12px}.owe small{color:#aab4c3}.owe div{font-size:38px;font-weight:700}
 .fab{position:fixed;z-index:11;inset-inline-start:16px;bottom:calc(20px + env(safe-area-inset-bottom));box-shadow:0 6px 18px #0004}
 dialog{margin:auto 0 0;width:100%;max-width:none;border:0;border-radius:24px 24px 0 0;padding:20px 16px calc(16px + env(safe-area-inset-bottom));font:inherit;color:var(--ink);max-height:92vh}
-.cx{position:absolute;top:12px;right:12px;width:36px;height:36px;min-height:0;padding:0;border-radius:50%;display:grid;place-items:center;font-size:18px;line-height:1;background:var(--bg);color:var(--mut)}.cxh{padding-right:44px}.item .tag{flex:none}.item .sm{min-height:36px;padding:0 10px;font-size:13px;flex:none}dialog::backdrop{background:#0b1220aa}dialog h2{margin-bottom:6px}
+.cx{position:absolute;top:12px;right:12px;width:36px;height:36px;min-height:0;padding:0;border-radius:50%;display:grid;place-items:center;font-size:18px;line-height:1;background:var(--bg);color:var(--mut)}.cxh{padding-right:44px}.item .tag{flex:none}.item .sm{min-height:36px;padding:0 10px;font-size:13px;flex:none}#off{position:fixed;z-index:30;top:calc(env(safe-area-inset-top) + 66px);left:50%;transform:translateX(-50%);background:#334155;color:#fff;padding:4px 14px;border-radius:99px;font-size:12px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .3s}#off.on{opacity:.95}#tour{position:fixed;inset:0;z-index:60;touch-action:none}#tour[hidden]{display:none}
+#tm{position:fixed;border-radius:16px;box-shadow:0 0 0 100vmax rgba(11,18,32,.8);transition:left .35s cubic-bezier(.22,1,.36,1),top .35s cubic-bezier(.22,1,.36,1),width .35s cubic-bezier(.22,1,.36,1),height .35s cubic-bezier(.22,1,.36,1);pointer-events:none}
+#tm:not(.none)::after{content:"";position:absolute;inset:-3px;border-radius:19px;border:3px solid var(--pri);animation:tpulse 1.4s ease-out infinite}
+@keyframes tpulse{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.12)}}
+#tc{position:fixed;left:0;right:0;margin-inline:auto;width:calc(100% - 32px);max-width:420px;box-sizing:border-box;background:#fff;color:var(--ink);border-radius:22px;padding:18px 18px 14px;box-shadow:0 14px 44px #0007;transition:top .35s cubic-bezier(.22,1,.36,1)}
+#tc .ti{font-size:34px;line-height:1;margin-bottom:6px}#tc h3{margin:0 0 4px;font-size:20px}#tc p{margin:0;color:var(--mut);font-size:15px;line-height:1.6}
+#tc .tf{display:flex;align-items:center;gap:6px;margin-top:10px}#tc .tf button{min-height:44px;font-size:15px;padding:0 16px}
+#tc .lk{background:none;color:var(--mut);padding:0 8px}#td{display:flex;justify-content:center;gap:5px;margin-top:14px}#td i{width:7px;height:7px;border-radius:99px;background:#cfd6df;transition:width .3s,background .3s}#td i.on{width:20px;background:var(--pri)}
+body.night #tc{background:#1f2227;color:#f5f1e6;border:1px solid #ffffff2a}body.night #tc p{color:#aab4c3}
+dialog::backdrop{background:#0b1220aa}dialog h2{margin-bottom:6px}
 input,textarea{width:100%;font:inherit;font-size:16px;padding:13px 14px;margin-top:8px;border:1.5px solid var(--line);border-radius:var(--r);background:#fff;color:var(--ink)}
 .seg{display:flex;gap:6px}.seg button{flex:1}.seg .on{background:var(--ink);color:#fff}
 label small{display:block;color:var(--mut);margin-top:10px}
@@ -164,6 +173,84 @@ const active=()=>S.filter(s=>!s.done&&dayOf(s)<=today());
 const doneToday=()=>S.filter(s=>s.done&&s.at&&ymd(new Date(s.at))===today());
 const nextStop=()=>S.find(s=>s.id===order[0]);
 
+/* ---------- offline layer: local cache + write queue ---------- */
+/*OFFLINE-START*/
+const QK='togo_q',RK='togo_stops',FK='togo_q_failed';
+let Q=ld(QK,[]),RAW=ld(RK,[]),syncing=null,authWarned=false;Q.forEach(x=>{delete x.sending});
+const isNet=e=>{if(!e)return false;const m=String(e.message||e.name||e);return e.status===0||/fetch|network|timeout|timed out|abort|load failed|offline|ERR_|failed to/i.test(m)};
+const isAuthErr=e=>!!e&&(e.status===401||e.code==='PGRST301'||e.code==='PGRST303'||/jwt|expired|unauthor/i.test(String(e.message||'')));
+const isDup=e=>!!e&&(e.code==='23505'||/duplicate key/i.test(String(e.message||'')));
+const withT=(p,ms=9000)=>Promise.race([Promise.resolve(p),new Promise((_,rj)=>setTimeout(()=>rj(new Error('timeout')),ms))]);
+const tmo=ms=>typeof AbortSignal!=='undefined'&&AbortSignal.timeout?{signal:AbortSignal.timeout(ms)}:{};
+const uuid=()=>crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:r&3|8).toString(16)});
+function applyOp(a,op){
+  if(op.t==='upd'){const r=a.find(x=>x.id===op.id);if(r)Object.assign(r,op.d)}
+  else if(op.t==='ins'){if(!a.find(x=>x.id===op.id))a.push({id:op.id,done:false,...op.d})}
+  else if(op.t==='del'){const i=a.findIndex(x=>x.id===op.id);if(i>=0)a.splice(i,1)}
+}
+function badge(){
+  let b=document.getElementById('off');
+  if(!b){b=document.createElement('div');b.id='off';document.body.appendChild(b)}
+  const off=navigator.onLine===false,n=Q.length;
+  b.textContent=(off?'أوفلاين':'')+(off&&n?' · ':'')+(n?n+' تعديل مستني المزامنة':'');
+  b.classList.toggle('on',off||n>0);
+}
+function enqueue(op){
+  if(op.t==='cs'){const m=Q.find(x=>x.t==='cs'&&!x.sending);if(m)m.d={...m.d,...op.d};else Q.push(op)}
+  else if(op.t==='del'){const had=Q.some(x=>x.id===op.id&&x.t==='ins'&&!x.sending);Q=Q.filter(x=>x.id!==op.id||x.sending);if(!had)Q.push(op)}
+  else{const m=Q.find(x=>x.id===op.id&&(x.t==='ins'||x.t==='upd')&&!x.sending);if(m)m.d={...m.d,...op.d};else Q.push(op)}
+  sv(QK,Q);badge();
+}
+async function sendOp(op){
+  if(op.t==='del'){const r=await db.from('stops').delete().eq('id',op.id);return{error:r.error}}
+  if(op.t==='cs'){
+    let r=await db.from('courier_state').upsert(op.d);
+    if(r.error&&!isNet(r.error)&&!isAuthErr(r.error)){const{courier_id,phone,working,updated_at}=op.d;r=await db.from('courier_state').upsert({courier_id,phone,working,updated_at})}
+    return{error:r.error}
+  }
+  const d={...op.d};
+  const go=()=>op.t==='ins'?db.from('stops').insert({id:op.id,...d}).select():db.from('stops').update(d).eq('id',op.id).select();
+  let r=await go();
+  for(const k of['delivery_date','receipt_kept']){if(r.error&&k in d&&new RegExp(k).test(r.error.message||'')){delete d[k];r=await go()}}
+  if(!r.error&&op.t==='upd'&&!(r.data&&r.data.length))r={...r,error:{message:'no rows updated (permissions)'}};
+  return r;
+}
+async function write(op){
+  if(!Q.length&&navigator.onLine!==false){
+    let r;try{r=await withT(sendOp(op))}catch(e){r={error:e}}
+    const dup=op.t==='ins'&&isDup(r.error);
+    if(!r.error||dup){applyOp(RAW,op);sv(RK,RAW);return dup?{error:null,data:[{id:op.id}]}:r}
+    if(!isNet(r.error)&&!isAuthErr(r.error))return r;
+  }
+  enqueue(op);applyOp(RAW,op);sv(RK,RAW);sync();
+  return{error:null,data:[{id:op.id}],queued:true};
+}
+function sync(){
+  if(syncing)return syncing;
+  if(navigator.onLine===false)return Promise.resolve(false);
+  syncing=(async()=>{
+    while(Q.length){
+      const op=Q[0];op.sending=true;let r;
+      try{r=await withT(sendOp(op),12000)}catch(e){r={error:e}}
+      op.sending=false;
+      if(!r.error||(op.t==='ins'&&isDup(r.error))){Q=Q.filter(x=>x!==op);sv(QK,Q);badge();authWarned=false;continue}
+      if(isNet(r.error))break;
+      if(isAuthErr(r.error)){try{await withT(db.auth.getSession(),5000)}catch(e){}if(!authWarned){authWarned=true;toast('الجلسة محتاجة تسجيل دخول تاني عشان التعديلات تتزامن')}break}
+      const F=ld(FK,[]);F.push({op:{...op,sending:undefined},err:String(r.error.message||r.error),at:new Date().toISOString()});sv(FK,F);
+      Q=Q.filter(x=>x!==op);sv(QK,Q);badge();toast('في تعديل ماتزامنش: '+String(r.error.message||'').slice(0,60));
+    }
+    return Q.length===0;
+  })().finally(()=>{syncing=null});
+  return syncing;
+}
+const stopUpd=(id,obj)=>write({t:'upd',id,d:obj});
+async function stopAdd(rec){const id=uuid(),r=await write({t:'ins',id,d:{...rec}});return r.error?{data:null,error:r.error}:{data:{...rec,...((r.data&&r.data[0])||{}),id},error:null}}
+/*OFFLINE-END*/
+try{S=RAW.map(row)}catch(e){}
+addEventListener('online',()=>{badge();sync().then(()=>load())});addEventListener('offline',badge);
+setInterval(()=>{if(Q.length)sync()},15000);
+badge();
+
 /* ---------- map ---------- */
 maplibregl.setRTLTextPlugin('https://cdn.jsdelivr.net/npm/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js',true);
 const map=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/liberty',center:[31.24,30.05],zoom:11,attributionControl:{compact:true}});
@@ -184,7 +271,7 @@ const cam=()=>{if(me)map.easeTo({center:[me.lng,me.lat],zoom:Math.max(map.getZoo
 async function fetchLeg(){
   const n=nextStop();legAt=Date.now();
   if(!n||!me){leg=null;setLine('leg',null);return draw()}
-  try{const j=await(await fetch(`https://router.project-osrm.org/route/v1/driving/${me.lng},${me.lat};${n.lng},${n.lat}?overview=full&geometries=geojson`)).json();if(j.code==='Ok'){leg=j.routes[0];setLine('leg',leg.geometry.coordinates)}}catch(e){}
+  try{const j=await(await fetch(`https://router.project-osrm.org/route/v1/driving/${me.lng},${me.lat};${n.lng},${n.lat}?overview=full&geometries=geojson`,tmo(6000))).json();if(j.code==='Ok'){leg=j.routes[0];setLine('leg',leg.geometry.coordinates)}}catch(e){}
   draw();
 }
 function live(){
@@ -203,7 +290,7 @@ async function optimize(){
   if(!P.length){order=[];return render()}
   const pts=me?[me,...P]:P;
   try{
-    const j=await(await fetch('https://router.project-osrm.org/trip/v1/driving/'+pts.map(p=>p.lng+','+p.lat).join(';')+'?source=first&roundtrip=false&overview=full&geometries=geojson')).json();
+    const j=await(await fetch('https://router.project-osrm.org/trip/v1/driving/'+pts.map(p=>p.lng+','+p.lat).join(';')+'?source=first&roundtrip=false&overview=full&geometries=geojson',tmo(7000))).json();
     if(j.code!=='Ok')throw 0;const off=me?1:0;
     order=P.map((s,i)=>({s,k:j.waypoints[i+off].waypoint_index})).sort((a,b)=>a.k-b.k).map(o=>o.s.id);geo=j.trips[0].geometry.coordinates;legDur=(me?[]:[0]).concat(j.trips[0].legs.map(l=>l.duration));
   }catch(e){let cur=me||P[0],left=[...P];order=[];while(left.length){left.sort((a,b)=>hav(cur,a)-hav(cur,b));cur=left.shift();order.push(cur.id)}legDur=[];let pv=me||P[0];order.forEach(id=>{const t=S.find(x=>x.id===id);legDur.push(hav(pv,t)*1.35/22*3600);pv=t})}
@@ -267,8 +354,6 @@ $('sheet').onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;({start
 /* ---------- dialogs ---------- */
 const dg=$('dg');
 /* DB helpers: keep working even if an optional new column has not been added yet */
-async function stopUpd(id,obj,opt){let o={...obj},r=await db.from('stops').update(o).eq('id',id).select();for(const k of(opt||[])){if(r.error&&new RegExp(k).test(r.error.message||'')){delete o[k];r=await db.from('stops').update(o).eq('id',id).select()}}if(!r.error&&!(r.data&&r.data.length))r={...r,error:{message:'no rows updated (permissions)'}};return r}
-async function stopsWrite(fn,rec){let r=await fn(rec);if(r.error&&/delivery_date/.test(r.error.message||'')){const{delivery_date,...r2}=rec;r=await fn(r2);if(!r.error)toast('اتحفظ، لكن الموعد على الموبايل بس. شغّل ملف الـ SQL')}return r}
 let busy=null;
 function shut(){dg.classList.add('out');busy=new Promise(r=>setTimeout(()=>{dg.classList.remove('out');dg.close();busy=null;r()},300))}
 function modal(html,collect,onOpen){const run=()=>new Promise(res=>{curRes=res;dg.innerHTML=html;dg.onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;const v=collect?collect():null;dg.onclose=null;shut();res({r:b.dataset.r,v})};dg.oncancel=()=>res(null);dg.onclose=()=>{if(!dg.open)res(null)};dg.showModal();if(onOpen)onOpen()});return busy?busy.then(run):run()}
@@ -276,7 +361,7 @@ async function ask(t,p,ok,danger){const x=await modal(`<h2>${esc(t)}</h2><p clas
 let tt;function toast(m,label,fn){const T=$('toast');T.hidden=false;T.innerHTML='<span></span>'+(label?'<button></button>':'');T.firstChild.textContent=m;if(label){const b=T.querySelector('button');b.textContent=label;b.onclick=()=>{T.hidden=true;fn()}}clearTimeout(tt);tt=setTimeout(()=>T.hidden=true,6000)}
 
 /* ---------- shift ---------- */
-async function setWork(v){work=v;open=false;draw();if(v){follow=true;$('loc').classList.add('on');cam()}if(uid)await db.from('courier_state').upsert({courier_id:uid,working:v,updated_at:new Date().toISOString()})}
+async function setWork(v){work=v;open=false;draw();if(v){follow=true;$('loc').classList.add('on');cam()}sv('togo_work',v);if(uid)await write({t:'cs',d:{courier_id:uid,working:v,updated_at:new Date().toISOString()}})}
 async function endWork(){const w=walletCalc();if(await ask('إنهاء الشفت',`المطلوب تسلّمه للشركة: ${money(w.owed)}`+(w.miss?` · تنبيه: ناقصك ${w.miss} فاتورة`:''),'أنهي الشفت',true))setWork(false)}
 
 /* ---------- delivery ---------- */
@@ -313,18 +398,19 @@ async function undo(n){const{error}=await stopUpd(n.id,{done:false,done_at:null,
 /* ---------- menu & pages ---------- */
 const PAGES=[['home','الخريطة'],['orders','الأوردرات'],['wallet','المحفظة'],['profile','الملف الشخصي']];
 async function shareApp(){
-  const url=location.origin+location.pathname.replace(/index\.html$/,'');
+  const url=location.origin+location.pathname.replace(/[^/]*$/,'')+'install.html';
   const data={title:'تطبيق ToGo',text:'جرّب تطبيق ToGo 🚚 — تطبيق للمناديب بينظّم مسار التوصيل ويحسب حسابك:',url};
   try{if(navigator.share){await navigator.share(data);return}}catch(e){if(e&&e.name==='AbortError')return}
   try{await navigator.clipboard.writeText(url);toast('اتنسخ لينك التطبيق')}catch(e){window.open('https://wa.me/?text='+encodeURIComponent(data.text+' '+url),'_blank')}
 }
-function menu(){if(open&&sheetSet)sheetSet(false);$('plist').classList.remove('on');$('nav').innerHTML=`<h2>${esc(PF.name||'ToGo')}</h2><p class="mut" style="margin-bottom:10px" dir="ltr">${esc(PF.phone||'')}</p>`+PAGES.map(([k,t])=>`<button data-p="${k}" class="${k===page?'on':''}">${t}</button>`).join('')+(inst?`<button data-p="install">ثبّت التطبيق على الشاشة</button>`:'')+`<button data-p="share">مشاركة تطبيق ToGo</button><button data-p="out" style="margin-top:auto;color:var(--bad)">تسجيل الخروج</button>`;$('menu').classList.add('on')}
+function menu(){if(open&&sheetSet)sheetSet(false);$('plist').classList.remove('on');$('nav').innerHTML=`<h2>${esc(PF.name||'ToGo')}</h2><p class="mut" style="margin-bottom:10px" dir="ltr">${esc(PF.phone||'')}</p>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>`<button data-p="${k}" class="${k===page?'on':''}">${t}</button>`).join('')+(inst?`<button data-p="install">ثبّت التطبيق على الشاشة</button>`:'')+`<button data-p="tour">شرح التطبيق</button><button data-p="share">مشاركة تطبيق ToGo</button><button data-p="out" style="margin-top:auto;color:var(--bad)">تسجيل الخروج</button>`;$('menu').classList.add('on')}
 $('mn').onclick=menu;
 $('menu').onclick=e=>{const b=e.target.closest('[data-p]');if(b){$('menu').classList.remove('on');go(b.dataset.p)}else if(e.target===$('menu'))$('menu').classList.remove('on')};
 $('vx').onclick=()=>{go('home');menu()};
 function go(p){
   if(p==='out')return signOut();
   if(p==='share')return shareApp();
+  if(p==='tour')return startTour();
   if(p==='install'){if(inst){inst.prompt();inst=null}return}
   page=p;const v=$('view');
   if(p==='home'){v.classList.remove('on');return}
@@ -342,7 +428,7 @@ function pWallet(){
 function pProfile(){
   $('vb').innerHTML=`<div class="card"><label><small>الاسم</small><input id="pn" value="${esc(PF.name)}"></label><label><small>رقم التليفون</small><input id="pp" value="${esc(PF.phone)}" inputmode="tel"></label><label><small>سعر الأوردر اللي بتاخده من الشركة (ج.م)</small><input id="pr" value="${esc(PF.rate||'')}" inputmode="decimal"></label><button class="p w" id="ps" style="margin-top:14px">حفظ</button></div><button class="w" id="da" style="margin-top:14px;background:none;color:var(--bad)">حذف الحساب نهائيًا</button>`;
   $('da').onclick=deleteAccount;
-  $('ps').onclick=async()=>{PF={name:$('pn').value.trim(),phone:$('pp').value.trim(),rate:parseFloat($('pr').value)||0};sv('togo_profile',PF);let r=await db.from('courier_state').upsert({courier_id:uid,full_name:PF.name,phone:PF.phone,rate:PF.rate,working:work,updated_at:new Date().toISOString()});if(r.error)r=await db.from('courier_state').upsert({courier_id:uid,phone:PF.phone,working:work,updated_at:new Date().toISOString()});toast(r.error?'ماتحفظش على السيرفر':'اتحفظ')};
+  $('ps').onclick=async()=>{PF={name:$('pn').value.trim(),phone:$('pp').value.trim(),rate:parseFloat($('pr').value)||0};sv('togo_profile',PF);const r=await write({t:'cs',d:{courier_id:uid,full_name:PF.name,phone:PF.phone,rate:PF.rate,working:work,updated_at:new Date().toISOString()}});toast(r.error?'ماتحفظش على السيرفر':r.queued?'اتحفظ على الموبايل وهيتزامن لما النت يرجع':'اتحفظ')};
 }
 function pOrders(){
   const s0=new Date(wk);s0.setDate(s0.getDate()-s0.getDay());
@@ -380,13 +466,13 @@ async function deleteAccount(){
 async function postpone(s){
   const t=new Date();t.setDate(t.getDate()+1);
   const x=await modal(`<h2>تأجيل ${esc(s.name||'الأوردر')}</h2><input type="date" id="pd" value="${ymd(t)}" min="${today()}"><div class="row" style="margin-top:12px"><button data-r="x">إلغاء</button><button class="p" data-r="ok">تأجيل</button></div>`,()=>$('pd').value);
-  if(!x||x.r==='x'||!x.v)return;s.day=x.v;D[s.id]=x.v;sv('togo_days',D);db.from('stops').update({delivery_date:x.v}).eq('id',s.id).then(r=>{if(r.error)toast('الموعد ماتحفظش على السيرفر')});selDay=x.v;wk=new Date(x.v+'T12:00');toast('تم التأجيل إلى يوم '+DN[new Date(x.v+'T12:00').getDay()]);pOrders();optimize();
+  if(!x||x.r==='x'||!x.v)return;s.day=x.v;D[s.id]=x.v;sv('togo_days',D);write({t:'upd',id:s.id,d:{delivery_date:x.v}}).then(r=>{if(r.error)toast('الموعد ماتحفظش على السيرفر')});selDay=x.v;wk=new Date(x.v+'T12:00');toast('تم التأجيل إلى يوم '+DN[new Date(x.v+'T12:00').getDay()]);pOrders();optimize();
 }
-async function del(s){if(!await ask('حذف الأوردر',`هيتمسح ${s.name||'الأوردر'} نهائيًا.`,'احذف',true))return;const{error}=await db.from('stops').delete().eq('id',s.id);if(error)return toast('ماتمسحش، جرّب تاني');S=S.filter(x=>x.id!==s.id);pOrders();optimize()}
+async function del(s){if(!await ask('حذف الأوردر',`هيتمسح ${s.name||'الأوردر'} نهائيًا.`,'احذف',true))return;const{error}=await write({t:'del',id:s.id});if(error)return toast('ماتمسحش، جرّب تاني');S=S.filter(x=>x.id!==s.id);pOrders();optimize()}
 
 /* ---------- order form (add / edit) ---------- */
 function parse(t){t=decodeURIComponent(t||'');for(const x of[/[?&](?:q|ll|query|destination|center)=(-?\d+\.\d+)[, ]+(-?\d+\.\d+)/,/@(-?\d+\.\d+),(-?\d+\.\d+)/,/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/,/(-?\d{1,2}\.\d{3,})\s*,\s*(-?\d{1,3}\.\d{3,})/]){const m=t.match(x);if(m)return{lat:+m[1],lng:+m[2]}}return null}
-async function coordsFrom(s){const c=parse(s);if(c)return c;const m=(s||'').match(/https?:\/\/\S+/);if(!m)return null;try{const j=await(await fetch('https://br-polished-fire-b7bwdesx-resolve.compute.c-13.us-east-1.aws.neon.tech/?url='+encodeURIComponent(m[0]))).json();return j.lat?j:null}catch(e){return null}}
+async function coordsFrom(s){const c=parse(s);if(c)return c;const m=(s||'').match(/https?:\/\/\S+/);if(!m)return null;try{const j=await(await fetch('https://br-polished-fire-b7bwdesx-resolve.compute.c-13.us-east-1.aws.neon.tech/?url='+encodeURIComponent(m[0]),tmo(6000))).json();return j.lat?j:null}catch(e){return null}}
 function parseInvoice(raw){
   const L=raw.split(/\r?\n/).map(s=>s.trim()).filter(Boolean),T=L.join('\n'),o={};let m;
   if((m=T.match(/\b(01[0125]\d{8})\b/)))o.phone=m[1];else if((m=T.match(/(?:phone|tel)[ \t]*[:.]?[ \t]*([+\d][\d \t\-]{8,14}\d)/i)))o.phone=m[1].replace(/[ \t\-]/g,'');
@@ -414,19 +500,19 @@ async function orderForm(s){
     const p=modal(`<button class="cx" data-r="x" aria-label="إغلاق">✕</button><h2 class="cxh">${s?'تعديل الأوردر':'أوردر جديد'}</h2><div class="row" style="margin:8px 0"><label class="p big" for="f-ph" style="display:grid;place-items:center;border-radius:18px;font-weight:600;font-size:17px;text-align:center">تصوير الفاتورة</label><label class="big" for="f-ph2" style="display:grid;place-items:center;border-radius:18px;font-weight:600;font-size:17px;text-align:center;background:var(--bg)">من المعرض</label></div><input type="file" id="f-ph" accept="image/*" capture="environment" hidden><input type="file" id="f-ph2" accept="image/*" hidden><p class="mut" id="f-ocr"></p><input id="f-name" placeholder="اسم العميل" value="${esc(v.name)}"><input id="f-phone" placeholder="رقم التليفون" inputmode="tel" value="${esc(v.phone)}"><input id="f-addr" placeholder="العنوان" value="${esc(v.addr)}"><div class="row"><input id="f-bld" placeholder="عمارة" value="${esc(v.bld)}"><input id="f-apt" placeholder="شقة" value="${esc(v.apt)}"></div><input id="f-ord" placeholder="المنتجات" value="${esc(v.ord)}"><div class="row"><input id="f-inv" placeholder="رقم الفاتورة" value="${esc(v.inv)}"><input id="f-amt" placeholder="المبلغ" inputmode="decimal" value="${v.amt??''}"></div><div class="seg" style="margin-top:8px"><button type="button" id="f-cash" class="${cash?'on':''}">كاش</button><button type="button" id="f-visa" class="${cash?'':'on'}">فيزا</button></div><label><small>موعد التسليم</small><input type="date" id="f-date" value="${s?dayOf(s):selDay>=today()?selDay:today()}" min="${today()}"></label><textarea id="f-link" rows="2" placeholder="لينك الموقع (اختياري)"></textarea><div class="row"><button class="p" data-r="save">حفظ</button></div>`,get,wire);
     const x=await p;if(!x||x.r==='x')return;const f=x.v;
     if(!f.name&&!f.phone){toast('اكتب اسم العميل أو رقمه');Object.assign(v,f);continue}
-    let c=null;if(f.link){c=await coordsFrom(f.link);if(!c){toast('مش قادر أطلّع المكان من اللينك');Object.assign(v,f);continue}}
+    let c=null;if(f.link){c=await coordsFrom(f.link);if(!c){if(navigator.onLine===false)toast('أوفلاين: اتحفظ من غير موقع، ضيف الموقع لما النت يرجع');else{toast('مش قادر أطلّع المكان من اللينك');Object.assign(v,f);continue}}}
     const am=parseFloat(f.amt.replace(/,/g,''));
     const rec={customer_name:f.name,phone:f.phone,order_details:f.ord,address:f.addr,building:f.bld,apartment:f.apt,invoice_no:f.inv||null,amount:isNaN(am)?null:am,cash,delivery_date:f.date};
     if(c){rec.lat=c.lat;rec.lng=c.lng}
-    if(s){const{data:ud,error}=await stopsWrite(r=>db.from('stops').update(r).eq('id',s.id).select(),rec);if(error)return toast('ماتحفظش: '+error.message);if(!ud||!ud.length)return toast('السيرفر رفض التعديل (صلاحيات UPDATE على جدول stops). شغّل ملف الصلاحيات');Object.assign(s,row({...s,...rec,id:s.id,customer_name:f.name,phone:f.phone,done:false}),c?{lat:c.lat,lng:c.lng}:{});D[s.id]=f.date;}
-    else{const{data,error}=await stopsWrite(r=>db.from('stops').insert(r).select().single(),rec);if(error)return toast('ماتحفظش: '+error.message);S.push(row(data));D[data.id]=f.date}
+    if(s){const{error,queued}=await stopUpd(s.id,rec);if(error)return toast('ماتحفظش: '+error.message);if(queued)toast('اتحفظ على الموبايل وهيتزامن لما النت يرجع');Object.assign(s,row({...s,...rec,id:s.id,customer_name:f.name,phone:f.phone,done:false}),c?{lat:c.lat,lng:c.lng}:{});D[s.id]=f.date;}
+    else{const{data,error}=await stopAdd(rec);if(error)return toast('ماتحفظش: '+error.message);S.push(row(data));D[data.id]=f.date}
     sv('togo_days',D);selDay=f.date;if(page==='orders')pOrders();optimize();return;
   }
 }
 
 /* ---------- auth & boot ---------- */
 let lastSet='';
-async function load(){const{data,error}=await db.from('stops').select('*');if(!error)S=data.map(row);const k=active().filter(s=>s.lat!=null).map(s=>s.id).sort().join();if(k!==lastSet){lastSet=k;optimize()}else draw();if(page==='orders')pOrders();if(page==='wallet')pWallet()}
+async function load(){if(Q.length)await sync();if(!Q.length&&navigator.onLine!==false){let r;try{r=await withT(db.from('stops').select('*'))}catch(e){r={error:e}}if(!r.error&&r.data){RAW=r.data;sv(RK,RAW);S=r.data.map(row)}}const k=active().filter(s=>s.lat!=null).map(s=>s.id).sort().join();if(k!==lastSet){lastSet=k;optimize()}else draw();if(page==='orders')pOrders();if(page==='wallet')pWallet()}
 const hideSplash=()=>setTimeout(()=>$('splash').classList.add('off'),300);setTimeout(hideSplash,7000);
 addEventListener('contextmenu',e=>{if(!e.target.closest('input,textarea'))e.preventDefault()});
 
@@ -445,10 +531,68 @@ function fillList(){
   $('plist').innerHTML=rows.join('')||'<p class="mut" style="padding:14px 0">مفيش أوردرات متبقية.</p>';
 }
 $('prog').onclick=()=>{const p=$('plist');if(p.classList.contains('on'))p.classList.remove('on');else{fillList();p.classList.add('on')}};
-$('rf').onclick=async()=>{const b=$('rf');b.classList.add('spin');try{await load();legAt=0;if(me)await fetchLeg()}catch(e){}b.classList.remove('spin');toast('اتحدّثت البيانات')};
+$('rf').onclick=async()=>{const b=$('rf');b.classList.add('spin');try{await load();legAt=0;if(me)await fetchLeg()}catch(e){}b.classList.remove('spin');toast(navigator.onLine===false?'أوفلاين: بيانات آخر مرة اتحمّلت':'اتحدّثت البيانات')};
+
+/* ---------- first-run guided tour ---------- */
+const TOUR=[
+ {ic:'🚚',t:'أهلاً بيك في ToGo',x:'هنعدّي على التطبيق في دقيقة واحدة. تقدر تتخطّى في أي وقت.'},
+ {ic:'📋',t:'عدّاد الأوردرات',el:'#prog',x:'بيوريك سلّمت كام من كام النهارده. دوس عليه تشوف ترتيب العملاء والوقت المتوقع لكل واحد.'},
+ {ic:'🔄',t:'تحديث',el:'#rf',x:'دوس هنا تجيب آخر الأوردرات من السيرفر.'},
+ {ic:'📍',t:'موقعي',el:'#loc',x:'بيرجّع الخريطة عليك وتتابعك وإنت ماشي.'},
+ {ic:'▶️',t:'ابدأ الشغل',el:()=>$('peek')||$('sheet'),x:()=>work?'هنا الأوردر الجاي بتفاصيله. اسحب الكارت لفوق تشوف العنوان والدفع. لما تقرّب من العميل يظهر زرار «تسليم الطلب».':'دوس «ابدأ الشغل» الأول. التطبيق هيرتّب العملاء بأقصر مسار ويوريك الأوردر الجاي.'},
+ {ic:'☰',t:'القائمة',el:'#mn',x:'منها بتفتح الأوردرات والمحفظة والملف الشخصي.'},
+ {ic:'📦',t:'الأوردرات',el:'#nav [data-p="orders"]',menu:1,x:'هنا بتضيف أوردر جديد (تصوير الفاتورة بيملا البيانات لوحده)، وبتعدّل وتأجّل. دوس على اسم العميل تشوف تفاصيله وتحذفه.'},
+ {ic:'💰',t:'المحفظة',el:'#nav [data-p="wallet"]',menu:1,x:'بتحسب المبلغ المطلوب تسلّمه للشركة وعمولتك.'},
+ {ic:'👤',t:'الملف الشخصي',el:'#nav [data-p="profile"]',menu:1,x:'اسمك ورقمك وسعر الأوردر بتاعك.'},
+ {ic:'✅',t:'جاهز!',x:'لو النت قطع التطبيق بيفضل شغال وبيزامن تعديلاتك لما يرجع. تقدر تعيد الشرح من القائمة ← «شرح التطبيق».'}
+];
+let tourOn=false,ti=0,tbusy=false;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function buildTour(){
+  if($('tour'))return;
+  const t=document.createElement('div');t.id='tour';t.hidden=true;
+  t.innerHTML='<div id="tm" class="none"></div><div id="tc" role="dialog" aria-live="polite"><div class="ti" id="tic"></div><h3 id="tt"></h3><p id="tx"></p><span id="td"></span><div class="tf"><button class="lk" id="tk">تخطّي</button><span style="flex:1"></span><button class="lk" id="tpv">السابق</button><button class="p" id="tn">التالي</button></div></div>';
+  document.body.appendChild(t);
+  $('tn').onclick=()=>{if(tbusy)return;if(ti>=TOUR.length-1)endTour();else{ti++;showStep()}};
+  $('tpv').onclick=()=>{if(tbusy||ti<=0)return;ti--;showStep()};
+  $('tk').onclick=()=>endTour();
+  addEventListener('resize',()=>{if(tourOn&&!tbusy)showStep()});
+}
+async function showStep(){
+  tbusy=true;
+  const st=TOUR[ti],mOn=$('menu').classList.contains('on');
+  if(st.menu&&!mOn){menu();await sleep(480)}
+  else if(!st.menu&&mOn){$('menu').classList.remove('on');await sleep(400)}
+  if(!tourOn){tbusy=false;return}
+  const el=st.el?(typeof st.el==='function'?st.el():document.querySelector(st.el)):null;
+  $('tic').textContent=st.ic;$('tt').textContent=st.t;$('tx').textContent=typeof st.x==='function'?st.x():st.x;
+  $('td').innerHTML=TOUR.map((_,i)=>`<i class="${i===ti?'on':''}"></i>`).join('');
+  $('tpv').style.display=ti?'':'none';$('tn').textContent=ti===TOUR.length-1?'يلا نبدأ':'التالي';
+  const hole=$('tm'),c=$('tc'),H=innerHeight,pad=6;
+  let r=el&&el.getBoundingClientRect();if(r&&!r.width)r=null;
+  if(r){hole.classList.remove('none');Object.assign(hole.style,{left:r.left-pad+'px',top:r.top-pad+'px',width:r.width+pad*2+'px',height:r.height+pad*2+'px'})}
+  else{hole.classList.add('none');Object.assign(hole.style,{left:innerWidth/2+'px',top:H/2+'px',width:'0px',height:'0px'})}
+  const ch=c.offsetHeight;let top=(H-ch)/2;
+  if(r){const below=r.bottom+pad+16,above=r.top-pad-16-ch;top=below+ch<=H-12?below:above>=12?above:Math.max(12,(H-ch)/2)}
+  c.style.top=top+'px';
+  tbusy=false;
+}
+async function startTour(){
+  if(tourOn||dg.open)return;
+  buildTour();if(page!=='home')go('home');
+  $('menu').classList.remove('on');
+  tourOn=true;ti=0;$('tour').hidden=false;showStep();
+}
+function endTour(){
+  if(!tourOn)return;
+  tourOn=false;$('tour').hidden=true;sv('togo_tour',1);
+  $('menu').classList.remove('on');
+}
+const maybeTour=()=>{if(!ld('togo_tour',0))setTimeout(()=>{if(!$('auth')||$('auth').style.display==='none')startTour()},1500)};
 
 /* ---------- back button: close the top layer first, then exit ---------- */
 function closeTop(){
+  if(tourOn){endTour();return true}
   if(dg.open&&!dg.classList.contains('out')){dg.onclose=null;if(curRes)curRes(null);shut();return true}
   if($('menu').classList.contains('on')){$('menu').classList.remove('on');return true}
   if($('plist').classList.contains('on')){$('plist').classList.remove('on');return true}
@@ -456,17 +600,36 @@ function closeTop(){
   if(open&&sheetSet){sheetSet(false);return true}
   return false;
 }
-let armed=false,exitT=0;const arm=()=>{if(!armed){history.pushState({a:1},'');armed=true}};
-history.replaceState({r:1},'');addEventListener('pointerdown',arm,{capture:true,once:true});
-addEventListener('popstate',()=>{armed=false;if(closeTop()){arm();return}if(Date.now()-exitT<2200){history.back();return}exitT=Date.now();toast('اضغط رجوع مرة تانية للخروج');arm()});
+/* history buffer: several entries are pushed during a real tap (browsers skip entries pushed without a tap),
+   so every back press is caught by the app instead of leaving it */
+let dep=0,exitT=0,exiting=false;const BUF=6;
+const arm=()=>{while(dep<BUF)history.pushState({a:++dep},'')};
+history.replaceState({r:1},'');
+addEventListener('pointerdown',arm,{capture:true});
+addEventListener('popstate',()=>{
+  const st=history.state;dep=st&&st.a?st.a:0;
+  if(exiting){if(dep>0)history.go(-dep);else history.back();return}
+  if(closeTop())return;
+  if(Date.now()-exitT<2200){exiting=true;if(dep>0)history.go(-dep);else history.back();return}
+  exitT=Date.now();toast('اضغط رجوع مرة تانية للخروج');
+});
 async function boot(){
-  const{data}=await db.auth.getSession();
-  if(!(data&&data.session)){$('auth').style.display='flex';hideSplash();if(pending){show(false);amsg('اتعمل الحساب. سجّل دخولك دلوقتي.')}return}
-  const u=data.user||data.session.user||{};uid=u.id;$('auth').style.display='none';
+  let data=null;
+  try{({data}=await withT(db.auth.getSession(),6000))}catch(e){}
+  const cu=ld('togo_uid',null);
+  if(!(data&&data.session)){
+    if(cu&&(!data||navigator.onLine===false)){uid=cu;work=ld('togo_work',false);$('auth').style.display='none';live();load();hideSplash();setInterval(load,30000);maybeTour();return}
+    $('auth').style.display='flex';hideSplash();if(pending){show(false);amsg('اتعمل الحساب. سجّل دخولك دلوقتي.')}return}
+  const u=data.user||data.session.user||{};uid=u.id;sv('togo_uid',uid);$('auth').style.display='none';
   if(!PF.name&&u.name){PF.name=u.name;sv('togo_profile',PF)}
-  if(pending){const r0={courier_id:uid,full_name:pending.name,phone:pending.phone,updated_at:new Date().toISOString()};{const q=await db.from('courier_state').upsert(r0);if(q.error)await db.from('courier_state').upsert({courier_id:uid,phone:pending.phone,updated_at:r0.updated_at})}pending=null}
-  let w=await db.from('courier_state').select('working,full_name,phone,rate').eq('courier_id',uid).maybeSingle();if(w.error)w=await db.from('courier_state').select('working').eq('courier_id',uid).maybeSingle();work=!!(w.data&&w.data.working);if(w.data){if(w.data.full_name)PF.name=w.data.full_name;if(w.data.phone)PF.phone=w.data.phone;if(w.data.rate!=null)PF.rate=+w.data.rate;sv('togo_profile',PF)}
-  live();load();hideSplash();setInterval(load,30000);
+  try{
+    if(pending){const r0={courier_id:uid,full_name:pending.name,phone:pending.phone,updated_at:new Date().toISOString()};{const q=await db.from('courier_state').upsert(r0);if(q.error)await db.from('courier_state').upsert({courier_id:uid,phone:pending.phone,updated_at:r0.updated_at})}pending=null}
+    let w=await withT(db.from('courier_state').select('working,full_name,phone,rate').eq('courier_id',uid).maybeSingle());if(w.error)w=await withT(db.from('courier_state').select('working').eq('courier_id',uid).maybeSingle());
+    if(w.error)throw w.error;
+    work=!Q.some(x=>x.t==='cs')?!!(w.data&&w.data.working):ld('togo_work',false);sv('togo_work',work);
+    if(w.data){if(w.data.full_name)PF.name=w.data.full_name;if(w.data.phone)PF.phone=w.data.phone;if(w.data.rate!=null)PF.rate=+w.data.rate;sv('togo_profile',PF)}
+  }catch(e){work=ld('togo_work',false)}
+  live();load();hideSplash();setInterval(load,30000);maybeTour();
 }
 const normPhone=v=>{let d=String(v||'').replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/\D/g,'');if(d.startsWith('0020'))d='0'+d.slice(4);else if(d.startsWith('20')&&d.length>=12)d='0'+d.slice(2);else if(d.length===10&&d.startsWith('1'))d='0'+d;return d};
 const phoneEmail=p=>p+'@togo-app.com';
@@ -491,7 +654,7 @@ $('up').onclick=()=>{
   if(!/^\d{6}$/.test(ar2en(pw)))return amsg('كلمة السر لازم ٦ أرقام');
   run($('up'),async()=>{const r=await db.auth.signUp.email({email:phoneEmail(ph),password:pwOf(pw),name});if(r.error){amsg(/exist|already|taken/i.test(r.error.message||'')?'الرقم ده مسجّل قبل كده. سجّل دخولك.':(r.error.message||'ماتسجّلش، جرّب تاني'));return}pending={name,phone:ph};PF={...PF,name,phone:ph};sv('togo_profile',PF);amsg('');boot()});
 };
-async function signOut(){if(!await ask('تسجيل الخروج','هتحتاج تدخل بالإيميل وكلمة السر تاني.','اخرج',true))return;await db.auth.signOut();location.reload()}
+async function signOut(){if(!await ask('تسجيل الخروج',Q.length?'فيه '+Q.length+' تعديل لسه ماتزامنش، وهيتمسحوا لو خرجت. افتح النت الأول لو عايزهم يتزامنوا.':'هتحتاج تدخل بالإيميل وكلمة السر تاني.','اخرج',true))return;try{await db.auth.signOut()}catch(e){}sv('togo_uid',null);sv(QK,[]);sv(RK,[]);location.reload()}
 draw();boot();
 </script>
 </body>

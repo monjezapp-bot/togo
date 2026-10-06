@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f2238">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>ثبّت تطبيق ToGo</title>
+<meta name="description" content="ToGo — تطبيق للمناديب بينظّم مسار التوصيل ويحسب حسابك. ثبّته على موبايلك في ثانيتين.">
+<meta property="og:site_name" content="ToGo">
+<meta property="og:title" content="ثبّت تطبيق ToGo">
+<meta property="og:description" content="تطبيق للمناديب بينظّم مسار التوصيل ويحسب حسابك.">
+<meta property="og:image" content="logo.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&display=swap">
+<style>
+:root{--navy:#0f2238;--pri:#f26a1b;--ink:#f5f1e6;--mut:#aab4c3}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{min-height:100dvh;background:radial-gradient(120% 60% at 50% 0,#1b3a5e 0,var(--navy) 62%);color:var(--ink);font:500 16px/1.6 "Readex Pro",Tahoma,sans-serif;-webkit-tap-highlight-color:transparent}
+main{min-height:100dvh;max-width:440px;margin:0 auto;padding:calc(36px + env(safe-area-inset-top)) 22px calc(28px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;text-align:center}
+.logo{width:min(36vw,132px);height:auto;margin:6px 0 4px;animation:pop .7s cubic-bezier(.22,1,.36,1)}
+h1.name{margin:8px 0 0;font-size:44px;line-height:1.1;letter-spacing:.5px;font-weight:700}.sub{margin:4px 0 12px;font-size:18px;font-weight:600;color:#ffd2b4}
+.lead{margin:0;color:var(--mut);font-size:16px;max-width:30ch}
+ul{list-style:none;margin:26px 0 0;padding:0;width:100%;display:grid;gap:10px}
+li{display:flex;gap:14px;align-items:center;text-align:start;background:#ffffff0f;border:1px solid #ffffff1a;border-radius:18px;padding:14px 16px;animation:rise .6s cubic-bezier(.22,1,.36,1) backwards}
+li:nth-child(2){animation-delay:.08s}li:nth-child(3){animation-delay:.16s}
+li i{flex:none;width:44px;height:44px;border-radius:14px;background:#f26a1b26;display:grid;place-items:center;font-size:22px;font-style:normal}
+li b{display:block;font-size:16px}li span{display:block;color:var(--mut);font-size:14px;line-height:1.5}
+.cta{margin-top:auto;padding-top:28px;width:100%}
+button,a.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:64px;border:0;border-radius:18px;background:var(--pri);color:#fff;font:700 20px "Readex Pro",Tahoma,sans-serif;text-decoration:none;cursor:pointer;box-shadow:0 10px 28px #f26a1b55;transition:transform .15s}
+button:active,a.btn:active{transform:scale(.97)}
+button:focus-visible,a.btn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+#hint{margin:14px 0 0;padding:12px 16px;border-radius:14px;background:#ffffff14;color:var(--ink);font-size:14.5px;text-align:start}
+#hint[hidden]{display:none}
+#ok{margin-top:12px;color:#7ee2a8;font-weight:600}
+#ok[hidden]{display:none}
+@keyframes pop{from{transform:scale(.85);opacity:0}}
+@keyframes rise{from{transform:translateY(14px);opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <img class="logo" id="logo" src="logo.png" alt="ToGo">
+  <h1 class="name">ToGo</h1>
+  <p class="sub">تطبيق مندوب التوصيل</p>
+  <p class="lead">بينظّم مسارك، ويسجّل تسليماتك، ويحسب حسابك مع الشركة.</p>
+  <ul>
+    <li><i>🗺️</i><div><b>مسارك مترتّب</b><span>بيرتّب الأوردرات بأقصر طريق ويوريك الأوردر الجاي بتفاصيله.</span></div></li>
+    <li><i>💰</i><div><b>حسابك واضح</b><span>سجّل التسليم والتحصيل، وشوف المبلغ المطلوب تسلّمه للشركة.</span></div></li>
+    <li><i>📶</i><div><b>شغّال من غير نت</b><span>لو النت قطع كمّل شغلك، والتعديلات بتتزامن لوحدها لما يرجع.</span></div></li>
+  </ul>
+  <div class="cta">
+    <button id="go" type="button">ثبّت التطبيق</button>
+    <p id="hint" hidden></p>
+    <p id="ok" hidden>اتثبّت ✅ دوّر على أيقونة ToGo في موبايلك.</p>
+  </div>
+</main>
+<script>
+(function(){
+  var go=document.getElementById('go'),hint=document.getElementById('hint'),ok=document.getElementById('ok');
+  var ua=navigator.userAgent;
+  var isIOS=/iphone|ipad|ipod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  var inApp=/FBAN|FBAV|Instagram|Messenger|Snapchat|TikTok|MicroMessenger|Line\//i.test(ua);
+  var standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+  var dp=null;
+  var lg=document.getElementById('logo'),tried=0;
+  lg.onerror=function(){if(!tried++){lg.src='icon-512.png'}else{lg.onerror=null;lg.style.display='none'}};
+  function say(t){hint.textContent=t;hint.hidden=false}
+  if('serviceWorker' in navigator)addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})});
+  addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e});
+  addEventListener('appinstalled',function(){dp=null;hint.hidden=true;go.textContent='افتح التطبيق';ok.hidden=false;standalone=true});
+  if(standalone)go.textContent='افتح التطبيق';
+  if(inApp)say('الرابط ده مفتوح جوه تطبيق تاني. افتحه من المتصفح (كروم أو سفاري) عشان تقدر تثبّت.');
+  go.onclick=function(){
+    if(standalone){location.href='./';return}
+    if(dp){
+      dp.prompt();
+      dp.userChoice.then(function(c){dp=null;if(c&&c.outcome==='accepted')say('جاري التثبيت...')}).catch(function(){});
+      return;
+    }
+    if(inApp){say('افتح الرابط من المتصفح (كروم أو سفاري) وبعدين دوس تثبيت.');return}
+    if(isIOS){say('على الآيفون: افتح الصفحة في سفاري، دوس زرار المشاركة، وبعدين اختار «إضافة إلى الشاشة الرئيسية».');return}
+    say('افتح قائمة المتصفح ⋮ وبعدين اختار «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».');
+  };
+})();
+</script>
+</body>
+</html>
