@@ -10,6 +10,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title>ToGo</title>
+<meta name="description" content="ToGo — تطبيق للمناديب بينظّم مسار التوصيل ويحسب حسابك.">
+<meta property="og:site_name" content="ToGo"><meta property="og:title" content="تطبيق ToGo"><meta property="og:description" content="تطبيق للمناديب بينظّم مسار التوصيل ويحسب حسابك."><meta property="og:image" content="logo.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&display=swap">
 <style>
@@ -90,6 +92,12 @@ dialog.out{animation:dgout .3s cubic-bezier(.4,0,1,1) forwards}dialog.out::backd
 .pi .num{width:34px;height:34px;font-size:15px;background:var(--ink)}.pi:first-child .num{background:var(--pri)}.pi .eta{text-align:end;flex:none}.pi .eta b{font-size:16px}
 #auth{overflow:auto;text-align:center;justify-content:flex-start}#auth .ain{margin:auto 0;width:100%}#auth img{display:block;margin:0 auto 14px}#auth p{text-align:center;margin:0 0 18px}
 #auth .alt{background:none;color:#aab4c3;min-height:48px;width:100%;margin-top:8px;font-size:15px}#auth .alt b{color:var(--pri)}
+.pi{gap:8px;padding:8px 0}.pi .num{width:30px;height:30px;font-size:14px}
+.pi .nm,.item .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.pi .mn{flex:none;font-weight:700;font-size:15px}.pi .mn.g{color:var(--mut);font-weight:500;font-size:13px}
+.ib{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;text-decoration:none}.ib.c{background:var(--ok);color:#fff}.ib.w{background:#e8f6ed;color:var(--ok)}.ib.l{background:#fff1e8;color:var(--pri)}
+.item[data-o]{cursor:pointer}.item[data-o]:active{background:var(--bg)}
+.inv b.ph{display:flex;align-items:center;gap:8px}
 </style>
 </head>
 <body>
@@ -125,7 +133,7 @@ dialog.out{animation:dgout .3s cubic-bezier(.4,0,1,1) forwards}dialog.out::backd
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script type="module">
 import {createClient} from 'https://esm.sh/@neondatabase/neon-js';
-const COMPANY='Marmelade Designs',NEAR=1000,DWELL=240;
+const NEAR=1000,DWELL=240;
 const db=createClient({
   auth:{url:'https://ep-noisy-feather-b72o2ma5.neonauth.c-13.us-east-1.aws.neon.tech/neondb/auth'},
   dataApi:{url:'https://ep-noisy-feather-b72o2ma5.apirest.c-13.us-east-1.aws.neon.tech/neondb/rest/v1'}
@@ -227,7 +235,7 @@ function draw(){
   }else{
     const ph=n.phone?String(n.phone).replace(/[^\d+]/g,''):'';
     h=`<div id="peek" class="dr"><div class="grab"><i></i></div><div class="hd"><span class="num">1</span><div><h2>${esc(n.name||'عميل')}</h2><p class="mut" id="eta">${etaTxt()}</p></div>${ph?`<a class="call" href="tel:${esc(ph)}" aria-label="اتصال">✆</a>`:''}</div>${wasNear?`<button class="ok w big" data-a="deliver" style="margin-top:12px">تسليم الطلب</button>`:''}</div>
-    <div id="det"><p class="addr" style="margin-top:0">${esc(n.addr||'بدون عنوان')}</p><div class="facts">${n.bld?`<div class="fact"><small>عمارة</small><b>${esc(n.bld)}</b></div>`:''}${n.apt?`<div class="fact"><small>شقة</small><b>${esc(n.apt)}</b></div>`:''}<div class="fact ${n.cash?'cash':'visa'}"><small>${n.cash?'كاش':'الدفع'}</small><b>${n.cash?money(n.amt):'فيزا'}</b></div></div>${n.ord?`<p class="mut">${esc(n.ord)}</p>`:''}${ph?`<a class="call" style="width:100%;border-radius:var(--r);height:52px;background:#128c4a;font-size:16px;margin-top:10px" href="https://wa.me/${waNum(ph)}" target="_blank" rel="noopener">واتساب</a>`:''}<button class="link" data-a="stop">إنهاء الشفت</button></div>`;
+    <div id="det"><p class="addr" style="margin-top:0">${esc(n.addr||'بدون عنوان')}</p><div class="facts">${n.bld?`<div class="fact"><small>عمارة</small><b>${esc(n.bld)}</b></div>`:''}${n.apt?`<div class="fact"><small>شقة</small><b>${esc(n.apt)}</b></div>`:''}<div class="fact ${n.cash?'cash':'visa'}"><small>${n.cash?'كاش':'الدفع'}</small><b>${n.cash?money(n.amt):'فيزا'}</b></div></div>${n.ord?`<p class="mut">${esc(n.ord)}</p>`:''}${ph?`<a class="call" style="width:100%;border-radius:var(--r);height:52px;background:#128c4a;font-size:16px;margin-top:10px" href="${waUrl(ph)}" target="_blank" rel="noopener">واتساب</a>`:''}<button class="link" data-a="stop">إنهاء الشفت</button></div>`;
   }
   const sh=$('sheet');$('sc').innerHTML=h;
   if(work&&n)initDrag();else{sheetSet=null;sh.style.setProperty('--y','0px')}
@@ -257,6 +265,9 @@ $('sheet').onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;({start
 
 /* ---------- dialogs ---------- */
 const dg=$('dg');
+/* DB helpers: keep working even if an optional new column has not been added yet */
+async function stopUpd(id,obj,opt){let o={...obj},r=await db.from('stops').update(o).eq('id',id);for(const k of(opt||[])){if(r.error&&new RegExp(k).test(r.error.message||'')){delete o[k];r=await db.from('stops').update(o).eq('id',id)}}return r}
+async function stopsWrite(fn,rec){let r=await fn(rec);if(r.error&&/delivery_date/.test(r.error.message||'')){const{delivery_date,...r2}=rec;r=await fn(r2);if(!r.error)toast('اتحفظ، لكن الموعد على الموبايل بس. شغّل ملف الـ SQL')}return r}
 let busy=null;
 function shut(){dg.classList.add('out');busy=new Promise(r=>setTimeout(()=>{dg.classList.remove('out');dg.close();busy=null;r()},300))}
 function modal(html,collect,onOpen){const run=()=>new Promise(res=>{curRes=res;dg.innerHTML=html;dg.onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;const v=collect?collect():null;dg.onclose=null;shut();res({r:b.dataset.r,v})};dg.oncancel=()=>res(null);dg.onclose=()=>res(null);dg.showModal();if(onOpen)onOpen()});return busy?busy.then(run):run()}
@@ -290,22 +301,29 @@ async function deliver(n){
   if(!rk&&!await ask('تنبيه: الفاتورة مهمة','الشركة محتاجة الفاتورة. اطلبها من العميل قبل ما تمشي. تسجّل التسليم من غير فاتورة؟','سجّل من غير فاتورة',true))return;
   if(far())return toast(farMsg());
   const at=new Date().toISOString();
-  const{error}=await db.from('stops').update({done:true,done_at:at,cash_collected:n.cash,received:got,receipt_kept:rk}).eq('id',n.id);
+  const{error}=await stopUpd(n.id,{done:true,done_at:at,cash_collected:n.cash,received:got,receipt_kept:rk},['receipt_kept']);
   if(error)return toast('ماتحفظش، جرّب تاني');
   Object.assign(n,{done:true,at,got,rk});wasNear=false;open=false;
   toast('تم تسليم '+(n.name||'العميل'),'تراجع',()=>undo(n));
   me&&(me={lat:n.lat,lng:n.lng});optimize();
 }
-async function undo(n){const{error}=await db.from('stops').update({done:false,done_at:null,cash_collected:null,received:null,receipt_kept:null}).eq('id',n.id);if(error)return toast('ماقدرتش أتراجع');Object.assign(n,{done:false,at:null,got:null,rk:null});optimize()}
+async function undo(n){const{error}=await stopUpd(n.id,{done:false,done_at:null,cash_collected:null,received:null,receipt_kept:null},['receipt_kept']);if(error)return toast('ماقدرتش أتراجع');Object.assign(n,{done:false,at:null,got:null,rk:null});optimize()}
 
 /* ---------- menu & pages ---------- */
 const PAGES=[['home','الخريطة'],['orders','الأوردرات'],['wallet','المحفظة'],['profile','الملف الشخصي']];
-function menu(){$('nav').innerHTML=`<h2>${esc(PF.name||'ToGo')}</h2><p class="mut" style="margin-bottom:10px" dir="ltr">${esc(PF.phone||'')}</p>`+PAGES.map(([k,t])=>`<button data-p="${k}" class="${k===page?'on':''}">${t}</button>`).join('')+(inst?`<button data-p="install">ثبّت التطبيق على الشاشة</button>`:'')+`<button data-p="out" style="margin-top:auto;color:var(--bad)">تسجيل الخروج</button>`;$('menu').classList.add('on')}
+async function shareApp(){
+  const url=location.origin+location.pathname.replace(/index\.html$/,'');
+  const data={title:'تطبيق ToGo',text:'جرّب تطبيق ToGo 🚚 — تطبيق للمناديب بينظّم مسار التوصيل ويحسب حسابك:',url};
+  try{if(navigator.share){await navigator.share(data);return}}catch(e){if(e&&e.name==='AbortError')return}
+  try{await navigator.clipboard.writeText(url);toast('اتنسخ لينك التطبيق')}catch(e){window.open('https://wa.me/?text='+encodeURIComponent(data.text+' '+url),'_blank')}
+}
+function menu(){$('nav').innerHTML=`<h2>${esc(PF.name||'ToGo')}</h2><p class="mut" style="margin-bottom:10px" dir="ltr">${esc(PF.phone||'')}</p>`+PAGES.map(([k,t])=>`<button data-p="${k}" class="${k===page?'on':''}">${t}</button>`).join('')+(inst?`<button data-p="install">ثبّت التطبيق على الشاشة</button>`:'')+`<button data-p="share">مشاركة تطبيق ToGo</button><button data-p="out" style="margin-top:auto;color:var(--bad)">تسجيل الخروج</button>`;$('menu').classList.add('on')}
 $('mn').onclick=menu;
 $('menu').onclick=e=>{const b=e.target.closest('[data-p]');if(b){$('menu').classList.remove('on');go(b.dataset.p)}else if(e.target===$('menu'))$('menu').classList.remove('on')};
 $('vx').onclick=()=>go('home');
 function go(p){
   if(p==='out')return signOut();
+  if(p==='share')return shareApp();
   if(p==='install'){if(inst){inst.prompt();inst=null}return}
   page=p;const v=$('view');
   if(p==='home'){v.classList.remove('on');return}
@@ -321,18 +339,19 @@ function pWallet(){
   $('vb').innerHTML=`<div class="owe"><small>المطلوب تسلّمه للشركة</small><div>${money(w.owed)}</div></div><div class="card"><div class="sum"><span>أوردرات اتسلّمت النهارده</span><b>${w.n}</b></div><div class="sum"><span>كاش (${w.cashN})</span><b>${money(w.col)}</b></div><div class="sum"><span>فيزا</span><b>${w.visa}</b></div><div class="sum"><span>سعر الأوردر</span><b>${money(PF.rate)}</b></div><div class="sum"><span>أجرك (${w.n} × ${PF.rate||0})</span><b>- ${money(w.com)}</b></div></div>${PF.rate?'':'<p class="mut">حدّد سعر الأوردر من «الملف الشخصي» عشان يتحسب أجرك.</p>'}`;
 }
 function pProfile(){
-  $('vb').innerHTML=`<div class="card"><label><small>الاسم</small><input id="pn" value="${esc(PF.name)}"></label><label><small>رقم التليفون</small><input id="pp" value="${esc(PF.phone)}" inputmode="tel"></label><label><small>سعر الأوردر اللي بتاخده من الشركة (ج.م)</small><input id="pr" value="${esc(PF.rate||'')}" inputmode="decimal"></label><button class="p w" id="ps" style="margin-top:14px">حفظ</button></div>`;
-  $('ps').onclick=async()=>{PF={name:$('pn').value.trim(),phone:$('pp').value.trim(),rate:parseFloat($('pr').value)||0};sv('togo_profile',PF);const r=await db.from('courier_state').upsert({courier_id:uid,full_name:PF.name,phone:PF.phone,rate:PF.rate,working:work,updated_at:new Date().toISOString()});toast(r.error?'ماتحفظش على السيرفر':'اتحفظ')};
+  $('vb').innerHTML=`<div class="card"><label><small>الاسم</small><input id="pn" value="${esc(PF.name)}"></label><label><small>رقم التليفون</small><input id="pp" value="${esc(PF.phone)}" inputmode="tel"></label><label><small>سعر الأوردر اللي بتاخده من الشركة (ج.م)</small><input id="pr" value="${esc(PF.rate||'')}" inputmode="decimal"></label><button class="p w" id="ps" style="margin-top:14px">حفظ</button></div><button class="w" id="da" style="margin-top:14px;background:none;color:var(--bad)">حذف الحساب نهائيًا</button>`;
+  $('da').onclick=deleteAccount;
+  $('ps').onclick=async()=>{PF={name:$('pn').value.trim(),phone:$('pp').value.trim(),rate:parseFloat($('pr').value)||0};sv('togo_profile',PF);let r=await db.from('courier_state').upsert({courier_id:uid,full_name:PF.name,phone:PF.phone,rate:PF.rate,working:work,updated_at:new Date().toISOString()});if(r.error)r=await db.from('courier_state').upsert({courier_id:uid,phone:PF.phone,working:work,updated_at:new Date().toISOString()});toast(r.error?'ماتحفظش على السيرفر':'اتحفظ')};
 }
 function pOrders(){
   const s0=new Date(wk);s0.setDate(s0.getDate()-s0.getDay());
   const days=[...Array(7)].map((_,i)=>{const d=new Date(s0);d.setDate(s0.getDate()+i);return d});
   const cnt=k=>S.filter(s=>(s.done&&s.at?ymd(new Date(s.at)):dayOf(s))===k).length;
   const L=S.filter(s=>(s.done&&s.at?ymd(new Date(s.at)):dayOf(s))===selDay);
-  $('vb').innerHTML=`<div class="row" style="margin:0 0 10px"><button data-w="-7">‹ الأسبوع اللي فات</button><button data-w="7">الأسبوع الجاي ›</button></div><div class="days">${days.map(d=>{const k=ymd(d);return `<button class="day ${k===selDay?'on':''} ${k===today()?'t':''}" data-d="${k}">${DN[d.getDay()]}<b>${d.getDate()}</b>${cnt(k)} أوردر</button>`}).join('')}</div><div class="card" style="margin-top:12px;padding:4px 16px">${L.length?L.map(s=>`<div class="item"><div><b>${esc(s.name||'عميل')}</b><small>${esc(s.ord||s.addr||'')}${s.amt!=null?' · '+money(s.amt):''}</small></div>${s.done?'<span class="tag d">تم</span>':`<button data-e="${s.id}">تعديل</button><button data-pp="${s.id}">تأجيل</button><button class="bad" data-x="${s.id}">حذف</button>`}</div>`).join(''):'<p class="mut" style="padding:16px 0">مفيش أوردرات في اليوم ده.</p>'}</div><button class="p big fab" data-add="1">+ أوردر جديد</button>`;
+  $('vb').innerHTML=`<div class="row" style="margin:0 0 10px"><button data-w="-7">‹ الأسبوع اللي فات</button><button data-w="7">الأسبوع الجاي ›</button></div><div class="days">${days.map(d=>{const k=ymd(d);return `<button class="day ${k===selDay?'on':''} ${k===today()?'t':''}" data-d="${k}">${DN[d.getDay()]}<b>${d.getDate()}</b>${cnt(k)} أوردر</button>`}).join('')}</div><div class="card" style="margin-top:12px;padding:4px 16px">${L.length?L.map(s=>`<div class="item" data-o="${s.id}"><b class="nm">${esc(s.name||'عميل')}</b>${s.done?'<span class="tag d">تم</span>':`<button data-pp="${s.id}">تأجيل</button><button class="bad" data-x="${s.id}">حذف</button>`}</div>`).join(''):'<p class="mut" style="padding:16px 0">مفيش أوردرات في اليوم ده.</p>'}</div><button class="p big fab" data-add="1">+ أوردر جديد</button>`;
 }
 $('vb').onclick=async e=>{
-  const t=e.target.closest('button');if(!t)return;const g=k=>t.dataset[k];
+  const t=e.target.closest('button');if(!t){const r=e.target.closest('[data-o]');if(r)detail(S.find(s=>s.id===r.dataset.o));return}const g=k=>t.dataset[k];
   if(g('w')){wk.setDate(wk.getDate()+ +g('w'));pOrders()}
   else if(g('d')){selDay=g('d');pOrders()}
   else if(g('add'))orderForm(null);
@@ -340,6 +359,23 @@ $('vb').onclick=async e=>{
   else if(g('pp'))postpone(S.find(s=>s.id===g('pp')));
   else if(g('x'))del(S.find(s=>s.id===g('x')));
 };
+async function detail(s){
+  if(!s)return;
+  const ph=s.phone?String(s.phone).replace(/[^\d+]/g,''):'';
+  const R=(l,v)=>v?`<div><span>${l}</span><b>${v}</b></div>`:'';
+  const day=s.done&&s.at?ymd(new Date(s.at)):dayOf(s);
+  const x=await modal(`<h2>${esc(s.name||'عميل')}</h2><div class="inv">${ph?`<div><span>التليفون</span><b class="ph"><bdi dir="ltr">${esc(s.phone)}</bdi>${ctl(ph,!s.done)}</b></div>`:''}${R('العنوان',esc(s.addr))}${R('عمارة',esc(s.bld))}${R('شقة',esc(s.apt))}${R('الأوردر',esc(s.ord))}${R('رقم الفاتورة',esc(s.inv))}${R('الدفع',s.cash?'كاش'+(s.amt!=null?' · '+money(s.amt):''):'فيزا')}${R('الميعاد',DN[new Date(day+'T12:00').getDay()]+' '+day)}${R('الحالة',s.done?'اتسلّم'+(s.got!=null?' · استلمت '+money(s.got):''):'مستني التسليم')}${s.lat==null&&!s.done?R('الموقع','مش محدد'):''}</div><div class="row" style="margin-top:14px"><button data-r="x">رجوع</button>${s.done?'':'<button class="p" data-r="edit">تعديل</button>'}</div>`);
+  if(x&&x.r==='edit')orderForm(s);
+}
+async function deleteAccount(){
+  const x=await modal(`<h2>حذف الحساب نهائيًا</h2><p class="mut">هيتمسح حسابك وكل أوردراتك وسجل التسليم والمحفظة، ومش هينفع نرجّعهم. اكتب كلمة «حذف» للتأكيد.</p><input id="dc" placeholder="اكتب: حذف"><div class="row" style="margin-top:14px"><button data-r="x">إلغاء</button><button class="bad" data-r="y">احذف حسابي</button></div>`,()=>$('dc').value.trim());
+  if(!x||x.r!=='y')return;
+  if(x.v!=='حذف')return toast('لازم تكتب كلمة «حذف» بالظبط');
+  try{const r=await db.rpc('delete_my_account');if(r.error)return toast('الحساب ماتمسحش: '+r.error.message)}catch(e){return toast('الحساب ماتمسحش، جرّب تاني')}
+  try{await db.auth.signOut()}catch(e){}
+  try{localStorage.clear()}catch(e){}
+  location.reload();
+}
 async function postpone(s){
   const t=new Date();t.setDate(t.getDate()+1);
   const x=await modal(`<h2>تأجيل ${esc(s.name||'الأوردر')}</h2><input type="date" id="pd" value="${ymd(t)}" min="${today()}"><div class="row" style="margin-top:12px"><button data-r="x">إلغاء</button><button class="p" data-r="ok">تأجيل</button></div>`,()=>$('pd').value);
@@ -372,17 +408,17 @@ async function ocrFill(e){const f=e.target.files[0];if(!f)return;const o=$('f-oc
 async function orderForm(s){
   let cash=s?s.cash:true;const v=s||{};
   const get=()=>{const g=i=>$('f-'+i).value.trim();return{name:g('name'),phone:g('phone'),addr:g('addr'),bld:g('bld'),apt:g('apt'),ord:g('ord'),inv:g('inv'),amt:g('amt'),date:g('date'),link:g('link')}};
-  const wire=()=>{$('f-ph').onchange=ocrFill;$('f-cash').onclick=()=>{cash=true;$('f-cash').classList.add('on');$('f-visa').classList.remove('on')};$('f-visa').onclick=()=>{cash=false;$('f-visa').classList.add('on');$('f-cash').classList.remove('on')}};
+  const wire=()=>{$('f-ph').onchange=ocrFill;$('f-ph2').onchange=ocrFill;$('f-cash').onclick=()=>{cash=true;$('f-cash').classList.add('on');$('f-visa').classList.remove('on')};$('f-visa').onclick=()=>{cash=false;$('f-visa').classList.add('on');$('f-cash').classList.remove('on')}};
   while(true){
-    const p=modal(`<h2>${s?'تعديل الأوردر':'أوردر جديد'}</h2><label class="p w big" for="f-ph" style="display:grid;place-items:center;margin:8px 0;border-radius:18px">تصوير الفاتورة</label><input type="file" id="f-ph" accept="image/*" capture="environment" hidden><p class="mut" id="f-ocr"></p><input id="f-name" placeholder="اسم العميل" value="${esc(v.name)}"><input id="f-phone" placeholder="رقم التليفون" inputmode="tel" value="${esc(v.phone)}"><input id="f-addr" placeholder="العنوان" value="${esc(v.addr)}"><div class="row"><input id="f-bld" placeholder="عمارة" value="${esc(v.bld)}"><input id="f-apt" placeholder="شقة" value="${esc(v.apt)}"></div><input id="f-ord" placeholder="المنتجات" value="${esc(v.ord)}"><div class="row"><input id="f-inv" placeholder="رقم الفاتورة" value="${esc(v.inv)}"><input id="f-amt" placeholder="المبلغ" inputmode="decimal" value="${v.amt??''}"></div><div class="seg" style="margin-top:8px"><button type="button" id="f-cash" class="${cash?'on':''}">كاش</button><button type="button" id="f-visa" class="${cash?'':'on'}">فيزا</button></div><label><small>موعد التسليم</small><input type="date" id="f-date" value="${s?dayOf(s):selDay>=today()?selDay:today()}" min="${today()}"></label><textarea id="f-link" rows="2" placeholder="لينك الموقع (اختياري)"></textarea><div class="row"><button class="p" data-r="save">حفظ</button><button data-r="x">إلغاء</button></div>`,get,wire);
+    const p=modal(`<h2>${s?'تعديل الأوردر':'أوردر جديد'}</h2><div class="row" style="margin:8px 0"><label class="p big" for="f-ph" style="display:grid;place-items:center;border-radius:18px;font-weight:600;font-size:17px;text-align:center">تصوير الفاتورة</label><label class="big" for="f-ph2" style="display:grid;place-items:center;border-radius:18px;font-weight:600;font-size:17px;text-align:center;background:var(--bg)">من المعرض</label></div><input type="file" id="f-ph" accept="image/*" capture="environment" hidden><input type="file" id="f-ph2" accept="image/*" hidden><p class="mut" id="f-ocr"></p><input id="f-name" placeholder="اسم العميل" value="${esc(v.name)}"><input id="f-phone" placeholder="رقم التليفون" inputmode="tel" value="${esc(v.phone)}"><input id="f-addr" placeholder="العنوان" value="${esc(v.addr)}"><div class="row"><input id="f-bld" placeholder="عمارة" value="${esc(v.bld)}"><input id="f-apt" placeholder="شقة" value="${esc(v.apt)}"></div><input id="f-ord" placeholder="المنتجات" value="${esc(v.ord)}"><div class="row"><input id="f-inv" placeholder="رقم الفاتورة" value="${esc(v.inv)}"><input id="f-amt" placeholder="المبلغ" inputmode="decimal" value="${v.amt??''}"></div><div class="seg" style="margin-top:8px"><button type="button" id="f-cash" class="${cash?'on':''}">كاش</button><button type="button" id="f-visa" class="${cash?'':'on'}">فيزا</button></div><label><small>موعد التسليم</small><input type="date" id="f-date" value="${s?dayOf(s):selDay>=today()?selDay:today()}" min="${today()}"></label><textarea id="f-link" rows="2" placeholder="لينك الموقع (اختياري)"></textarea><div class="row"><button class="p" data-r="save">حفظ</button><button data-r="x">إلغاء</button></div>`,get,wire);
     const x=await p;if(!x||x.r==='x')return;const f=x.v;
     if(!f.name&&!f.phone){toast('اكتب اسم العميل أو رقمه');Object.assign(v,f);continue}
     let c=null;if(f.link){c=await coordsFrom(f.link);if(!c){toast('مش قادر أطلّع المكان من اللينك');Object.assign(v,f);continue}}
     const am=parseFloat(f.amt.replace(/,/g,''));
     const rec={customer_name:f.name,phone:f.phone,order_details:f.ord,address:f.addr,building:f.bld,apartment:f.apt,invoice_no:f.inv||null,amount:isNaN(am)?null:am,cash,delivery_date:f.date};
     if(c){rec.lat=c.lat;rec.lng=c.lng}
-    if(s){const{error}=await db.from('stops').update(rec).eq('id',s.id);if(error)return toast('ماتحفظش: '+error.message);Object.assign(s,row({...s,...rec,id:s.id,customer_name:f.name,phone:f.phone,done:false}),c?{lat:c.lat,lng:c.lng}:{});D[s.id]=f.date;}
-    else{const{data,error}=await db.from('stops').insert(rec).select().single();if(error)return toast('ماتحفظش: '+error.message);S.push(row(data));D[data.id]=f.date}
+    if(s){const{error}=await stopsWrite(r=>db.from('stops').update(r).eq('id',s.id),rec);if(error)return toast('ماتحفظش: '+error.message);Object.assign(s,row({...s,...rec,id:s.id,customer_name:f.name,phone:f.phone,done:false}),c?{lat:c.lat,lng:c.lng}:{});D[s.id]=f.date;}
+    else{const{data,error}=await stopsWrite(r=>db.from('stops').insert(r).select().single(),rec);if(error)return toast('ماتحفظش: '+error.message);S.push(row(data));D[data.id]=f.date}
     sv('togo_days',D);selDay=f.date;if(page==='orders')pOrders();optimize();return;
   }
 }
@@ -394,11 +430,17 @@ const hideSplash=()=>setTimeout(()=>$('splash').classList.add('off'),300);setTim
 addEventListener('contextmenu',e=>{if(!e.target.closest('input,textarea'))e.preventDefault()});
 
 /* ---------- customers list under the counter ---------- */
+const IC_CALL='<svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.6 3.6a1 1 0 0 1-.25 1z"/></svg>';
+const IC_WA='<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.15l-.3-.18-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.25-.12-1.46-.72-1.7-.8-.22-.08-.4-.12-.56.12-.17.25-.64.8-.78.96-.14.17-.29.18-.53.06a6.7 6.7 0 0 1-3.3-2.9c-.25-.43.25-.4.72-1.33.08-.17.04-.3-.02-.42-.06-.12-.56-1.35-.76-1.85-.2-.48-.4-.42-.56-.43h-.48c-.17 0-.43.06-.66.3-.22.25-.86.84-.86 2.05s.88 2.38 1 2.55c.12.17 1.73 2.64 4.2 3.7 1.56.67 2.17.73 2.95.62.47-.07 1.46-.6 1.67-1.17.2-.58.2-1.07.14-1.17-.06-.1-.22-.17-.47-.3z"/></svg>';
+const IC_PIN='<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>';
+const locMsg=()=>`السلام عليكم ورحمة الله وبركاته 👋\nمع حضرتك ${PF.name?'المندوب '+PF.name:'مندوب التوصيل'}.\n\nممكن تبعتلي موقع الاستلام (GPS) على واتساب عشان أوصلك الأوردر بسهولة؟ 📍\nاضغط على مشاركة الموقع (Share location) وابعته هنا.\n\nشكرًا لحضرتك!`;
+const waUrl=ph=>'https://wa.me/'+waNum(ph)+'?text='+encodeURIComponent(locMsg());
+const ctl=(ph,loc)=>{const d=String(ph||'').replace(/[^\d+]/g,'');return d?`<a class="ib c" href="tel:${esc(d)}" aria-label="اتصال">${IC_CALL}</a><a class="ib w" href="${waUrl(d)}" target="_blank" rel="noopener" aria-label="واتساب">${IC_WA}</a>`:''};
 function fillList(){
   const P=order.map(id=>S.find(x=>x.id===id)).filter(Boolean),W=active().filter(x=>x.lat==null),now=Date.now();
   let t=leg?leg.duration:(legDur[0]||0);
-  const rows=P.map((x,i)=>{if(i>0)t+=(legDur[i]||300)+DWELL;const at=new Date(now+t*1000).toLocaleTimeString('ar-EG',{hour:'numeric',minute:'2-digit'});return `<div class="pi"><span class="num">${i+1}</span><div><b>${esc(x.name||'عميل')}</b><small>${esc(x.addr||x.ord||'')}</small></div><div class="eta"><b>${Math.max(1,Math.round(t/60))} د</b><small>${at}</small></div></div>`});
-  W.forEach(x=>rows.push(`<div class="pi"><span class="num" style="background:var(--mut)">!</span><div><b>${esc(x.name||'عميل')}</b><small>بدون موقع — اطلب اللوكيشن</small></div></div>`));
+  const rows=P.map((x,i)=>{if(i>0)t+=(legDur[i]||300)+DWELL;return `<div class="pi"><span class="num">${i+1}</span><b class="nm">${esc(x.name||'عميل')}</b><span class="mn">${Math.max(1,Math.round(t/60))} د</span>${ctl(x.phone)}</div>`});
+  W.forEach(x=>rows.push(`<div class="pi"><span class="num" style="background:var(--mut)">!</span><b class="nm">${esc(x.name||'عميل')}</b><span class="mn g">بدون موقع</span>${ctl(x.phone,true)}</div>`));
   $('plist').innerHTML=rows.join('')||'<p class="mut" style="padding:14px 0">مفيش أوردرات متبقية.</p>';
 }
 $('prog').onclick=()=>{const p=$('plist');if(p.classList.contains('on'))p.classList.remove('on');else{fillList();p.classList.add('on')}};
@@ -421,8 +463,8 @@ async function boot(){
   if(!(data&&data.session)){$('auth').style.display='flex';hideSplash();if(pending){show(false);amsg('اتعمل الحساب. سجّل دخولك دلوقتي.')}return}
   const u=data.user||data.session.user||{};uid=u.id;$('auth').style.display='none';
   if(!PF.name&&u.name){PF.name=u.name;sv('togo_profile',PF)}
-  if(pending){const r0={courier_id:uid,full_name:pending.name,phone:pending.phone,updated_at:new Date().toISOString()};await db.from('courier_state').upsert(r0);pending=null}
-  const w=await db.from('courier_state').select('working,full_name,phone,rate').eq('courier_id',uid).maybeSingle();work=!!(w.data&&w.data.working);if(w.data){if(w.data.full_name)PF.name=w.data.full_name;if(w.data.phone)PF.phone=w.data.phone;if(w.data.rate!=null)PF.rate=+w.data.rate;sv('togo_profile',PF)}
+  if(pending){const r0={courier_id:uid,full_name:pending.name,phone:pending.phone,updated_at:new Date().toISOString()};{const q=await db.from('courier_state').upsert(r0);if(q.error)await db.from('courier_state').upsert({courier_id:uid,phone:pending.phone,updated_at:r0.updated_at})}pending=null}
+  let w=await db.from('courier_state').select('working,full_name,phone,rate').eq('courier_id',uid).maybeSingle();if(w.error)w=await db.from('courier_state').select('working').eq('courier_id',uid).maybeSingle();work=!!(w.data&&w.data.working);if(w.data){if(w.data.full_name)PF.name=w.data.full_name;if(w.data.phone)PF.phone=w.data.phone;if(w.data.rate!=null)PF.rate=+w.data.rate;sv('togo_profile',PF)}
   live();load();hideSplash();setInterval(load,30000);
 }
 const normPhone=v=>{let d=String(v||'').replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/\D/g,'');if(d.startsWith('0020'))d='0'+d.slice(4);else if(d.startsWith('20')&&d.length>=12)d='0'+d.slice(2);else if(d.length===10&&d.startsWith('1'))d='0'+d;return d};
