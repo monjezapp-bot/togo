@@ -68,10 +68,10 @@ dialog{margin:auto 0 0;width:100%;max-width:none;border:0;border-radius:24px 24p
 #tm:not(.none)::after{content:"";position:absolute;inset:-3px;border-radius:19px;border:3px solid var(--pri);animation:tpulse 1.4s ease-out infinite}
 @keyframes tpulse{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.12)}}
 #tc{position:fixed;left:0;right:0;margin-inline:auto;width:calc(100% - 32px);max-width:420px;box-sizing:border-box;background:#fff;color:var(--ink);border-radius:22px;padding:18px 18px 14px;box-shadow:0 14px 44px #0007;transition:top .35s cubic-bezier(.22,1,.36,1)}
-#tc .ti{font-size:34px;line-height:1;margin-bottom:6px}#tc h3{margin:0 0 4px;font-size:20px}#tc p{margin:0;color:var(--mut);font-size:15px;line-height:1.6}
+#tc .ti{font-size:34px;line-height:1;margin-bottom:6px}#tc h3{margin:0 0 4px;font-size:20px}#tc #tx{color:var(--mut);font-size:15px;line-height:1.6}#tc #tx p{margin:0}#tc ol{margin:8px 0 0;padding:0;list-style:none;display:grid;gap:9px;text-align:start}#tc ol li{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.55}#tc ol li b{flex:none;width:22px;height:22px;border-radius:99px;background:var(--pri);color:#fff;display:grid;place-items:center;font-size:12px;margin-top:2px}
 #tc .tf{display:flex;align-items:center;gap:6px;margin-top:10px}#tc .tf button{min-height:44px;font-size:15px;padding:0 16px}
 #tc .lk{background:none;color:var(--mut);padding:0 8px}#td{display:flex;justify-content:center;gap:5px;margin-top:14px}#td i{width:7px;height:7px;border-radius:99px;background:#cfd6df;transition:width .3s,background .3s}#td i.on{width:20px;background:var(--pri)}
-body.night #tc{background:#1f2227;color:#f5f1e6;border:1px solid #ffffff2a}body.night #tc p{color:#aab4c3}
+body.night #tc{background:#1f2227;color:#f5f1e6;border:1px solid #ffffff2a}body.night #tc #tx{color:#aab4c3}
 dialog::backdrop{background:#0b1220aa}dialog h2{margin-bottom:6px}
 input,textarea{width:100%;font:inherit;font-size:16px;padding:13px 14px;margin-top:8px;border:1.5px solid var(--line);border-radius:var(--r);background:#fff;color:var(--ink)}
 .seg{display:flex;gap:6px}.seg button{flex:1}.seg .on{background:var(--ink);color:#fff}
@@ -541,7 +541,9 @@ const TOUR=[
  {ic:'📍',t:'موقعي',el:'#loc',x:'بيرجّع الخريطة عليك وتتابعك وإنت ماشي.'},
  {ic:'▶️',t:'ابدأ الشغل',el:()=>$('peek')||$('sheet'),x:()=>work?'هنا الأوردر الجاي بتفاصيله. اسحب الكارت لفوق تشوف العنوان والدفع. لما تقرّب من العميل يظهر زرار «تسليم الطلب».':'دوس «ابدأ الشغل» الأول. التطبيق هيرتّب العملاء بأقصر مسار ويوريك الأوردر الجاي.'},
  {ic:'☰',t:'القائمة',el:'#mn',x:'منها بتفتح الأوردرات والمحفظة والملف الشخصي.'},
- {ic:'📦',t:'الأوردرات',el:'#nav [data-p="orders"]',menu:1,x:'هنا بتضيف أوردر جديد (تصوير الفاتورة بيملا البيانات لوحده)، وبتعدّل وتأجّل. دوس على اسم العميل تشوف تفاصيله وتحذفه.'},
+ {ic:'📦',t:'الأوردرات',el:'#nav [data-p="orders"]',menu:1,x:'كل أوردراتك هنا مقسّمة على أيام الأسبوع. دوس على اسم العميل تشوف تفاصيله، ومعاه تعديل وتأجيل وحذف.'},
+ {ic:'➕',t:'إزاي تضيف أوردر',page:'orders',el:'#vb [data-add]',h:'<ol><li><b>1</b><span>دوس «+ أوردر جديد».</span></li><li><b>2</b><span>صوّر الفاتورة أو اختارها من المعرض، والتطبيق بيملا الاسم والتليفون والعنوان والمبلغ لوحده (محتاج نت). راجع البيانات قبل الحفظ، خصوصًا التليفون والمبلغ.</span></li><li><b>3</b><span>اختار كاش أو فيزا وموعد التسليم.</span></li><li><b>4</b><span>دوس «حفظ». ولو كتبت البيانات بإيدك مفيش مشكلة.</span></li></ol>'},
+ {ic:'📍',t:'لينك موقع العميل',page:'orders',h:'<ol><li><b>1</b><span>اطلب من العميل يبعتلك موقعه على واتساب (Share location)، أو لينك من خرائط جوجل. في قايمة العدّاد جنب كل عميل زرار واتساب بيبعتله رسالة جاهزة تطلب الموقع.</span></li><li><b>2</b><span>انسخ اللينك والصقه في خانة «لينك الموقع» في فورم الأوردر.</span></li><li><b>3</b><span>بالموقع الأوردر بيظهر على الخريطة ويدخل في ترتيب المسار. من غيره بيتحفظ بس بيظهر «بدون موقع» ومش بيدخل المسار.</span></li></ol><p style="margin-top:8px;font-size:13px">اللينك المختصر (maps.app.goo.gl) محتاج نت عشان يتحوّل لموقع.</p>'},
  {ic:'💰',t:'المحفظة',el:'#nav [data-p="wallet"]',menu:1,x:'بتحسب المبلغ المطلوب تسلّمه للشركة وعمولتك.'},
  {ic:'👤',t:'الملف الشخصي',el:'#nav [data-p="profile"]',menu:1,x:'اسمك ورقمك وسعر الأوردر بتاعك.'},
  {ic:'✅',t:'جاهز!',x:'لو النت قطع التطبيق بيفضل شغال وبيزامن تعديلاتك لما يرجع. تقدر تعيد الشرح من القائمة ← «شرح التطبيق».'}
@@ -551,7 +553,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function buildTour(){
   if($('tour'))return;
   const t=document.createElement('div');t.id='tour';t.hidden=true;
-  t.innerHTML='<div id="tm" class="none"></div><div id="tc" role="dialog" aria-live="polite"><div class="ti" id="tic"></div><h3 id="tt"></h3><p id="tx"></p><span id="td"></span><div class="tf"><button class="lk" id="tk">تخطّي</button><span style="flex:1"></span><button class="lk" id="tpv">السابق</button><button class="p" id="tn">التالي</button></div></div>';
+  t.innerHTML='<div id="tm" class="none"></div><div id="tc" role="dialog" aria-live="polite"><div class="ti" id="tic"></div><h3 id="tt"></h3><div id="tx"></div><span id="td"></span><div class="tf"><button class="lk" id="tk">تخطّي</button><span style="flex:1"></span><button class="lk" id="tpv">السابق</button><button class="p" id="tn">التالي</button></div></div>';
   document.body.appendChild(t);
   $('tn').onclick=()=>{if(tbusy)return;if(ti>=TOUR.length-1)endTour();else{ti++;showStep()}};
   $('tpv').onclick=()=>{if(tbusy||ti<=0)return;ti--;showStep()};
@@ -560,12 +562,14 @@ function buildTour(){
 }
 async function showStep(){
   tbusy=true;
-  const st=TOUR[ti],mOn=$('menu').classList.contains('on');
+  const st=TOUR[ti];
+  const want=st.page||'home';let mOn=$('menu').classList.contains('on');
+  if(page!==want){$('menu').classList.remove('on');mOn=false;go(want);await sleep(700)}
   if(st.menu&&!mOn){menu();await sleep(480)}
   else if(!st.menu&&mOn){$('menu').classList.remove('on');await sleep(400)}
   if(!tourOn){tbusy=false;return}
   const el=st.el?(typeof st.el==='function'?st.el():document.querySelector(st.el)):null;
-  $('tic').textContent=st.ic;$('tt').textContent=st.t;$('tx').textContent=typeof st.x==='function'?st.x():st.x;
+  $('tic').textContent=st.ic;$('tt').textContent=st.t;if(st.h)$('tx').innerHTML=st.h;else $('tx').textContent=typeof st.x==='function'?st.x():st.x;
   $('td').innerHTML=TOUR.map((_,i)=>`<i class="${i===ti?'on':''}"></i>`).join('');
   $('tpv').style.display=ti?'':'none';$('tn').textContent=ti===TOUR.length-1?'يلا نبدأ':'التالي';
   const hole=$('tm'),c=$('tc'),H=innerHeight,pad=6;
@@ -586,7 +590,7 @@ async function startTour(){
 function endTour(){
   if(!tourOn)return;
   tourOn=false;$('tour').hidden=true;sv('togo_tour',1);
-  $('menu').classList.remove('on');
+  $('menu').classList.remove('on');if(page!=='home')go('home');
 }
 const maybeTour=()=>{if(!ld('togo_tour',0))setTimeout(()=>{if(!$('auth')||$('auth').style.display==='none')startTour()},1500)};
 
