@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <title>ToGo</title>
 <meta name="description" content="ToGo — تطبيق للمناديب بينظّم مسار التوصيل ويحسب حسابك.">
-<meta property="og:site_name" content="ToGo"><meta property="og:title" content="تطبيق ToGo"><meta property="og:description" content="تطبيق للمناديب بينظّم مسار التوصيل ويحسب حسابك."><meta property="og:image" content="logo.png">
+<meta property="og:site_name" content="ToGo"><meta property="og:title" content="تطبيق ToGo"><meta property="og:description" content="تطبيق للمناديب بينظّم مسار التوصيل ويحسب حسابك."><meta property="og:image" content="og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&display=swap">
 <style>
@@ -50,6 +50,7 @@ h2{margin:0;font-size:22px;line-height:1.3}
 .pin{width:32px;height:32px;border-radius:50%;background:var(--ink);color:#fff;border:3px solid #fff;display:grid;place-items:center;font-weight:700;font-size:14px;box-shadow:0 2px 8px #0005}
 .pin.f{background:var(--pri);width:40px;height:40px;font-size:17px}
 .me{width:20px;height:20px;border-radius:50%;background:#2563eb;border:4px solid #fff;box-shadow:0 0 0 8px #2563eb33}
+.me.nav{width:0;height:0;border-radius:0;background:none;box-shadow:none;border:none;border-inline:14px solid transparent;border-bottom:30px solid #2563eb;filter:drop-shadow(0 2px 3px #0007)}
 #menu{position:fixed;z-index:12;inset:0;background:#0b1220aa;opacity:0;visibility:hidden;transition:opacity .35s ease,visibility 0s .4s}#menu.on{opacity:1;visibility:visible;transition:opacity .35s ease}
 #menu nav{position:absolute;inset-block:0;inset-inline-start:0;width:80%;max-width:320px;background:#fff;border-radius:24px 0 0 24px;padding:calc(24px + env(safe-area-inset-top)) 16px 16px;display:flex;flex-direction:column;gap:6px;transform:translateX(100%);transition:transform .45s cubic-bezier(.22,1,.36,1)}#menu.on nav{transform:none}
 #menu nav h2{margin-bottom:2px}#menu nav button{text-align:start;background:none;min-height:56px;font-size:18px}#menu nav button.on{background:#fff1e8;color:var(--pri)}
@@ -155,7 +156,11 @@ $('ia').onclick=async()=>{if(inst){inst.prompt();inst=null;return}await modal('<
 addEventListener('appinstalled',()=>{$('ia').hidden=true;inst=null});
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 ['gesturestart','gesturechange','gestureend'].forEach(t=>addEventListener(t,e=>e.preventDefault()));
-const theme=()=>{const h=new Date().getHours();document.body.classList.toggle('night',h>=18||h<6)};theme();setInterval(theme,60000);
+const mq=matchMedia('(prefers-color-scheme: dark)'),THEMES=['auto','dark','light'],THEME_LBL={auto:'تلقائي (زي الموبايل)',dark:'داكن',light:'فاتح'};
+const themeMode=()=>{try{const m=JSON.parse(localStorage.getItem('togo_theme'));return THEMES.includes(m)?m:'auto'}catch(e){return'auto'}};
+const theme=()=>{const m=themeMode();document.body.classList.toggle('night',m==='dark'||(m==='auto'&&mq.matches))};
+const cycleTheme=()=>{sv('togo_theme',THEMES[(THEMES.indexOf(themeMode())+1)%3]);theme()};
+theme();if(mq.addEventListener)mq.addEventListener('change',theme);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const hav=(a,b)=>{const d=Math.PI/180,x=Math.sin((b.lat-a.lat)*d/2)**2+Math.cos(a.lat*d)*Math.cos(b.lat*d)*Math.sin((b.lng-a.lng)*d/2)**2;return 12742*Math.asin(Math.sqrt(x))};
 const waNum=p=>{const d=String(p||'').replace(/[^\d+]/g,'');return d.startsWith('+')?d.slice(1):d.startsWith('00')?d.slice(2):d.startsWith('0')?'20'+d.slice(1):d};
@@ -265,9 +270,13 @@ map.on('load',()=>{
   map.addLayer({id:'leg',type:'line',source:'leg',layout:lay,paint:{'line-color':'#f26a1b','line-width':7}});
   ready=true;render(true);
 });
-map.on('dragstart',e=>{if(e.originalEvent&&follow){follow=false;$('loc').classList.remove('on')}});
-$('loc').onclick=()=>{if(!me)return toast('بانتظار إشارة الـ GPS');follow=true;$('loc').classList.add('on');cam()};
-const cam=()=>{if(me)map.easeTo({center:[me.lng,me.lat],zoom:Math.max(map.getZoom(),15.5),padding:{bottom:Math.round(innerHeight*.3)},duration:800})};
+/* navigation mode: while working and following, the camera tilts, zooms in and turns with the direction of travel */
+let brg=0;
+const navStyle=()=>{if(meMk)meMk.getElement().classList.toggle('nav',!!(work&&follow))};
+const flat=()=>{navStyle();map.easeTo({pitch:0,bearing:0,duration:600})};
+map.on('dragstart',e=>{if(e.originalEvent&&follow){follow=false;$('loc').classList.remove('on');navStyle();if(work)flat()}});
+$('loc').onclick=()=>{if(!me)return toast('بانتظار إشارة الـ GPS');follow=true;$('loc').classList.add('on');navStyle();cam()};
+const cam=()=>{if(!me)return;const nv=work&&follow;map.easeTo({center:[me.lng,me.lat],zoom:nv?Math.max(map.getZoom(),16.5):Math.max(map.getZoom(),15.5),bearing:nv?brg:0,pitch:nv?55:0,padding:{bottom:Math.round(innerHeight*.3)},duration:nv?1000:800})};
 async function fetchLeg(){
   const n=nextStop();legAt=Date.now();
   if(!n||!me){leg=null;setLine('leg',null);return draw()}
@@ -278,7 +287,9 @@ function live(){
   if(!navigator.geolocation)return;
   navigator.geolocation.watchPosition(p=>{
     me={lat:p.coords.latitude,lng:p.coords.longitude};
-    if(ready){if(!meMk){const e=document.createElement('div');e.className='me';meMk=new maplibregl.Marker({element:e}).setLngLat([me.lng,me.lat]).addTo(map)}meMk.setLngLat([me.lng,me.lat]);if(follow&&work&&page==='home')cam()}
+    const hd=p.coords.heading,sp=p.coords.speed;
+    if(hd!=null&&!isNaN(hd)&&sp>1.5){const d=((hd-brg+540)%360)-180;brg=(brg+d*.5+360)%360}
+    if(ready){if(!meMk){const e=document.createElement('div');e.className='me';meMk=new maplibregl.Marker({element:e}).setLngLat([me.lng,me.lat]).addTo(map)}meMk.setLngLat([me.lng,me.lat]);navStyle();if(follow&&work&&page==='home')cam()}
     if(!leg||Date.now()-legAt>25000)fetchLeg();
     const n=nextStop(),near=!!(n&&hav(me,n)*1000<=NEAR);if(near!==wasNear){wasNear=near;draw()}
   },()=>{},{enableHighAccuracy:true});
@@ -361,7 +372,7 @@ async function ask(t,p,ok,danger){const x=await modal(`<h2>${esc(t)}</h2><p clas
 let tt;function toast(m,label,fn){const T=$('toast');T.hidden=false;T.innerHTML='<span></span>'+(label?'<button></button>':'');T.firstChild.textContent=m;if(label){const b=T.querySelector('button');b.textContent=label;b.onclick=()=>{T.hidden=true;fn()}}clearTimeout(tt);tt=setTimeout(()=>T.hidden=true,6000)}
 
 /* ---------- shift ---------- */
-async function setWork(v){work=v;open=false;draw();if(v){follow=true;$('loc').classList.add('on');cam()}sv('togo_work',v);if(uid)await write({t:'cs',d:{courier_id:uid,working:v,updated_at:new Date().toISOString()}})}
+async function setWork(v){work=v;open=false;draw();if(v){follow=true;$('loc').classList.add('on');navStyle();cam()}else flat();sv('togo_work',v);if(uid)await write({t:'cs',d:{courier_id:uid,working:v,updated_at:new Date().toISOString()}})}
 async function endWork(){const w=walletCalc();if(await ask('إنهاء الشفت',`المطلوب تسلّمه للشركة: ${money(w.owed)}`+(w.miss?` · تنبيه: ناقصك ${w.miss} فاتورة`:''),'أنهي الشفت',true))setWork(false)}
 
 /* ---------- delivery ---------- */
@@ -371,19 +382,14 @@ async function deliver(n){
   const farMsg=()=>me?'إنت بعيد '+Math.round(hav(me,n)*1000)+' م عن العميل. قرّب لحد '+NEAR+' م وبعدين سجّل التسليم.':'مش قادر أحدد موقعك. شغّل الـ GPS.';
   if(far())return toast(farMsg());
   const inv=`<h2>فاتورة الأوردر</h2><div class="inv"><div><span>العميل</span><b>${esc(n.name||'—')}</b></div><div><span>التليفون</span><b dir="ltr">${esc(n.phone||'—')}</b></div><div><span>العنوان</span><b>${esc([n.addr,n.bld&&'عمارة '+n.bld,n.apt&&'شقة '+n.apt].filter(Boolean).join('، ')||'—')}</b></div><div><span>الأوردر</span><b>${esc(n.ord||'—')}</b></div><div><span>الدفع</span><b>${n.cash?'كاش · '+money(n.amt):'فيزا'}</b></div></div>`;
-  let got=null;
-  if(n.cash){
-    const x=await modal(inv+`<button class="ok w big" data-r="full" style="margin-top:12px">تم استلام المبلغ ${money(n.amt)}</button><input id="rcv" inputmode="decimal" placeholder="استلمت مبلغ مختلف؟ اكتبه هنا"><div class="row"><button data-r="x">رجوع</button><button class="p" data-r="diff">تأكيد المبلغ المختلف</button></div>`,()=>$('rcv').value);
-    if(!x||x.r==='x')return;
-    got=x.r==='full'?(n.amt||0):parseFloat(String(x.v).replace(/,/g,''));
-    if(isNaN(got)||got<0)return toast('اكتب مبلغ صحيح');
-  }else{
-    const x=await modal(inv+`<button class="ok w big" data-r="y" style="margin-top:12px">الأوردر فيزا — تم التسليم</button><button class="w" data-r="x" style="margin-top:8px">رجوع</button>`);
-    if(!x||x.r==='x')return;
-  }
-  const rc=await modal(`<h2>الفاتورة</h2><p class="mut">استلمت نسخة الفاتورة من العميل؟ لازم ترجّعها للشركة.</p><button class="ok w big" data-r="y" style="margin-top:12px">أيوه، الفاتورة معايا</button><button class="bad w" data-r="n" style="margin-top:8px">لا، ماستلمتهاش</button><button class="link" data-r="x">رجوع</button>`);
-  if(!rc||rc.r==='x')return;
-  const rk=rc.r==='y';
+  let got=null,rk=null;
+  const x=await modal(inv+(n.cash?`<label class="mut" for="rcv" style="display:block;margin-top:12px">المبلغ المستلم (عدّله لو مختلف)</label><input id="rcv" inputmode="decimal" value="${n.amt!=null?esc(n.amt):''}">`:'')+`<p class="mut" style="margin-top:12px">استلمت نسخة الفاتورة من العميل؟ لازم ترجّعها للشركة.</p><div class="seg" style="margin-top:6px"><button type="button" id="rk-y">أيوه، معايا</button><button type="button" id="rk-n">لا، ماستلمتهاش</button></div><button class="ok w big" data-r="ok" id="dok" disabled style="margin-top:14px">تأكيد التسليم</button><button class="w" data-r="x" style="margin-top:8px">رجوع</button>`,()=>n.cash?$('rcv').value:'',()=>{
+    const pick=v=>{rk=v;$('rk-y').classList.toggle('on',v);$('rk-n').classList.toggle('on',!v);$('dok').disabled=false};
+    $('rk-y').onclick=()=>pick(true);$('rk-n').onclick=()=>pick(false);
+    if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+  });
+  if(!x||x.r!=='ok'||rk===null)return;
+  if(n.cash){got=parseFloat(String(x.v).replace(/,/g,''));if(isNaN(got)||got<0)return toast('اكتب مبلغ صحيح')}
   if(!rk&&!await ask('تنبيه: الفاتورة مهمة','الشركة محتاجة الفاتورة. اطلبها من العميل قبل ما تمشي. تسجّل التسليم من غير فاتورة؟','سجّل من غير فاتورة',true))return;
   if(far())return toast(farMsg());
   const at=new Date().toISOString();
@@ -403,9 +409,9 @@ async function shareApp(){
   try{if(navigator.share){await navigator.share(data);return}}catch(e){if(e&&e.name==='AbortError')return}
   try{await navigator.clipboard.writeText(url);toast('اتنسخ لينك التطبيق')}catch(e){window.open('https://wa.me/?text='+encodeURIComponent(data.text+' '+url),'_blank')}
 }
-function menu(){if(open&&sheetSet)sheetSet(false);$('plist').classList.remove('on');$('nav').innerHTML=`<h2>${esc(PF.name||'ToGo')}</h2><p class="mut" style="margin-bottom:10px" dir="ltr">${esc(PF.phone||'')}</p>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>`<button data-p="${k}" class="${k===page?'on':''}">${t}</button>`).join('')+(inst?`<button data-p="install">ثبّت التطبيق على الشاشة</button>`:'')+`<button data-p="tour">شرح التطبيق</button><button data-p="share">مشاركة تطبيق ToGo</button><button data-p="out" style="margin-top:auto;color:var(--bad)">تسجيل الخروج</button>`;$('menu').classList.add('on')}
+function menu(){if(open&&sheetSet)sheetSet(false);$('plist').classList.remove('on');$('nav').innerHTML=`<h2>${esc(PF.name||'ToGo')}</h2><p class="mut" style="margin-bottom:10px" dir="ltr">${esc(PF.phone||'')}</p>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>`<button data-p="${k}" class="${k===page?'on':''}">${t}</button>`).join('')+(inst?`<button data-p="install">ثبّت التطبيق على الشاشة</button>`:'')+`<button data-p="theme">المظهر: ${THEME_LBL[themeMode()]}</button><button data-p="tour">شرح التطبيق</button><button data-p="share">مشاركة تطبيق ToGo</button><button data-p="out" style="margin-top:auto;color:var(--bad)">تسجيل الخروج</button>`;$('menu').classList.add('on')}
 $('mn').onclick=menu;
-$('menu').onclick=e=>{const b=e.target.closest('[data-p]');if(b){$('menu').classList.remove('on');go(b.dataset.p)}else if(e.target===$('menu'))$('menu').classList.remove('on')};
+$('menu').onclick=e=>{const b=e.target.closest('[data-p]');if(b&&b.dataset.p==='theme'){cycleTheme();menu();return}if(b){$('menu').classList.remove('on');go(b.dataset.p)}else if(e.target===$('menu'))$('menu').classList.remove('on')};
 $('vx').onclick=()=>{go('home');menu()};
 function go(p){
   if(p==='out')return signOut();
