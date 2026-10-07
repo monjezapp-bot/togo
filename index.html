@@ -92,7 +92,7 @@ dialog.out{animation:dgout .3s cubic-bezier(.4,0,1,1) forwards}dialog.out::backd
 #splash{position:fixed;inset:0;z-index:50;background:#0f2238;display:grid;place-items:center;transition:opacity .5s ease,visibility 0s .5s}#splash.off{opacity:0;visibility:hidden}
 #splash img,#auth img{width:min(60vw,230px);height:auto;animation:pop .7s cubic-bezier(.22,1,.36,1)}#auth img{margin:0 auto 18px}#splash img{width:min(70vw,300px)}@keyframes pop{from{transform:scale(.8);opacity:0}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
-#loc{position:absolute;inset-inline-start:16px;top:-64px}
+#loc{position:absolute;inset-inline-start:16px;top:-64px}#gon{position:absolute;inset-inline-start:74px;top:-64px;height:48px;min-height:48px;padding:0 18px;border-radius:24px;background:var(--ink);color:#fff;box-shadow:0 4px 14px #0004;display:flex;align-items:center;font-size:15px}#gon[hidden]{display:none}
 .spin{animation:sp .8s linear infinite}@keyframes sp{to{transform:rotate(-360deg)}}
 .prog{cursor:pointer}
 #plist{position:fixed;z-index:5;inset-inline:12px;top:calc(70px + env(safe-area-inset-top));background:#fff;border-radius:20px;box-shadow:0 10px 30px #0004;max-height:55vh;overflow:auto;padding:4px 14px;transform-origin:top;transform:scaleY(.9) translateY(-8px);opacity:0;visibility:hidden;transition:transform .4s cubic-bezier(.22,1,.36,1),opacity .25s ease,visibility 0s .4s}
@@ -124,6 +124,9 @@ body.navon #toast{top:auto;bottom:calc(240px + env(safe-area-inset-bottom))}body
 .nbr{display:flex;gap:8px;margin-top:10px}#nx{flex:1;background:#fee2e2;color:#991b1b}.nbt{flex:none;width:52px;padding:0;display:grid;place-items:center}
 .nme svg{width:48px;height:48px;display:block;filter:drop-shadow(0 3px 6px #0006)}
 body.night #np{background:#1f2227;color:#f5f1e6}body.night .nbt{background:#2b2f36;color:#f5f1e6}body.night #nx{background:#3b1d1d;color:#fca5a5}
+#npv{position:fixed;z-index:8;inset-inline:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -8px 28px #0003}#npv[hidden]{display:none}#npl{max-height:38vh;overflow:auto;margin-bottom:4px}
+.rc{display:grid;grid-template-columns:auto 1fr auto;gap:2px 12px;align-items:center;width:100%;text-align:start;background:var(--bg);margin-bottom:8px;padding:10px 14px;min-height:64px;border:2px solid transparent}.rc.on{border-color:var(--pri);background:#fff1e8}.rc b{font-size:22px}.rc span{color:var(--mut);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rc em{font-style:normal;font-size:12px;color:var(--ok);font-weight:700}
+body.night #npv{background:#1f2227;color:#f5f1e6}body.night .rc{background:#2b2f36}body.night .rc.on{background:#3a2a1d}
 </style>
 </head>
 <body>
@@ -131,11 +134,12 @@ body.night #np{background:#1f2227;color:#f5f1e6}body.night .nbt{background:#2b2f
 <div id="splash"><img src="logo.png" alt="ToGo"></div>
 <div class="top"><button class="rb" id="mn" aria-label="القائمة">☰</button><div class="prog" id="prog"></div><button class="rb" id="rf" aria-label="تحديث">↻</button></div>
 <div id="plist"></div>
-<div id="sheet"><button class="rb on" id="loc" aria-label="موقعي">◎</button><div id="sc"></div></div>
+<div id="sheet"><button class="rb on" id="loc" aria-label="موقعي">◎</button><button id="gon" hidden aria-label="ابدأ الملاحة"></button><div id="sc"></div></div>
 <div id="menu"><nav id="nav"></nav></div>
 <div id="view"><header><button class="rb" id="vx" aria-label="رجوع" style="box-shadow:none;background:var(--bg)">›</button><h2 id="vt"></h2></header><div id="vb"></div></div>
 <div id="nv" hidden><div id="nbw"><div id="nb"><div id="nbi"></div><div id="nbt"><b id="nbd"></b><span id="nbx"></span></div></div><div id="nth" hidden></div><div id="nst" hidden></div></div>
-<div id="np"><button class="rb on" id="nrc" aria-label="تتبّع موقعي">◎</button><div class="ns"><div><b id="ne"></b><small>وصول</small></div><div><b id="nt"></b><small>الوقت</small></div><div><b id="nd"></b><small>المسافة</small></div></div><div class="ncu"><b id="ncn"></b><small id="nca"></small></div><button class="ok w big" id="ndv" hidden style="margin-top:10px">تسليم الطلب</button><div class="nbr"><button id="nx">إنهاء الملاحة</button><button class="nbt" id="nvc" aria-label="الصوت"></button><button class="nbt" id="nov" aria-label="نظرة عامة"></button><a class="call" id="ncl" aria-label="اتصال"></a></div></div></div>
+<div id="np"><button class="rb on" id="nrc" aria-label="تتبّع موقعي">◎</button><div class="ns"><div><b id="ne"></b><small>وصول</small></div><div><b id="nt"></b><small>الوقت</small></div><div><b id="nd"></b><small>المسافة</small></div></div><div class="ncu"><b id="ncn"></b><small id="nca"></small></div><button class="ok w big" id="ndv" hidden style="margin-top:10px">تسليم الطلب</button><div class="nbr"><button id="nx">إنهاء</button><button class="nbt" id="nvc" aria-label="الصوت"></button><button class="nbt" id="nal" aria-label="مسارات بديلة"></button><button class="nbt" id="nov" aria-label="نظرة عامة"></button><a class="call" id="ncl" aria-label="اتصال"></a></div></div></div>
+<div id="npv" hidden><div id="npl"></div><div class="row"><button id="npc">إلغاء</button><button class="p" id="npg">ابدأ بالمسار ده</button></div></div>
 <div id="toast" hidden></div>
 <dialog id="dg"></dialog>
 <div id="auth"><div class="ain">
@@ -173,6 +177,7 @@ if(!isApp)$('ia').hidden=false;
 $('ia').onclick=async()=>{if(inst){inst.prompt();inst=null;return}await modal('<h2>تثبيت التطبيق</h2><p class="mut">افتح قائمة المتصفح ⋮ وبعدين اختار «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».</p><p class="mut">على الآيفون: دوس زرار المشاركة وبعدين «إضافة إلى الشاشة الرئيسية».</p><button class="p w" data-r="ok" style="margin-top:12px">تمام</button>')};
 addEventListener('appinstalled',()=>{$('ia').hidden=true;inst=null});
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;let rl=0;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl&&!NV.on){rl=1;location.reload()}})}
 ['gesturestart','gesturechange','gestureend'].forEach(t=>addEventListener(t,e=>e.preventDefault()));
 const mq=matchMedia('(prefers-color-scheme: dark)'),THEMES=['auto','dark','light'],THEME_LBL={auto:'تلقائي (زي الموبايل)',dark:'داكن',light:'فاتح'};
 const themeMode=()=>{try{const m=JSON.parse(localStorage.getItem('togo_theme'));return THEMES.includes(m)?m:'auto'}catch(e){return'auto'}};
@@ -300,7 +305,7 @@ async function fetchLeg(){
 function live(){
   if(!navigator.geolocation)return;
   navigator.geolocation.watchPosition(p=>{
-    const c=p.coords;me={lat:c.latitude,lng:c.longitude,acc:c.accuracy,spd:c.speed>0?c.speed:0,hd:c.heading!=null&&!isNaN(c.heading)?c.heading:null,t:Date.now()};
+    const c=p.coords;me={lat:c.latitude,lng:c.longitude,acc:c.accuracy,spd:gspd(c),hd:c.heading!=null&&!isNaN(c.heading)?c.heading:null,t:Date.now()};
     if(ready){if(!meMk){const e=document.createElement('div');e.className='me';if(NV.on)e.style.display='none';meMk=new maplibregl.Marker({element:e}).setLngLat([me.lng,me.lat]).addTo(map)}meMk.setLngLat([me.lng,me.lat]);if(follow&&work&&page==='home'&&!NV.on)cam()}
     if(NV.on)navTick();else if(!leg||Date.now()-legAt>25000)fetchLeg();
     const n=nextStop(),near=!!(n&&hav(me,n)*1000<=NEAR);if(near!==wasNear){wasNear=near;draw()}
@@ -338,14 +343,14 @@ function draw(){
   $('prog').innerHTML=`<b>${d} من ${tot}</b><span>أوردر ▾</span><div class="bar"><i style="width:${tot?d/tot*100:0}%"></i></div>`;
   const n=nextStop(),key=[work,n&&n.id,wasNear,n&&[n.name,n.phone,n.addr,n.bld,n.apt,n.ord,n.amt,n.cash].join('|'),left].join('~');
   if(key===lastKey){const e=$('eta');if(e)e.textContent=etaTxt();return}
-  lastKey=key;let h;
+  lastKey=key;$('gon').hidden=!(work&&n);let h;
   if(!work){
     h=`<div id="peek"><div class="grab"><i></i></div><p class="mut" style="text-align:center;margin-bottom:10px">${left?`عندك ${left} أوردر النهارده`:'مفيش أوردرات النهارده'}</p><button class="p w big" data-a="start">ابدأ الشغل</button></div>`;
   }else if(!n){
     h=`<div id="peek"><div class="grab"><i></i></div><h2>مفيش أوردر جاي</h2><p class="mut">كل أوردرات النهارده اتسلّمت، أو محتاجة موقع.</p><button class="link" data-a="stop">إنهاء الشفت</button></div>`;
   }else{
     const ph=n.phone?String(n.phone).replace(/[^\d+]/g,''):'';
-    h=`<div id="peek" class="dr"><div class="grab"><i></i></div><div class="hd"><span class="num">1</span><div><h2>${esc(n.name||'عميل')}</h2><p class="mut" id="eta">${etaTxt()}</p></div>${ph?`<a class="call" href="tel:${esc(ph)}" aria-label="اتصال">✆</a>`:''}</div><div class="row" style="margin-top:12px"><button class="p big" data-a="nav">${IC_NAV}ابدأ الملاحة</button>${wasNear?`<button class="ok big" data-a="deliver">تسليم الطلب</button>`:''}</div></div>
+    h=`<div id="peek" class="dr"><div class="grab"><i></i></div><div class="hd"><span class="num">1</span><div><h2>${esc(n.name||'عميل')}</h2><p class="mut" id="eta">${etaTxt()}</p></div>${ph?`<a class="call" href="tel:${esc(ph)}" aria-label="اتصال">✆</a>`:''}</div>${wasNear?`<button class="ok w big" data-a="deliver" style="margin-top:12px">تسليم الطلب</button>`:''}</div>
     <div id="det"><p class="addr" style="margin-top:0">${esc(n.addr||'بدون عنوان')}</p><div class="facts">${n.bld?`<div class="fact"><small>عمارة</small><b>${esc(n.bld)}</b></div>`:''}${n.apt?`<div class="fact"><small>شقة</small><b>${esc(n.apt)}</b></div>`:''}<div class="fact ${n.cash?'cash':'visa'}"><small>${n.cash?'كاش':'الدفع'}</small><b>${n.cash?money(n.amt):'فيزا'}</b></div></div>${n.ord?`<p class="mut">${esc(n.ord)}</p>`:''}${ph?`<a class="call" style="width:100%;border-radius:var(--r);height:52px;background:#128c4a;font-size:16px;margin-top:10px" href="${waUrl(ph)}" target="_blank" rel="noopener">واتساب</a>`:''}<button class="link" data-a="stop">إنهاء الشفت</button></div>`;
   }
   const sh=$('sheet');$('sc').innerHTML=h;
@@ -421,7 +426,7 @@ async function shareApp(){
   try{if(navigator.share){await navigator.share(data);return}}catch(e){if(e&&e.name==='AbortError')return}
   try{await navigator.clipboard.writeText(url);toast('اتنسخ لينك التطبيق')}catch(e){window.open('https://wa.me/?text='+encodeURIComponent(data.text+' '+url),'_blank')}
 }
-function menu(){if(open&&sheetSet)sheetSet(false);$('plist').classList.remove('on');$('nav').innerHTML=`<h2>${esc(PF.name||'ToGo')}</h2><p class="mut" style="margin-bottom:10px" dir="ltr">${esc(PF.phone||'')}</p>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>`<button data-p="${k}" class="${k===page?'on':''}">${t}</button>`).join('')+(inst?`<button data-p="install">ثبّت التطبيق على الشاشة</button>`:'')+`<button data-p="theme">المظهر: ${THEME_LBL[themeMode()]}</button><button data-p="tour">شرح التطبيق</button><button data-p="share">مشاركة تطبيق ToGo</button><button data-p="out" style="margin-top:auto;color:var(--bad)">تسجيل الخروج</button>`;$('menu').classList.add('on')}
+function menu(){if(open&&sheetSet)sheetSet(false);$('plist').classList.remove('on');$('nav').innerHTML=`<h2>${esc(PF.name||'ToGo')}</h2><p class="mut" style="margin-bottom:10px" dir="ltr">${esc(PF.phone||'')}</p>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>`<button data-p="${k}" class="${k===page?'on':''}">${t}</button>`).join('')+(inst?`<button data-p="install">ثبّت التطبيق على الشاشة</button>`:'')+`<button data-p="theme">المظهر: ${THEME_LBL[themeMode()]}</button><button data-p="tour">شرح التطبيق</button><button data-p="share">مشاركة تطبيق ToGo</button><button data-p="out" style="margin-top:auto;color:var(--bad)">تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 17 · ملاحة</small>`;$('menu').classList.add('on')}
 $('mn').onclick=menu;
 $('menu').onclick=e=>{const b=e.target.closest('[data-p]');if(b&&b.dataset.p==='theme'){cycleTheme();menu();return}if(b){$('menu').classList.remove('on');go(b.dataset.p)}else if(e.target===$('menu'))$('menu').classList.remove('on')};
 $('vx').onclick=()=>{go('home');menu()};
@@ -663,17 +668,17 @@ addEventListener('visibilitychange',()=>{if(NV.on&&document.visibilityState==='v
 function navSet(C,st,tot,dur){
   const CD=[0];for(let i=1;i<C.length;i++)CD[i]=CD[i-1]+hav({lat:C[i-1][1],lng:C[i-1][0]},{lat:C[i][1],lng:C[i][0]})*1000;
   const k=CD[CD.length-1]?tot/CD[CD.length-1]:1,sd=[],td=[];let a=0,b=0;st.forEach(x=>{sd.push(a);td.push(b);a+=x.distance;b+=x.duration});
-  Object.assign(NV,{C,CD:CD.map(v=>v*k),st,sd,td,tot,dur,i:0,s:0,off:0,lvl:{},li:-1,lt:0});
+  Object.assign(NV,{sdp:null,fs:null,C,CD:CD.map(v=>v*k),st,sd,td,tot,dur,i:0,s:0,off:0,lvl:{},li:-1,lt:0});
 }
 async function navRoute(mode){
   if(NV.busy)return;const n=S.find(x=>x.id===NV.sid);if(!n||!me)return;
   NV.busy=1;NV.rt=Date.now();if(mode===0){NV.msg='بنعيد حساب المسار…';navSt()}
   const sp=me.spd>3&&me.hd!=null?me.hd:null,b=`https://router.project-osrm.org/route/v1/driving/${me.lng},${me.lat};${n.lng},${n.lat}?overview=full&geometries=geojson&steps=true`;
   let r=null;
-  for(const u of sp!=null?[b+`&bearings=${Math.round(sp)},60;`,b]:[b]){try{const j=await(await fetch(u,tmo(8000))).json();if(j.code==='Ok'&&j.routes[0]){r=j.routes[0];break}}catch(e){break}}
+  if(NV.pre){r=NV.pre;NV.pre=null}else for(const u of sp!=null?[b+`&bearings=${Math.round(sp)},60;`,b]:[b]){try{const j=await(await fetch(u,tmo(8000))).json();if(j.code==='Ok'&&j.routes[0]){r=j.routes[0];break}}catch(e){break}}
   NV.busy=0;NV.msg='';
   if(!NV.on||NV.sid!==n.id)return;
-  if(r){NV.fb=0;const C=r.geometry.coordinates;navSet(C,r.legs.flatMap(l=>l.steps),r.distance,r.duration);if(mode===1)NV.hd=brg(C[0],C[1]||C[0]);if(mode===0)say('اتحسب مسار جديد')}
+  if(r){NV.fb=0;const C=r.geometry.coordinates;navSet(C,r.legs.flatMap(l=>l.steps),r.distance,r.duration);if(mode===1)NV.hd=NV.tg=brg(C[0],C[1]||C[0]);if(mode===0)say('اتحسب مسار جديد')}
   else if(!NV.fb||mode===1){const d=hav(me,n)*1000;NV.fb=1;navSet([[me.lng,me.lat],[n.lng,n.lat]],[{maneuver:{type:'depart',modifier:'straight'},distance:d,duration:d/6,name:''},{maneuver:{type:'arrive',modifier:'straight'},distance:0,duration:0,name:''}],d,d/6);toast('مفيش اتصال بالراوتر. ملاحة تقريبية لحد ما النت يرجع.')}
   setLine('leg',NV.fb?null:NV.C);NV.li=-1;navSt();navTick();
 }
@@ -703,13 +708,13 @@ function navTick(){
     let j=0;while(j+1<st.length&&NV.sd[j+1]<=sn.s)j++;
     u=Math.min(j+1,st.length-1);dm=Math.max(0,NV.sd[u]-sn.s);
     rt=Math.max(0,NV.dur-NV.td[j]-(st[j].distance?Math.min(1,(sn.s-NV.sd[j])/st[j].distance):1)*st[j].duration);
-    if(sn.i!==NV.li||Date.now()-NV.lt>2500){NV.li=sn.i;NV.lt=Date.now();setLine('leg',[pos,...NV.C.slice(sn.i+1)])}
+    if(sn.i!==NV.li||Date.now()-NV.lt>4000){NV.li=sn.i;NV.lt=Date.now();let e=sn.i+1;while(e<NV.C.length-1&&NV.CD[e]<sn.s+3000)e++;setLine('leg',[pos,...NV.C.slice(sn.i+1,e+1)])}
     const lv=dm<=45?3:dm<=220?2:dm<=520?1:0,last=u===st.length-1;
     if(lv>(NV.lvl[u]||0)){NV.lvl[u]=lv;if(Date.now()>NV.quiet&&!NV.arrived&&!(last&&lv===3))say(lv===3?instr(st[u]):'بعد '+spD(dm)+'، '+(last?'هتوصل لوجهتك':instr(st[u])))}
   }
-  if(sp>=1)NV.hd=(NV.hd+dAng(NV.hd,tg)*.45+360)%360;
+  if(sp>=1)NV.tg=tg;NV.fs=NV.fb?null:NV.s;NV.ft=performance.now();NV.v=NV.v*.4+sp*.6;
   if(!NV.arrived&&(rd<=35||dd<=30)){NV.arrived=true;say('وصلت لوجهتك');vib([200,100,200])}
-  NV.dm=dm;navMark(pos);if(follow)navCam(pos);navUI(u,dm,rd,rt,dd,n);navSt();
+  NV.dm=dm;navUI(u,dm,rd,rt,dd,n);navSt();
 }
 function navUI(u,dm,rd,rt,dd,n){
   const st=NV.st,ar=NV.arrived,nx=st[u+1],th=$('nth');
@@ -723,19 +728,33 @@ function navUI(u,dm,rd,rt,dd,n){
 function navSt(){const e=$('nst');let t=NV.msg||'';if(!t&&me){if((me.t&&Date.now()-me.t>8000)||me.acc>70)t='إشارة الـ GPS ضعيفة';else if(navigator.onLine===false)t='أوفلاين'}e.hidden=!t;e.textContent=t}
 setInterval(()=>{if(NV.on)navSt()},3000);
 /* marker + camera */
-let navMk=null,naf=0,navT=0;
-function navMark(pos){
-  if(!navMk){const e=document.createElement('div');e.className='nme';e.innerHTML=NAVSVG;navMk=new maplibregl.Marker({element:e,rotationAlignment:'map',pitchAlignment:'map'}).setLngLat(pos).addTo(map);if(meMk)meMk.getElement().style.display='none';NV.pos=pos}
-  navMk.setRotation(NV.hd);
-  const a=NV.pos,t0=performance.now();NV.pos=pos;cancelAnimationFrame(naf);
-  const f=t=>{const k=Math.min(1,(t-t0)/900);navMk.setLngLat([a[0]+(pos[0]-a[0])*k,a[1]+(pos[1]-a[1])*k]);if(k<1)naf=requestAnimationFrame(f)};naf=requestAnimationFrame(f);
-}
-function navCam(pos,dur){
-  const sp=me&&me.spd||0;let z=sp<2?17.4:sp<9?17.2:sp<16?16.7:16.2;if(NV.dm<120)z+=.4;
-  map.easeTo({center:pos,bearing:NV.hd,pitch:55,zoom:z,padding:{top:Math.round(innerHeight*.4),bottom:($('np').offsetHeight||200)+10,left:0,right:0},duration:dur??900,easing:t=>t,essential:true});
+let navMk=null,navT=0;
+function atS(s){const C=NV.C,CD=NV.CD;let lo=0,hi=C.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(CD[m]<=s)lo=m;else hi=m}const d=CD[hi]-CD[lo]||1,k=Math.max(0,Math.min(1,(s-CD[lo])/d));return[C[lo][0]+(C[hi][0]-C[lo][0])*k,C[lo][1]+(C[hi][1]-C[lo][1])*k]}
+function gspd(c){if(c.speed>0)return c.speed;if(c.speed!=null||!me||!me.t)return 0;const d=hav(me,{lat:c.latitude,lng:c.longitude})*1000;return d>6?Math.min(40,d/Math.max(.5,(Date.now()-me.t)/1e3)):0}
+/* one smooth render loop: predicts position between GPS fixes, so the arrow and camera never stop-and-go */
+function navLoop(t){
+  if(!NV.on)return;NV.raf=requestAnimationFrame(navLoop);
+  if(!NV.C||NV.hold||!me||(!NV.fb&&NV.fs==null))return;
+  if(NV.lf&&t-NV.lf<30)return;const dt=Math.min(.2,(t-(NV.lf||t-16))/1000);NV.lf=t;
+  let pos;
+  if(NV.fb||NV.off>0){const r=[me.lng,me.lat],p=NV.pos||r,k=Math.min(1,dt*4);pos=[p[0]+(r[0]-p[0])*k,p[1]+(r[1]-p[1])*k]}
+  else{
+    const tg=NV.fs+NV.v*Math.min(2.5,(performance.now()-NV.ft)/1000);
+    if(NV.sdp==null)NV.sdp=tg;
+    NV.sdp+=NV.v*dt;NV.sdp+=(tg-NV.sdp)*Math.min(1,dt*2.5);NV.sdp=Math.max(0,Math.min(NV.tot,NV.sdp));
+    pos=atS(NV.sdp);if(NV.v>1)NV.tg=brg(pos,atS(Math.min(NV.tot,NV.sdp+25)));
+  }
+  NV.pos=pos;NV.hd=(NV.hd+dAng(NV.hd,NV.tg)*Math.min(1,dt*3)+360)%360;
+  if(!navMk){const e=document.createElement('div');e.className='nme';e.innerHTML=NAVSVG;navMk=new maplibregl.Marker({element:e,rotationAlignment:'map',pitchAlignment:'map'}).setLngLat(pos).addTo(map);if(meMk)meMk.getElement().style.display='none'}
+  navMk.setLngLat(pos);navMk.setRotation(NV.hd);
+  if(follow){
+    if(!NV.pad||(NV.fc=(NV.fc||0)+1)%90===0)NV.pad={top:Math.round(innerHeight*.4),bottom:($('np').offsetHeight||200)+10,left:0,right:0};
+    const v=NV.v;let zt=v<2?17.2:v<9?17:v<16?16.5:16;if(NV.dm<120)zt+=.3;NV.zm+=(zt-NV.zm)*Math.min(1,dt*1.5);
+    map.jumpTo({center:pos,bearing:NV.hd,pitch:50,zoom:NV.zm,padding:NV.pad});
+  }
 }
 function navPause(s){follow=false;$('nrc').classList.remove('on');clearTimeout(navT);navT=setTimeout(navFollow,s*1000)}
-function navFollow(){clearTimeout(navT);follow=true;NV.ov=false;$('nrc').classList.add('on');if(NV.pos)navCam(NV.pos,700)}
+function navFollow(){clearTimeout(navT);follow=true;NV.ov=false;$('nrc').classList.add('on')}
 function navOverview(){
   if(!NV.C||!me)return;if(NV.ov)return navFollow();
   NV.ov=true;navPause(15);const pts=[[me.lng,me.lat],...NV.C.slice(NV.i)];
@@ -752,13 +771,13 @@ const navVoiceBtn=()=>{$('nvc').innerHTML=voiceOn?IC_VOL:IC_MUT};
 async function startNav(){
   const n=nextStop();
   if(!n)return toast('مفيش أوردر جاي');if(!ready)return toast('الخريطة لسه بتحمّل');if(!me)return toast('بانتظار إشارة الـ GPS');
-  Object.assign(NV,{on:true,sid:n.id,arrived:false,hold:0,fb:0,C:null,ov:false,msg:'بنحسب المسار…',quiet:Date.now()+3500,hd:me.hd??NV.hd??0});
+  Object.assign(NV,{on:true,sid:n.id,arrived:false,hold:0,fb:0,C:null,ov:false,msg:'بنحسب المسار…',quiet:Date.now()+3500,hd:me.hd??NV.hd??0,v:0,pad:null,lf:0});NV.tg=NV.hd;NV.zm=map.getZoom();cancelAnimationFrame(NV.raf);NV.raf=requestAnimationFrame(navLoop);
   open=false;follow=true;document.body.classList.add('navon');$('nv').hidden=false;$('nrc').classList.add('on');
   navCust();navVoiceBtn();wake();try{speechSynthesis.speak(new SpeechSynthesisUtterance(''))}catch(e){}
   say('بدأت الملاحة إلى '+(n.name||'العميل'));navSt();await navRoute(1);
 }
 function stopNav(){
-  if(!NV.on)return;NV.on=false;NV.C=null;NV.pos=null;clearTimeout(navT);cancelAnimationFrame(naf);unwake();try{speechSynthesis.cancel()}catch(e){}
+  if(!NV.on)return;NV.on=false;NV.C=null;NV.pos=null;clearTimeout(navT);cancelAnimationFrame(NV.raf);unwake();try{speechSynthesis.cancel()}catch(e){}
   document.body.classList.remove('navon');$('nv').hidden=true;setLine('leg',null);
   if(navMk){navMk.remove();navMk=null}if(meMk)meMk.getElement().style.display='';
   follow=true;$('loc').classList.add('on');
@@ -769,9 +788,40 @@ function navNext(){
   const nx=nextStop();if(!nx){stopNav();return toast('خلصت كل أوردرات النهارده 👏')}
   Object.assign(NV,{sid:nx.id,arrived:false,quiet:Date.now()+2500,C:null});navCust();say('الأوردر الجاي '+(nx.name||'عميل'));navRoute(1);
 }
+/* ---------- alternative routes (preview + change route) ---------- */
+const IC_ALT='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21v-7M12 14 6 8M12 14l6-6M6 8V3M18 8V3"/></svg>';
+const AE={type:'FeatureCollection',features:[]};
+function ensureAlts(){
+  if(map.getSource('alts'))return;map.addSource('alts',{type:'geojson',data:AE});const lay={'line-cap':'round','line-join':'round'};
+  map.addLayer({id:'alts-c',type:'line',source:'alts',layout:lay,paint:{'line-color':'#fff','line-width':15}});
+  map.addLayer({id:'alts',type:'line',source:'alts',layout:lay,paint:{'line-color':['case',['==',['get','sel'],1],'#f26a1b','#94a3b8'],'line-width':8}});
+  map.on('click','alts-c',e=>{if(e.features[0])navPick(+e.features[0].properties.i)});
+}
+const viaOf=r=>{let b=null;r.legs.forEach(l=>l.steps.forEach(s=>{if(s.name&&(!b||s.distance>b.distance))b=s}));return b?b.name:''};
+function altsDraw(){
+  const A=NV.alts,pk=NV.pk,fast=A.reduce((m,r,i)=>r.duration<A[m].duration?i:m,0),short=A.reduce((m,r,i)=>r.distance<A[m].distance?i:m,0);
+  map.getSource('alts').setData({type:'FeatureCollection',features:A.map((r,i)=>({type:'Feature',properties:{i,sel:i===pk?1:0},geometry:r.geometry})).sort((a,b)=>a.properties.sel-b.properties.sel)});
+  $('npl').innerHTML=A.map((r,i)=>{const d=Math.round((r.duration-A[fast].duration)/60),tg=i===fast?'الأسرع':d>0?'+'+d+' د':(i===short&&A.length>1?'الأقصر':''),v=viaOf(r);return `<button class="rc ${i===pk?'on':''}" data-i="${i}"><b>${Math.max(1,Math.round(r.duration/60))} د</b><span>${fmtD(r.distance)}${v?' · عن طريق '+esc(v):''}</span><em>${tg}</em></button>`}).join('');
+}
+function navPick(i){if(!NV.alts||$('npv').hidden)return;NV.pk=i;altsDraw()}
+$('npl').onclick=e=>{const b=e.target.closest('[data-i]');if(b)navPick(+b.dataset.i)};
+async function navPreview(){
+  const n=nextStop(),was=NV.on;
+  if(!n)return toast('مفيش أوردر جاي');if(!ready)return toast('الخريطة لسه بتحمّل');if(!me)return toast('بانتظار إشارة الـ GPS');
+  toast('بنجيب المسارات…');let A=null;
+  try{const j=await(await fetch(`https://router.project-osrm.org/route/v1/driving/${me.lng},${me.lat};${n.lng},${n.lat}?overview=full&geometries=geojson&steps=true&alternatives=true`,tmo(8000))).json();if(j.code==='Ok'&&j.routes.length)A=j.routes}catch(e){}
+  if(!A){if(!was)startNav();else toast('مقدرتش أجيب بدائل دلوقتي');return}
+  if(was){NV.hold=1;follow=false;clearTimeout(navT)}
+  ensureAlts();NV.alts=A;NV.pk=0;$('npv').hidden=false;altsDraw();
+  const pts=A.flatMap(r=>r.geometry.coordinates);
+  map.fitBounds(pts.reduce((b,c)=>b.extend(c),new maplibregl.LngLatBounds(pts[0],pts[0])),{padding:{top:120,bottom:Math.round(innerHeight*.4),left:40,right:40},bearing:0,pitch:0,maxZoom:17,duration:700});
+}
+function navPvClose(){$('npv').hidden=true;const s=map.getSource('alts');if(s)s.setData(AE);if(NV.on){NV.hold=0;navFollow()}}
+$('npc').onclick=navPvClose;
+$('npg').onclick=()=>{const was=NV.on;NV.pre=NV.alts[NV.pk];$('npv').hidden=true;map.getSource('alts').setData(AE);if(was){NV.hold=0;navFollow();navRoute(3)}else startNav()};
 $('nx').onclick=()=>{stopNav();toast('تم إنهاء الملاحة')};
 $('nvc').onclick=()=>{voiceOn=!voiceOn;try{localStorage.setItem('togo_voice',voiceOn?'1':'0');if(!voiceOn)speechSynthesis.cancel()}catch(e){}navVoiceBtn();toast(voiceOn?'الصوت شغّال':'الصوت مقفول')};
-$('nov').innerHTML=IC_FIT;$('nov').onclick=navOverview;$('nrc').onclick=navFollow;$('ndv').onclick=()=>deliver(nextStop());navVoiceBtn();
+$('gon').innerHTML=IC_NAV+'ملاحة';$('gon').onclick=navPreview;$('nal').innerHTML=IC_ALT;$('nal').onclick=navPreview;$('nov').innerHTML=IC_FIT;$('nov').onclick=navOverview;$('nrc').onclick=navFollow;$('ndv').onclick=()=>deliver(nextStop());navVoiceBtn();
 
 /* ---------- back button: close the top layer first, then exit ---------- */
 function closeTop(){
@@ -780,6 +830,7 @@ function closeTop(){
   if($('menu').classList.contains('on')){$('menu').classList.remove('on');return true}
   if($('plist').classList.contains('on')){$('plist').classList.remove('on');return true}
   if(page!=='home'){go('home');menu();return true}
+  if(!$('npv').hidden){navPvClose();return true}
   if(NV.on){stopNav();toast('تم إنهاء الملاحة');return true}
   if(open&&sheetSet){sheetSet(false);return true}
   return false;
