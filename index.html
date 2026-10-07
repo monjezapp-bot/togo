@@ -131,6 +131,11 @@ body.night #npv{background:#1f2227;color:#f5f1e6}body.night .rc{background:#2b2f
 #nx{flex:none;width:40px;min-height:40px;height:40px;padding:0;border-radius:50%;background:#ffffff1f;color:#fff;font-size:18px;align-self:flex-start}body.night #nx{background:#ffffff1f;color:#fff}
 .ac{min-height:38px;padding:0 14px;border-radius:99px;background:#fff;color:var(--ink);font-size:15px;box-shadow:0 3px 12px #0005;border:2px solid #94a3b8;white-space:nowrap}.ac.f{border-color:var(--ok);color:var(--ok)}
 #map{background:#0b1220}body.night.navon .maplibregl-canvas{filter:none;opacity:.6}
+#nctl{position:fixed;z-index:5;inset-inline-start:14px;bottom:calc(var(--pk,150px) + 22px + env(safe-area-inset-bottom));top:auto;gap:12px}
+#nctl button{width:56px;height:56px;min-height:56px;padding:0;border-radius:50%;display:grid;place-items:center;background:#fff;color:var(--ink);box-shadow:0 4px 14px #0004;font-size:26px;line-height:1}#nctl button.on{background:var(--pri);color:#fff}
+body.night #nctl button{background:#2b2f36;color:#f5f1e6}body.night #nctl button.on{background:var(--pri);color:#fff}
+#nsn{position:fixed;z-index:5;left:50%;transform:translateX(-50%);bottom:calc(var(--pk,150px) + 22px + env(safe-area-inset-bottom));max-width:56vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;background:#fff;color:var(--ink);padding:7px 18px;border-radius:99px;font-size:15px;font-weight:700;box-shadow:0 3px 12px #0004}#nsn[hidden]{display:none}body.night #nsn{background:#2b2f36;color:#f5f1e6}
+body.navon #peek h2{font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}body.navon #eta{white-space:nowrap;font-size:14px}body.navon #peek .hd{padding-bottom:10px}
 </style>
 </head>
 <body>
@@ -138,10 +143,10 @@ body.night #npv{background:#1f2227;color:#f5f1e6}body.night .rc{background:#2b2f
 <div id="splash"><img src="logo.png" alt="ToGo"></div>
 <div class="top"><button class="rb" id="mn" aria-label="القائمة">☰</button><div class="prog" id="prog"></div><button class="rb" id="rf" aria-label="تحديث">↻</button></div>
 <div id="plist"></div>
-<div id="sheet"><button class="rb on" id="loc" aria-label="موقعي">◎</button><button id="gon" hidden aria-label="ابدأ الملاحة"></button><div id="nctl"><button class="rb" id="nov" aria-label="نظرة عامة"></button><button class="rb" id="nvc" aria-label="الصوت"></button><button class="rb on" id="nrc" aria-label="تتبّعي">◎</button></div><div id="sc"></div></div>
+<div id="sheet"><button class="rb on" id="loc" aria-label="موقعي">◎</button><button id="gon" hidden aria-label="ابدأ الملاحة"></button><div id="sc"></div></div>
 <div id="menu"><nav id="nav"></nav></div>
 <div id="view"><header><button class="rb" id="vx" aria-label="رجوع" style="box-shadow:none;background:var(--bg)">›</button><h2 id="vt"></h2></header><div id="vb"></div></div>
-<div id="nv" hidden><div id="nbw"><div id="nb"><div id="nbi"></div><div id="nbt"><b id="nbd"></b><span id="nbx"></span></div><button id="nx" aria-label="إنهاء الملاحة">✕</button></div><div id="nth" hidden></div><div id="nst" hidden></div></div></div>
+<div id="nv" hidden><div id="nbw"><div id="nb"><div id="nbi"></div><div id="nbt"><b id="nbd"></b><span id="nbx"></span></div><button id="nx" aria-label="إنهاء الملاحة">✕</button></div><div id="nth" hidden></div><div id="nst" hidden></div></div><div id="nsn" hidden></div><div id="nctl"><button id="nvc" aria-label="الصوت"></button><button id="nov" aria-label="الملاحة"></button><button class="on" id="nrc" aria-label="موقعي">◎</button></div></div>
 <div id="toast" hidden></div>
 <dialog id="dg"></dialog>
 <div id="auth"><div class="ain">
@@ -293,6 +298,8 @@ map.on('load',()=>{
   map.addLayer({id:'trip',type:'line',source:'trip',layout:lay,paint:{'line-color':'#94a3b8','line-width':5,'line-opacity':.8}});
   map.addLayer({id:'leg-c',type:'line',source:'leg',layout:lay,paint:{'line-color':'#fff','line-width':12}});
   map.addLayer({id:'leg',type:'line',source:'leg',layout:lay,paint:{'line-color':'#f26a1b','line-width':7}});
+  const arLabels=()=>{try{map.getStyle().layers.forEach(l=>{if(l.type==='symbol'&&l.layout&&l.layout['text-field']&&JSON.stringify(l.layout['text-field']).includes('name'))map.setLayoutProperty(l.id,'text-field',['coalesce',['get','name:ar'],['get','name'],['get','name:latin']])})}catch(e){}};
+  arLabels();
   ready=true;render(true);
 });
 map.on('dragstart',e=>{if(e.originalEvent&&follow){follow=false;$('loc').classList.remove('on')}});
@@ -428,7 +435,7 @@ async function shareApp(){
   try{if(navigator.share){await navigator.share(data);return}}catch(e){if(e&&e.name==='AbortError')return}
   try{await navigator.clipboard.writeText(url);toast('اتنسخ لينك التطبيق')}catch(e){window.open('https://wa.me/?text='+encodeURIComponent(data.text+' '+url),'_blank')}
 }
-function menu(){if(open&&sheetSet)sheetSet(false);$('plist').classList.remove('on');$('nav').innerHTML=`<h2>${esc(PF.name||'ToGo')}</h2><p class="mut" style="margin-bottom:10px" dir="ltr">${esc(PF.phone||'')}</p>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>`<button data-p="${k}" class="${k===page?'on':''}">${t}</button>`).join('')+(inst?`<button data-p="install">ثبّت التطبيق على الشاشة</button>`:'')+`<button data-p="theme">المظهر: ${THEME_LBL[themeMode()]}</button><button data-p="tour">شرح التطبيق</button><button data-p="share">مشاركة تطبيق ToGo</button><button data-p="out" style="margin-top:auto;color:var(--bad)">تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 18 · ملاحة</small>`;$('menu').classList.add('on')}
+function menu(){if(open&&sheetSet)sheetSet(false);$('plist').classList.remove('on');$('nav').innerHTML=`<h2>${esc(PF.name||'ToGo')}</h2><p class="mut" style="margin-bottom:10px" dir="ltr">${esc(PF.phone||'')}</p>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>`<button data-p="${k}" class="${k===page?'on':''}">${t}</button>`).join('')+(inst?`<button data-p="install">ثبّت التطبيق على الشاشة</button>`:'')+`<button data-p="theme">المظهر: ${THEME_LBL[themeMode()]}</button><button data-p="tour">شرح التطبيق</button><button data-p="share">مشاركة تطبيق ToGo</button><button data-p="out" style="margin-top:auto;color:var(--bad)">تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 19 · ملاحة</small>`;$('menu').classList.add('on')}
 $('mn').onclick=menu;
 $('menu').onclick=e=>{const b=e.target.closest('[data-p]');if(b&&b.dataset.p==='theme'){cycleTheme();menu();return}if(b){$('menu').classList.remove('on');go(b.dataset.p)}else if(e.target===$('menu'))$('menu').classList.remove('on')};
 $('vx').onclick=()=>{go('home');menu()};
@@ -724,7 +731,7 @@ function navUI(u,dm,rd,rt,dd,n){
   $('nbd').textContent=ar?'وصلت':fmtD(dm,1);
   $('nbx').textContent=ar?(n.name||'العميل'):NV.fb?'اتجه ناحية موقع العميل (ملاحة تقريبية)':instr(st[u]);
   if(!ar&&!NV.fb&&nx&&NV.sd[u+1]-NV.sd[u]<=300&&dm<400){th.hidden=false;th.innerHTML='ثم '+svg(arrowIn(nx),24)+'<span>'+esc(instr(nx).split(' على ')[0])+'</span>'}else th.hidden=true;
-  NV.rtm=rt;NV.eta=Math.max(1,Math.round(rt/60))+' د · '+fmtD(rd)+' · وصول '+clk(new Date(Date.now()+rt*1000));const ee=$('eta');if(ee)ee.textContent=NV.eta;
+  NV.rtm=rt;NV.eta=Math.max(1,Math.round(rt/60))+' د · '+fmtD(rd)+' · '+clk(new Date(Date.now()+rt*1000));const pk=$('peek');if(pk)document.documentElement.style.setProperty('--pk',(pk.offsetHeight+10)+'px');const cs=NV.fb?null:st[Math.max(0,u-1)],sn=$('nsn');if(cs&&cs.name&&!ar){sn.hidden=false;sn.textContent=cs.name}else sn.hidden=true;const ee=$('eta');if(ee)ee.textContent=NV.eta;
 }
 function navSt(){const e=$('nst');let t=NV.msg||'';if(!t&&me){if((me.t&&Date.now()-me.t>8000)||me.acc>70)t='إشارة الـ GPS ضعيفة';else if(navigator.onLine===false)t='أوفلاين'}e.hidden=!t;e.textContent=t}
 setInterval(()=>{if(NV.on)navSt()},3000);
@@ -755,11 +762,11 @@ function navLoop(t){
   }
 }
 function navPause(s){follow=false;$('nrc').classList.remove('on');clearTimeout(navT);navT=setTimeout(navFollow,s*1000)}
-function navFollow(){clearTimeout(navT);follow=true;NV.ov=false;$('nrc').classList.add('on')}
+function navFollow(){clearTimeout(navT);follow=true;NV.ov=false;NV.zm=map.getZoom();$('nrc').classList.add('on');$('nov').classList.remove('on')}
 function navOverview(){
   if(!NV.C||!me)return;if(NV.ov)return navFollow();
-  NV.ov=true;navPause(15);const pts=[[me.lng,me.lat],...NV.C.slice(NV.i)];
-  map.fitBounds(pts.reduce((b,c)=>b.extend(c),new maplibregl.LngLatBounds(pts[0],pts[0])),{padding:{top:Math.round(innerHeight*.3),bottom:Math.round(innerHeight-$('sheet').getBoundingClientRect().top)+30,left:40,right:40},bearing:0,pitch:0,maxZoom:17,duration:800});
+  NV.ov=true;follow=false;clearTimeout(navT);$('nrc').classList.remove('on');$('nov').classList.add('on');const pts=[[me.lng,me.lat],...NV.C.slice(NV.i)];
+  map.fitBounds(pts.reduce((b,c)=>b.extend(c),new maplibregl.LngLatBounds(pts[0],pts[0])),{padding:{top:Math.round(innerHeight*.28),bottom:Math.round(innerHeight-$('sheet').getBoundingClientRect().top)+30,left:50,right:50},bearing:0,pitch:0,maxZoom:17,duration:800});
 }
 map.on('movestart',e=>{if(NV.on&&e.originalEvent)navPause(20)});
 /* start / stop / next */
@@ -823,7 +830,7 @@ async function navAlts(){
 function navSwitch(r){NV.pre=r;altsClear();toast('اتغيّر المسار');navRoute(3)}
 $('nx').onclick=()=>{stopNav();toast('تم إنهاء الملاحة')};
 $('nvc').onclick=()=>{voiceOn=!voiceOn;try{localStorage.setItem('togo_voice',voiceOn?'1':'0');if(!voiceOn)speechSynthesis.cancel()}catch(e){}navVoiceBtn();toast(voiceOn?'الصوت شغّال':'الصوت مقفول')};
-$('gon').innerHTML=IC_NAV+'ملاحة';$('gon').onclick=startNav;$('nov').innerHTML=IC_FIT;$('nov').onclick=navOverview;$('nrc').onclick=navFollow;navVoiceBtn();
+$('gon').innerHTML=IC_NAV+'ملاحة';$('gon').onclick=startNav;$('nov').innerHTML=IC_NAV.replace(/ style="[^"]*"/,'').replace('width="22" height="22"','width="28" height="28"');$('nov').onclick=navOverview;$('nrc').onclick=navFollow;navVoiceBtn();
 
 /* ---------- back button: close the top layer first, then exit ---------- */
 function closeTop(){
