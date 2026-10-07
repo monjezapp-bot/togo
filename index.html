@@ -118,7 +118,7 @@ body.navon #toast{top:auto;bottom:calc(200px + env(safe-area-inset-bottom))}body
 #nth{align-self:flex-start;background:#0f2238e6;color:#fff;border-radius:99px;padding:4px 14px 4px 10px;font-size:14px;display:flex;align-items:center;gap:8px}#nth svg{background:#ffffff22;border-radius:8px}
 #nst{align-self:center;background:#b45309;color:#fff;border-radius:99px;padding:4px 14px;font-size:13px}
 #np{position:fixed;z-index:7;inset-inline:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -8px 28px #0003}
-#nrc{position:absolute;inset-inline-start:16px;top:-64px}
+
 .ns{display:flex;justify-content:space-around;text-align:center}.ns b{display:block;font-size:22px;line-height:1.2}.ns small{color:var(--mut);font-size:12px}
 .ncu{margin:10px 0 0;padding-top:10px;border-top:1px solid var(--line);display:flex;flex-direction:column;min-width:0}.ncu b,.ncu small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ncu small{color:var(--mut)}
 .nbr{display:flex;gap:8px;margin-top:10px}#nx{flex:1;background:#fee2e2;color:#991b1b}.nbt{flex:none;width:52px;padding:0;display:grid;place-items:center}
@@ -145,6 +145,8 @@ body.navon #peek h2{font-size:18px;white-space:nowrap;overflow:hidden;text-overf
 #nb{padding:8px 10px;gap:10px;border-radius:18px}#nbi{width:54px;height:54px;border-radius:14px}#nbd{font-size:26px;line-height:1.1}#nbx{font-size:14.5px;line-height:1.3}
 #nx{width:34px;height:34px;min-height:34px;font-size:16px}#nth{padding:2px 12px 2px 8px;font-size:13px}
 .hd h2{font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#nctl #nrc{position:static}
+#sheet,#sheet *{touch-action:none}
 </style>
 </head>
 <body>
@@ -155,7 +157,7 @@ body.navon #peek h2{font-size:18px;white-space:nowrap;overflow:hidden;text-overf
 <div id="sheet"><button class="rb on" id="loc" aria-label="موقعي">◎</button><button id="gon" hidden aria-label="ابدأ الملاحة"></button><div id="sc"></div></div>
 <div id="menu"><nav id="nav"></nav></div>
 <div id="view"><header><button class="rb" id="vx" aria-label="رجوع" style="box-shadow:none;background:var(--bg)">›</button><h2 id="vt"></h2></header><div id="vb"></div></div>
-<div id="nv" hidden><div id="nbw"><div id="nb"><div id="nbi"></div><div id="nbt"><b id="nbd"></b><span id="nbx"></span></div><button id="nx" aria-label="إنهاء الملاحة">✕</button></div><div id="nth" hidden></div><div id="nst" hidden></div></div><div id="nsn" hidden></div><div id="nctl"><button id="nvc" aria-label="الصوت"></button><button id="nov" aria-label="الملاحة"></button><button class="on" id="nrc" aria-label="موقعي">◎</button></div></div>
+<div id="nv" hidden><div id="nbw"><div id="nb"><div id="nbi"></div><div id="nbt"><b id="nbd"></b><span id="nbx"></span></div><button id="nx" aria-label="إنهاء الملاحة">✕</button></div><div id="nth" hidden></div><div id="nst" hidden></div></div><div id="nsn" hidden></div><div id="nctl"><button id="nov" aria-label="الملاحة"></button><button class="on" id="nrc" aria-label="موقعي">◎</button></div></div>
 <div id="toast" hidden></div>
 <dialog id="dg"></dialog>
 <div id="auth"><div class="ain">
@@ -379,16 +381,17 @@ function initDrag(){
   const sh=$('sheet'),pk=$('peek'),dt=$('det'),off=()=>dt.offsetHeight,set=y=>sh.style.setProperty('--y',y+'px');
   sheetSet=v=>{open=v;set(open?0:off())};sh.classList.add('nt');set(open?0:off());
   requestAnimationFrame(()=>requestAnimationFrame(()=>sh.classList.remove('nt')));
-  let y0=null,base=0,t0=0,drag=false,ly=0;
-  sh.onpointerdown=e=>{if(e.target.closest&&e.target.closest('input,textarea,select'))return;y0=e.clientY;base=open?0:off();t0=performance.now();drag=false;ly=base};
+  let y0=null,base=0,t0=0,drag=false,ly=0,ds=null,sc=false;
+  sh.onpointerdown=e=>{if(e.target.closest&&e.target.closest('input,textarea,select'))return;y0=e.clientY;base=open?0:off();t0=performance.now();drag=false;ly=base;ds=dt.contains(e.target)&&open?dt.scrollTop:null;sc=false};
   sh.onpointermove=e=>{
     if(y0==null)return;const dy=e.clientY-y0;
-    if(!drag&&Math.abs(dy)>6){drag=true;sh.setPointerCapture(e.pointerId);sh.classList.add('nt')}
+    if(!drag&&!sc&&Math.abs(dy)>6){const mx=dt.scrollHeight-dt.clientHeight;if(ds!=null&&mx>2&&ds-dy>0&&ds-dy<mx)sc=true;else{drag=true;sh.setPointerCapture(e.pointerId);sh.classList.add('nt')}}
+    if(sc){dt.scrollTop=Math.max(0,Math.min(dt.scrollHeight-dt.clientHeight,ds-dy));return}
     if(!drag)return;
     const o=off();let y=base+dy;y=y<0?y/4:y>o?o+(y-o)/4:y;ly=y;set(y);
   };
   const end=e=>{
-    if(y0==null)return;const v=(e.clientY-y0)/Math.max(1,performance.now()-t0),o=off();y0=null;sh.classList.remove('nt');
+    if(y0==null)return;if(sc){sc=false;y0=null;ds=null;return}const v=(e.clientY-y0)/Math.max(1,performance.now()-t0),o=off();y0=null;sh.classList.remove('nt');
     if(!drag){if(e.target.closest&&e.target.closest('a,button,input,textarea,select,label'))return;if(!pk.contains(e.target))return;open=!open}
     else open=v<-.3?true:v>.3?false:ly<o/2;
     set(open?0:o);
@@ -444,7 +447,7 @@ async function shareApp(){
   try{if(navigator.share){await navigator.share(data);return}}catch(e){if(e&&e.name==='AbortError')return}
   try{await navigator.clipboard.writeText(url);toast('اتنسخ لينك التطبيق')}catch(e){window.open('https://wa.me/?text='+encodeURIComponent(data.text+' '+url),'_blank')}
 }
-function menu(){if(open&&sheetSet)sheetSet(false);$('plist').classList.remove('on');$('nav').innerHTML=`<h2>${esc(PF.name||'ToGo')}</h2><p class="mut" style="margin-bottom:10px" dir="ltr">${esc(PF.phone||'')}</p>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>`<button data-p="${k}" class="${k===page?'on':''}">${t}</button>`).join('')+(inst?`<button data-p="install">ثبّت التطبيق على الشاشة</button>`:'')+`<button data-p="theme">المظهر: ${THEME_LBL[themeMode()]}</button><button data-p="tour">شرح التطبيق</button><button data-p="share">مشاركة تطبيق ToGo</button><button data-p="out" style="margin-top:auto;color:var(--bad)">تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 20 · ملاحة</small>`;$('menu').classList.add('on')}
+function menu(){if(open&&sheetSet)sheetSet(false);$('plist').classList.remove('on');$('nav').innerHTML=`<h2>${esc(PF.name||'ToGo')}</h2><p class="mut" style="margin-bottom:10px" dir="ltr">${esc(PF.phone||'')}</p>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>`<button data-p="${k}" class="${k===page?'on':''}">${t}</button>`).join('')+(inst?`<button data-p="install">ثبّت التطبيق على الشاشة</button>`:'')+`<button data-p="theme">المظهر: ${THEME_LBL[themeMode()]}</button><button data-p="tour">شرح التطبيق</button><button data-p="share">مشاركة تطبيق ToGo</button><button data-p="out" style="margin-top:auto;color:var(--bad)">تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 22 · ملاحة</small>`;$('menu').classList.add('on')}
 $('mn').onclick=menu;
 $('menu').onclick=e=>{const b=e.target.closest('[data-p]');if(b&&b.dataset.p==='theme'){cycleTheme();menu();return}if(b){$('menu').classList.remove('on');go(b.dataset.p)}else if(e.target===$('menu'))$('menu').classList.remove('on')};
 $('vx').onclick=()=>{go('home');menu()};
@@ -679,7 +682,7 @@ const vib=p=>{try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}};
 let voiceOn=true,voice=null;try{voiceOn=localStorage.getItem('togo_voice')!=='0'}catch(e){}
 const pickV=()=>{try{const v=speechSynthesis.getVoices();voice=v.find(x=>/^ar[-_]SA/i.test(x.lang))||v.find(x=>/^ar/i.test(x.lang))||null}catch(e){}};
 try{pickV();speechSynthesis.onvoiceschanged=pickV}catch(e){}
-function say(t){if(!voiceOn||!t||!NV.on)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang:'ar-SA';if(voice)u.voice=voice;speechSynthesis.speak(u)}catch(e){}}
+function say(){}
 /* keep screen on */
 let wl=null;const wake=async()=>{try{if(!wl&&navigator.wakeLock){wl=await navigator.wakeLock.request('screen');wl.onrelease=()=>{wl=null}}}catch(e){}};
 const unwake=()=>{try{wl&&wl.release()}catch(e){}wl=null};
@@ -740,7 +743,7 @@ function navUI(u,dm,rd,rt,dd,n){
   const st=NV.st,ar=NV.arrived,nx=st[u+1],th=$('nth');
   $('nbi').innerHTML=svg(ar?PIN64:NV.fb?NV.arrow:arrowIn(st[u]),42);$('nbi').classList.toggle('ok',ar);
   $('nbd').textContent=ar?'وصلت':fmtD(dm,1);
-  $('nbx').textContent=ar?(n.name||'العميل'):NV.fb?'اتجه نحو موقع العميل (ملاحة تقريبية)':instr(st[u]);
+  $('nbx').textContent=ar?(n.name||'العميل'):NV.fb?'اتجه نحو موقع العميل (ملاحة تقريبية)':instr(st[u]).replace(/^في نهاية الطريق، /,'');
   if(!ar&&!NV.fb&&nx&&NV.sd[u+1]-NV.sd[u]<=300&&dm<400){th.hidden=false;th.innerHTML='ثم '+svg(arrowIn(nx),24)+'<span>'+esc(instr(nx).split(/ (?:إلى|على) /)[0])+'</span>'}else th.hidden=true;
   NV.rtm=rt;NV.eta=Math.max(1,Math.round(rt/60))+' د · '+fmtD(rd)+' · '+clk(new Date(Date.now()+rt*1000));const pk=$('peek');if(pk)document.documentElement.style.setProperty('--pk',(pk.offsetHeight+10)+'px');const cs=NV.fb?null:st[Math.max(0,u-1)],sn=$('nsn');if(cs&&cs.name&&!ar){sn.hidden=false;sn.textContent=cs.name}else sn.hidden=true;const ee=$('eta');if(ee)ee.textContent=NV.eta;
 }
@@ -773,22 +776,22 @@ function navLoop(t){
   }
 }
 function navPause(s){follow=false;$('nrc').classList.remove('on');clearTimeout(navT);navT=setTimeout(navFollow,s*1000)}
-function navFollow(){clearTimeout(navT);follow=true;NV.ov=false;NV.zm=map.getZoom();$('nrc').classList.add('on');$('nov').classList.remove('on')}
+function navFollow(){clearTimeout(navT);follow=true;NV.ov=false;NV.zm=map.getZoom();$('nrc').classList.add('on');navIc()}
 function navOverview(){
   if(!NV.C||!me)return;if(NV.ov)return navFollow();
-  NV.ov=true;follow=false;clearTimeout(navT);$('nrc').classList.remove('on');$('nov').classList.add('on');const pts=[[me.lng,me.lat],...NV.C.slice(NV.i)];
+  NV.ov=true;follow=false;clearTimeout(navT);$('nrc').classList.remove('on');navIc();const pts=[[me.lng,me.lat],...NV.C.slice(NV.i)];
   map.fitBounds(pts.reduce((b,c)=>b.extend(c),new maplibregl.LngLatBounds(pts[0],pts[0])),{padding:{top:Math.round(innerHeight*.28),bottom:Math.round(innerHeight-$('sheet').getBoundingClientRect().top)+30,left:50,right:50},bearing:0,pitch:0,maxZoom:17,duration:800});
 }
 map.on('movestart',e=>{if(NV.on&&e.originalEvent)navPause(20)});
 /* start / stop / next */
 function navCust(){}
-const navVoiceBtn=()=>{$('nvc').innerHTML=voiceOn?IC_VOL:IC_MUT;$('nvc').classList.toggle('mut',!voiceOn)};
+const navVoiceBtn=()=>{};const navIc=()=>{const b=$('nov');b.innerHTML=NV.ov?IC_NAV.replace(/ style="[^"]*"/,''):IC_FIT;b.classList.toggle('on',!!NV.ov)};
 async function startNav(){
   const n=nextStop();
   if(!n)return toast('مفيش أوردر جاي');if(!ready)return toast('الخريطة لسه بتحمّل');if(!me)return toast('بانتظار إشارة الـ GPS');
   Object.assign(NV,{on:true,sid:n.id,arrived:false,hold:0,fb:0,C:null,ov:false,msg:'جارٍ حساب المسار…',quiet:Date.now()+3500,hd:me.hd??NV.hd??0,v:0,pad:null,lf:0});NV.tg=NV.hd;NV.zm=map.getZoom();cancelAnimationFrame(NV.raf);NV.raf=requestAnimationFrame(navLoop);
   open=false;follow=true;document.body.classList.add('navon');navLite(true);$('nv').hidden=false;$('nrc').classList.add('on');
-  navCust();navVoiceBtn();wake();try{speechSynthesis.speak(new SpeechSynthesisUtterance(''))}catch(e){}
+  navCust();NV.ov=false;navIc();wake();
   say('بدأ التوجيه إلى '+(n.name||'العميل'));navSt();await navRoute(1);
 }
 function stopNav(){
@@ -840,8 +843,7 @@ async function navAlts(){
 }
 function navSwitch(r){NV.pre=r;altsClear();toast('اتغيّر المسار');navRoute(3)}
 $('nx').onclick=()=>{stopNav();toast('تم إنهاء الملاحة')};
-$('nvc').onclick=()=>{voiceOn=!voiceOn;try{localStorage.setItem('togo_voice',voiceOn?'1':'0');if(!voiceOn)speechSynthesis.cancel()}catch(e){}navVoiceBtn();$('toast').hidden=true};
-$('gon').innerHTML=IC_NAV.replace(/ style="[^"]*"/,'').replace('width="22" height="22"','width="20" height="20"');$('gon').onclick=startNav;$('nov').innerHTML=IC_NAV.replace(/ style="[^"]*"/,'').replace('width="22" height="22"','width="28" height="28"');$('nov').onclick=navOverview;$('nrc').onclick=navFollow;navVoiceBtn();
+$('gon').innerHTML=IC_NAV.replace(/ style="[^"]*"/,'').replace('width="22" height="22"','width="20" height="20"');$('gon').onclick=startNav;navIc();$('nov').onclick=navOverview;$('nrc').onclick=navFollow;navVoiceBtn();
 
 /* ---------- back button: close the top layer first, then exit ---------- */
 function closeTop(){
