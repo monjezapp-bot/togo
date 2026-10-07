@@ -1,4 +1,4 @@
-const V='togo-v19',TILES='togo-tiles-v1',LIBS='togo-libs-v1';
+const V='togo-v20',TILES='togo-tiles-v1',LIBS='togo-libs-v1';
 const KEEP=[V,TILES,LIBS];
 const SHELL=['./','index.html','install.html','manifest.webmanifest','icon-192.png','icon-512.png','logo.png'];
 const LIB_URLS=[
