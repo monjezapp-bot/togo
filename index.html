@@ -170,6 +170,8 @@ body.navon #peek h2{font-size:18px;white-space:nowrap;overflow:hidden;text-overf
 .bd{margin-inline-start:auto;font-style:normal;background:var(--bad);color:#fff;border-radius:99px;min-width:22px;height:22px;display:grid;place-items:center;font-size:12px;padding:0 6px}
 #mn{position:relative}#mn.dot::after{content:"";position:absolute;top:8px;inset-inline-end:8px;width:11px;height:11px;border-radius:50%;background:var(--bad);border:2px solid #fff}
 body.night .bb.su,body.night .sb textarea,body.night .chips button{background:#2b2f36;color:#f5f1e6}
+.wp{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.wp button{min-height:40px;padding:0 14px;border-radius:99px;background:#fff;border:1px solid var(--line);font-size:14px;color:var(--ink)}.wp button.on{background:var(--pri);color:#fff;border-color:var(--pri)}.wd{width:100%;min-height:46px;border-radius:14px;border:1px solid var(--line);padding:0 14px;margin-bottom:12px;font:inherit;background:#fff;color:var(--ink)}
+body.night .wp button,body.night .wd{background:#2b2f36;color:#f5f1e6}body.night .wp button.on{background:var(--pri);color:#fff}
 </style>
 </head>
 <body>
@@ -478,7 +480,7 @@ function menu(){
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2>${esc(nm)}</h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 29 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 30 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -493,14 +495,26 @@ function go(p){
   clearInterval(SP.t);if(p==='home'){v.classList.remove('on');return}
   $('vb').style.padding='';$('vb').style.overflow='';$('vt').textContent=PAGES.find(x=>x[0]===p)[1];v.classList.add('on');({orders:pOrders,wallet:pWallet,profile:pProfile,support:pSupport})[p]();
 }
-function walletCalc(){
-  const d=doneToday(),cash=d.filter(s=>s.cash),visa=d.length-cash.length,col=cash.reduce((a,s)=>a+(s.got??s.amt??0),0),com=d.length*(+PF.rate||0);
+const wday=t=>ymd(new Date(new Date(t).getTime()-5*36e5));
+const WP={k:'today',d:''};
+function wRange(k){
+  const bd=wday(Date.now()),b=new Date(bd+'T12:00:00');
+  if(k==='today')return s=>s===bd;
+  if(k==='yest'){const y=ymd(new Date(b.getTime()-864e5));return s=>s===y}
+  if(k==='week'){const w=new Date(b);w.setDate(b.getDate()-((b.getDay()+1)%7));const w0=ymd(w);return s=>s>=w0&&s<=bd}
+  if(k==='month')return s=>s.slice(0,7)===bd.slice(0,7);
+  return s=>s===(WP.d||bd);
+}
+function walletCalc(k='today'){
+  const f=wRange(k),d=S.filter(s=>s.done&&s.at&&f(wday(s.at))),cash=d.filter(s=>s.cash),visa=d.length-cash.length,col=cash.reduce((a,s)=>a+(s.got??s.amt??0),0),com=d.length*(+PF.rate||0);
   const rk=d.filter(s=>s.rk===true).length;return{n:d.length,visa,cashN:cash.length,col,com,owed:col-com,rk,miss:d.length-rk};
 }
 function periods(){const n=new Date(),t0=new Date(n.getFullYear(),n.getMonth(),n.getDate()),w0=new Date(t0);w0.setDate(t0.getDate()-((t0.getDay()+1)%7));const m0=new Date(n.getFullYear(),n.getMonth(),1),dn=S.filter(s=>s.done&&s.at),c=d0=>dn.filter(s=>new Date(s.at)>=d0).length;return[['اليوم',c(t0)],['هذا الأسبوع',c(w0)],['هذا الشهر',c(m0)]]}
 function pWallet(){
-  const w=walletCalc();
-  $('vb').innerHTML=`<div class="owe"><small>المطلوب تسلّمه للشركة</small><div>${money(w.owed)}</div></div><div class="card"><div class="sum"><span>أوردرات اتسلّمت النهارده</span><b>${w.n}</b></div><div class="sum"><span>كاش (${w.cashN})</span><b>${money(w.col)}</b></div><div class="sum"><span>فيزا</span><b>${w.visa}</b></div><div class="sum"><span>سعر الأوردر</span><b>${money(PF.rate)}</b></div><div class="sum"><span>أجرك (${w.n} × ${PF.rate||0})</span><b>- ${money(w.com)}</b></div></div>${PF.rate?'':'<p class="mut">حدّد سعر الأوردر من «الملف الشخصي» عشان يتحسب أجرك.</p>'}`;
+  const w=walletCalc(WP.k),L={today:'اليوم',yest:'أمس',week:'هذا الأسبوع',month:'هذا الشهر',day:'يوم محدد'},lab=WP.k==='day'?(WP.d||'—'):L[WP.k];
+  $('vb').innerHTML=`<div class="wp">${Object.keys(L).map(k=>`<button data-wk="${k}" class="${WP.k===k?'on':''}">${L[k]}</button>`).join('')}</div>${WP.k==='day'?`<input type="date" id="wd" class="wd" value="${WP.d||today()}" max="${today()}">`:''}<div class="owe"><small>المطلوب تسلّمه للشركة · ${lab}</small><div>${money(w.owed)}</div></div><div class="card"><div class="sum"><span>أوردرات اتسلّمت (${lab})</span><b>${w.n}</b></div><div class="sum"><span>كاش (${w.cashN})</span><b>${money(w.col)}</b></div><div class="sum"><span>فيزا</span><b>${w.visa}</b></div><div class="sum"><span>سعر الأوردر</span><b>${money(PF.rate)}</b></div><div class="sum"><span>أجرك (${w.n} × ${PF.rate||0})</span><b>- ${money(w.com)}</b></div></div>${PF.rate?'':'<p class="mut">حدّد سعر الأوردر من «الملف الشخصي» عشان يتحسب أجرك.</p>'}<p class="mut" style="font-size:12px">اليوم بيبدأ الساعة 5 الفجر، عشان الشفت الليلي ماينقطعش عند نص الليل.</p>`;
+  $('vb').querySelectorAll('[data-wk]').forEach(b=>b.onclick=()=>{WP.k=b.dataset.wk;if(WP.k==='day'&&!WP.d)WP.d=today();pWallet()});
+  const wd=$('wd');if(wd)wd.onchange=()=>{WP.d=wd.value;pWallet()};
 }
 /* ---------- support chat (stored in the database, answered from the dev side) ---------- */
 const SEND='<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true" style="transform:scaleX(-1)"><path d="M3 20l18-8L3 4v6l11 2-11 2z"/></svg>';
