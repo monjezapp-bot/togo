@@ -156,6 +156,9 @@ body.navon #peek h2{font-size:18px;white-space:nowrap;overflow:hidden;text-overf
 #menu nav button.out{margin-top:auto;color:var(--bad)}
 .tg{display:flex;gap:6px;background:var(--bg);padding:4px;border-radius:16px}#menu nav .tg button{flex:1;min-height:46px;padding:0;border-radius:12px;display:grid;place-items:center;font-size:0;background:none}#menu nav .tg button.on{background:var(--pri);color:#fff}
 #menu nav button.thb{margin-inline-start:auto;flex:none;width:58px;min-height:60px;padding:4px 0;border-radius:16px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:0}.thb small{font-size:11px;font-weight:600;color:var(--mut)}.thb svg{animation:thflip .4s cubic-bezier(.22,1,.36,1)}@keyframes thflip{from{transform:rotate(-120deg) scale(.5);opacity:0}to{transform:none;opacity:1}}
+.pi .nm{white-space:normal;overflow:hidden;text-overflow:clip;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:15px;line-height:1.3;cursor:pointer}.pi .nm:active{color:var(--pri)}
+.pi .ib{width:38px;height:38px;min-height:38px}.pi .mn.g{display:grid;place-items:center}
+.av{width:46px;height:46px;font-size:20px}.mt{flex:1}.mt h2{font-size:16px;line-height:1.3;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 </style>
 </head>
 <body>
@@ -456,7 +459,7 @@ async function shareApp(){
   try{if(navigator.share){await navigator.share(data);return}}catch(e){if(e&&e.name==='AbortError')return}
   try{await navigator.clipboard.writeText(url);toast('اتنسخ لينك التطبيق')}catch(e){window.open('https://wa.me/?text='+encodeURIComponent(data.text+' '+url),'_blank')}
 }
-const MI={orders:'<path d="M4 6h16M4 12h16M4 18h10"/>',wallet:'<path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v10a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-9H5a2 2 0 0 1-2-2z"/><circle cx="16.5" cy="13.5" r="1"/>',profile:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',install:'<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',tour:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/>',share:'<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.9l7.6-3.8M8.2 13.1l7.6 3.8"/>',out:'<path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4M16 8l4 4-4 4M20 12H9"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',auto:'<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/>'};
+const MI={orders:'<path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',wallet:'<path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v10a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-9H5a2 2 0 0 1-2-2z"/><circle cx="16.5" cy="13.5" r="1"/>',profile:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',install:'<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',tour:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/>',share:'<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.9l7.6-3.8M8.2 13.1l7.6 3.8"/>',out:'<path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4M16 8l4 4-4 4M20 12H9"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',auto:'<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/>'};
 const mic=k=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MI[k]}</svg>`;
 function menu(){
   if(open&&sheetSet)sheetSet(false);$('plist').classList.remove('on');
@@ -464,7 +467,7 @@ function menu(){
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2>${esc(nm)}</h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 26 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 27 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -586,14 +589,16 @@ const IC_PIN='<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor
 const locMsg=()=>`السلام عليكم ورحمة الله وبركاته 👋\nمع حضرتك ${PF.name?'المندوب '+PF.name:'مندوب التوصيل'}.\n\nممكن تبعتلي موقع الاستلام (GPS) على واتساب عشان أوصلك الأوردر بسهولة؟ 📍\nاضغط على مشاركة الموقع (Share location) وابعته هنا.\n\nشكرًا لحضرتك!`;
 const waUrl=ph=>'https://wa.me/'+waNum(ph)+'?text='+encodeURIComponent(locMsg());
 const ctl=(ph,loc)=>{const d=String(ph||'').replace(/[^\d+]/g,'');return d?`<a class="ib c" href="tel:${esc(d)}" aria-label="اتصال">${IC_CALL}</a><a class="ib w" href="${waUrl(d)}" target="_blank" rel="noopener" aria-label="واتساب">${IC_WA}</a>`:''};
+const PINX='<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.2-6-10a6 6 0 0 1 12 0c0 4.8-6 10-6 10z"/><path d="M10 9l4 4M14 9l-4 4"/></svg>';
 function fillList(){
   const P=order.map(id=>S.find(x=>x.id===id)).filter(Boolean),W=active().filter(x=>x.lat==null),now=Date.now();
   let t=leg?leg.duration:(legDur[0]||0);
-  const rows=P.map((x,i)=>{if(i>0)t+=(legDur[i]||300)+DWELL;return `<div class="pi"><span class="num">${i+1}</span><b class="nm">${esc(x.name||'عميل')}</b><span class="mn">${Math.max(1,Math.round(t/60))} د</span>${ctl(x.phone)}</div>`});
-  W.forEach(x=>rows.push(`<div class="pi"><span class="num" style="background:var(--mut)">!</span><b class="nm">${esc(x.name||'عميل')}</b><span class="mn g">بدون موقع</span>${ctl(x.phone,true)}</div>`));
+  const rows=P.map((x,i)=>{if(i>0)t+=(legDur[i]||300)+DWELL;return `<div class="pi"><span class="num">${i+1}</span><b class="nm" data-o="${x.id}">${esc(x.name||'عميل')}</b><span class="mn">${Math.max(1,Math.round(t/60))} د</span>${ctl(x.phone)}</div>`});
+  W.forEach(x=>rows.push(`<div class="pi"><span class="num" style="background:var(--mut)">!</span><b class="nm" data-o="${x.id}">${esc(x.name||'عميل')}</b><span class="mn g" role="img" aria-label="بدون موقع">${PINX}</span>${ctl(x.phone,true)}</div>`));
   $('plist').innerHTML=rows.join('')||'<p class="mut" style="padding:14px 0">مفيش أوردرات متبقية.</p>';
 }
 $('prog').onclick=()=>{const p=$('plist');if(p.classList.contains('on'))p.classList.remove('on');else{fillList();p.classList.add('on')}};
+$('plist').onclick=e=>{const r=e.target.closest('[data-o]');if(!r)return;$('plist').classList.remove('on');detail(S.find(s=>s.id===r.dataset.o))};
 $('rf').onclick=async()=>{const b=$('rf');b.classList.add('spin');const a=JSON.stringify(RAW);loadOk=0;try{await load();legAt=0;if(me&&!NV.on)await fetchLeg()}catch(e){}b.classList.remove('spin');toast(navigator.onLine===false?'أوفلاين: بيانات آخر مرة اتحمّلت':!loadOk?'مقدرتش أحدّث، اتأكد من النت':a!==JSON.stringify(RAW)?'اتحدّثت البيانات':'البيانات محدّثة بالفعل')};
 
 /* ---------- first-run guided tour ---------- */
