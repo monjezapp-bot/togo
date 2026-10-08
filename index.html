@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#0f2238">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -159,6 +159,17 @@ body.navon #peek h2{font-size:18px;white-space:nowrap;overflow:hidden;text-overf
 .pi .nm{white-space:normal;overflow:hidden;text-overflow:clip;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:15px;line-height:1.3;cursor:pointer}.pi .nm:active{color:var(--pri)}
 .pi .ib{width:38px;height:38px;min-height:38px}.pi .mn.g{display:grid;place-items:center}
 .av{width:46px;height:46px;font-size:20px}.mt{flex:1}.mt h2{font-size:16px;line-height:1.3;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sp{display:flex;flex-direction:column;height:100%}.sm{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:8px}
+.bb{max-width:82%;padding:9px 13px;border-radius:18px;line-height:1.5;white-space:pre-wrap;word-break:break-word;font-size:15px}.bb small{display:block;font-size:11px;opacity:.7;margin-top:2px}
+.bb.me{align-self:flex-start;background:var(--pri);color:#fff;border-end-start-radius:6px}.bb.su{align-self:flex-end;background:#fff;color:var(--ink);border-end-end-radius:6px;box-shadow:0 1px 4px #0001}.bb .sl{display:block;font-size:12px;color:var(--pri);margin-bottom:2px}
+.sb{display:flex;gap:8px;align-items:flex-end;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--bg);border-top:1px solid var(--line)}
+.sb textarea{flex:1;min-height:46px;max-height:120px;border-radius:23px;padding:12px 16px;resize:none;border:1px solid var(--line);font:inherit;background:#fff;color:var(--ink)}.sb button{flex:none;width:46px;height:46px;min-height:46px;padding:0;border-radius:50%;display:grid;place-items:center}
+.sok{margin:8px 12px 0;padding:8px 12px;border-radius:12px;background:#e8f6ed;color:var(--ok);font-size:14px}
+.se{margin:auto;text-align:center;padding:20px}.si2{width:64px;height:64px;border-radius:50%;background:#ffe3d0;color:var(--pri);display:grid;place-items:center;margin:0 auto 12px}.si2 svg{width:30px;height:30px}.se h3{margin:0 0 4px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}.chips button{min-height:40px;padding:0 14px;border-radius:99px;background:#fff;border:1px solid var(--line);font-size:14px;color:var(--ink)}
+.bd{margin-inline-start:auto;font-style:normal;background:var(--bad);color:#fff;border-radius:99px;min-width:22px;height:22px;display:grid;place-items:center;font-size:12px;padding:0 6px}
+#mn{position:relative}#mn.dot::after{content:"";position:absolute;top:8px;inset-inline-end:8px;width:11px;height:11px;border-radius:50%;background:var(--bad);border:2px solid #fff}
+body.night .bb.su,body.night .sb textarea,body.night .chips button{background:#2b2f36;color:#f5f1e6}
 </style>
 </head>
 <body>
@@ -224,7 +235,7 @@ const ld=(k,f)=>{try{return JSON.parse(localStorage.getItem(k))||f}catch(e){retu
 const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 let D=ld('togo_days',{}),PF=ld('togo_profile',{name:'',phone:'',rate:0});
 let S=[],order=[],me=null,uid=null,work=false,leg=null,legAt=0,geo=null,follow=true,ready=false,mk=[],meMk=null,open=false,wasNear=false,page='home',wk=new Date(),selDay=ymd(new Date());
-const today=()=>ymd(new Date());const NV={on:false,lvl:{}};let loadOk=0;
+const today=()=>ymd(new Date());const NV={on:false,lvl:{}};let loadOk=0;const SP={msgs:[],unread:0,tid:null,status:null,t:0};
 const dayOf=s=>s.day||D[s.id]||today();
 const row=r=>({id:r.id,lat:r.lat,lng:r.lng,name:r.customer_name,phone:r.phone,ord:r.order_details,addr:r.address,bld:r.building,apt:r.apartment,inv:r.invoice_no,amt:r.amount==null?null:+r.amount,cash:r.cash!==false,done:!!r.done,at:r.done_at,got:r.received==null?null:+r.received,rk:r.receipt_kept,day:r.delivery_date});
 const active=()=>S.filter(s=>!s.done&&dayOf(s)<=today());
@@ -452,22 +463,22 @@ async function deliver(n){
 async function undo(n){const{error}=await stopUpd(n.id,{done:false,done_at:null,cash_collected:null,received:null,receipt_kept:null},['receipt_kept']);if(error)return toast('ماقدرتش أتراجع');Object.assign(n,{done:false,at:null,got:null,rk:null});optimize()}
 
 /* ---------- menu & pages ---------- */
-const PAGES=[['home','الخريطة'],['orders','الأوردرات'],['wallet','المحفظة'],['profile','الملف الشخصي']];
+const PAGES=[['home','الخريطة'],['orders','الأوردرات'],['wallet','المحفظة'],['profile','الملف الشخصي'],['support','الدعم الفني']];
 async function shareApp(){
   const url=location.origin+location.pathname.replace(/[^/]*$/,'')+'install.html';
   const data={title:'تطبيق ToGo',text:'جرّب تطبيق ToGo 🚚 — تطبيق للمناديب بينظّم مسار التوصيل ويحسب حسابك:',url};
   try{if(navigator.share){await navigator.share(data);return}}catch(e){if(e&&e.name==='AbortError')return}
   try{await navigator.clipboard.writeText(url);toast('اتنسخ لينك التطبيق')}catch(e){window.open('https://wa.me/?text='+encodeURIComponent(data.text+' '+url),'_blank')}
 }
-const MI={orders:'<path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',wallet:'<path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v10a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-9H5a2 2 0 0 1-2-2z"/><circle cx="16.5" cy="13.5" r="1"/>',profile:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',install:'<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',tour:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/>',share:'<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.9l7.6-3.8M8.2 13.1l7.6 3.8"/>',out:'<path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4M16 8l4 4-4 4M20 12H9"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',auto:'<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/>'};
+const MI={support:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9 11h6M9 14h4"/>',orders:'<path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',wallet:'<path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v10a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-9H5a2 2 0 0 1-2-2z"/><circle cx="16.5" cy="13.5" r="1"/>',profile:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',install:'<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',tour:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/>',share:'<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.9l7.6-3.8M8.2 13.1l7.6 3.8"/>',out:'<path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4M16 8l4 4-4 4M20 12H9"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',auto:'<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/>'};
 const mic=k=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MI[k]}</svg>`;
 function menu(){
   if(open&&sheetSet)sheetSet(false);$('plist').classList.remove('on');
-  const tm=themeMode(),nm=String(PF.name||'ToGo'),it=(k,t,x)=>`<button data-p="${k}" class="mi ${x||''}"><span class="ic">${mic(k)}</span>${t}</button>`;
+  const tm=themeMode(),nm=String(PF.name||'ToGo'),it=(k,t,x)=>`<button data-p="${k}" class="mi ${x||''}"><span class="ic">${mic(k)}</span>${t}${k==='support'&&SP.unread?`<i class="bd">${SP.unread}</i>`:''}</button>`;
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2>${esc(nm)}</h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 28 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 29 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -479,8 +490,8 @@ function go(p){
   if(p==='tour')return startTour();
   if(p==='install'){if(inst){inst.prompt();inst=null}return}
   page=p;const v=$('view');
-  if(p==='home'){v.classList.remove('on');return}
-  $('vt').textContent=PAGES.find(x=>x[0]===p)[1];v.classList.add('on');({orders:pOrders,wallet:pWallet,profile:pProfile})[p]();
+  clearInterval(SP.t);if(p==='home'){v.classList.remove('on');return}
+  $('vb').style.padding='';$('vb').style.overflow='';$('vt').textContent=PAGES.find(x=>x[0]===p)[1];v.classList.add('on');({orders:pOrders,wallet:pWallet,profile:pProfile,support:pSupport})[p]();
 }
 function walletCalc(){
   const d=doneToday(),cash=d.filter(s=>s.cash),visa=d.length-cash.length,col=cash.reduce((a,s)=>a+(s.got??s.amt??0),0),com=d.length*(+PF.rate||0);
@@ -491,6 +502,49 @@ function pWallet(){
   const w=walletCalc();
   $('vb').innerHTML=`<div class="owe"><small>المطلوب تسلّمه للشركة</small><div>${money(w.owed)}</div></div><div class="card"><div class="sum"><span>أوردرات اتسلّمت النهارده</span><b>${w.n}</b></div><div class="sum"><span>كاش (${w.cashN})</span><b>${money(w.col)}</b></div><div class="sum"><span>فيزا</span><b>${w.visa}</b></div><div class="sum"><span>سعر الأوردر</span><b>${money(PF.rate)}</b></div><div class="sum"><span>أجرك (${w.n} × ${PF.rate||0})</span><b>- ${money(w.com)}</b></div></div>${PF.rate?'':'<p class="mut">حدّد سعر الأوردر من «الملف الشخصي» عشان يتحسب أجرك.</p>'}`;
 }
+/* ---------- support chat (stored in the database, answered from the dev side) ---------- */
+const SEND='<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true" style="transform:scaleX(-1)"><path d="M3 20l18-8L3 4v6l11 2-11 2z"/></svg>';
+const spDot=()=>{const b=$('mn');if(b)b.classList.toggle('dot',SP.unread>0)};
+async function spFetch(){
+  if(!uid||navigator.onLine===false)return false;
+  let r;try{r=await withT(db.from('support_threads').select('id,status').order('updated_at',{ascending:false}).limit(1))}catch(e){return false}
+  if(r.error)return false;const t=(r.data||[])[0];
+  if(!t){SP.tid=null;SP.msgs=[];SP.status=null;return true}
+  SP.tid=t.id;SP.status=t.status;let m;
+  try{m=await withT(db.from('support_messages').select('id,sender,body,created_at,read_by_courier').eq('thread_id',t.id).order('created_at',{ascending:true}))}catch(e){return false}
+  if(m.error)return false;SP.msgs=m.data||[];
+  if(SP.msgs.some(x=>x.sender==='support'&&!x.read_by_courier)){SP.msgs.forEach(x=>{if(x.sender==='support')x.read_by_courier=true});db.from('support_messages').update({read_by_courier:true}).eq('thread_id',t.id).eq('sender','support').eq('read_by_courier',false).then(()=>{},()=>{})}
+  SP.unread=0;spDot();return true;
+}
+function spRender(sc){
+  const sm=$('sm');if(!sm)return;const near=sm.scrollHeight-sm.scrollTop-sm.clientHeight<80;
+  sm.innerHTML=SP.msgs.length?SP.msgs.map(m=>`<div class="bb ${m.sender==='courier'?'me':'su'}">${m.sender==='support'?'<b class="sl">الدعم الفني</b>':''}${esc(m.body)}<small>${clk(new Date(m.created_at))}</small></div>`).join(''):`<div class="se"><div class="si2">${mic('support')}</div><h3>إزاي نقدر نساعدك؟</h3><p class="mut">اكتب مشكلتك وهنرد عليك هنا في أقرب وقت.</p><div class="chips">${['مشكلة في الخريطة','مشكلة في الأوردر','مشكلة في المحفظة','اقتراح'].map(t=>`<button data-q="${t}">${t}</button>`).join('')}</div></div>`;
+  $('sx').innerHTML=SP.status==='resolved'?'<div class="sok">✓ تم حل مشكلتك. لو لسه فيه حاجة اكتبها هنا وهنفتح المحادثة تاني.</div>':'';
+  sm.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const i=$('si');i.value=b.dataset.q+': ';i.focus()});
+  if(sc||near)sm.scrollTop=sm.scrollHeight;
+}
+async function spSend(){
+  const i=$('si'),body=i.value.trim();if(!body||SP.sending)return;SP.sending=1;$('ss').disabled=true;
+  try{
+    if(navigator.onLine===false)throw new Error('offline');
+    if(!SP.tid){const id=crypto.randomUUID(),t=await db.from('support_threads').insert({id,courier_id:uid,courier_name:PF.name||null,courier_phone:PF.phone||null});if(t.error)throw t.error;SP.tid=id}
+    const id=crypto.randomUUID(),r=await db.from('support_messages').insert({id,thread_id:SP.tid,courier_id:uid,sender:'courier',body});if(r.error)throw r.error;
+    SP.msgs.push({id,sender:'courier',body,created_at:new Date().toISOString()});SP.status='open';i.value='';i.style.height='';spRender(true);
+  }catch(e){toast(navigator.onLine===false?'مفيش نت. الرسالة ماتبعتتش':'الرسالة ماتبعتتش، جرّب تاني')}
+  SP.sending=0;$('ss').disabled=false;
+}
+function pSupport(){
+  const vb=$('vb');vb.style.padding='0';vb.style.overflow='hidden';
+  vb.innerHTML=`<div class="sp"><div class="sm" id="sm"></div><div id="sx"></div><div class="sb"><textarea id="si" rows="1" maxlength="2000" placeholder="اكتب مشكلتك أو رسالتك…"></textarea><button class="p" id="ss" aria-label="إرسال">${SEND}</button></div></div>`;
+  $('ss').onclick=spSend;$('si').oninput=e=>{e.target.style.height='auto';e.target.style.height=Math.min(120,e.target.scrollHeight)+'px'};
+  spRender(true);spFetch().then(()=>{if(page==='support')spRender(true)});
+  clearInterval(SP.t);SP.t=setInterval(async()=>{if(page!=='support'||document.hidden)return;const n=SP.msgs.length,s=SP.status;if(await spFetch()&&page==='support'&&(SP.msgs.length!==n||SP.status!==s))spRender(false)},7000);
+}
+async function spBadge(){
+  if(!uid||navigator.onLine===false||page==='support')return;
+  try{const r=await withT(db.from('support_messages').select('id',{count:'exact',head:true}).eq('sender','support').eq('read_by_courier',false),6000);if(r.error)return;const n=r.count||0;if(n>SP.unread)toast('وصلك رد من الدعم الفني');SP.unread=n;spDot()}catch(e){}
+}
+setInterval(spBadge,60000);setTimeout(spBadge,5000);
 function pProfile(){
   $('vb').innerHTML=`<div class="card"><label><small>الاسم</small><input id="pn" value="${esc(PF.name)}"></label><label><small>رقم التليفون</small><input id="pp" value="${esc(PF.phone)}" inputmode="tel"></label><label><small>سعر الأوردر اللي بتاخده من الشركة (ج.م)</small><input id="pr" value="${esc(PF.rate||'')}" inputmode="decimal"></label><button class="p w" id="ps" style="margin-top:14px">حفظ</button></div><button class="w" id="da" style="margin-top:14px;background:none;color:var(--bad)">حذف الحساب نهائيًا</button>`;
   $('da').onclick=deleteAccount;
