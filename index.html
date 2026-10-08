@@ -149,6 +149,13 @@ body.navon #peek h2{font-size:18px;white-space:nowrap;overflow:hidden;text-overf
 #sheet,#sheet *{touch-action:none}
 #eta{white-space:nowrap!important}#nalt{display:flex;gap:6px;align-self:flex-start;flex-wrap:wrap}#nalt:empty{display:none}#nalt button{min-height:32px;padding:0 12px;border-radius:99px;background:#fff;color:var(--ink);font-size:13px;box-shadow:0 2px 8px #0004;border:2px solid #94a3b8}#nalt button.f{border-color:var(--ok);color:var(--ok)}
 #sheet::after{content:"";position:absolute;left:0;right:0;top:100%;height:220px;background:inherit;pointer-events:none}
+#menu nav{gap:4px;overflow-y:auto}
+.mh{display:flex;align-items:center;gap:12px;padding:4px 4px 12px}.av{flex:none;width:52px;height:52px;border-radius:50%;background:var(--pri);color:#fff;display:grid;place-items:center;font-size:22px;font-weight:700}.mt{min-width:0}.mt h2{margin:0;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mt p{margin:0;font-size:13px}
+.ms{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;color:var(--mut);margin:12px 6px 4px}.ms em{font-style:normal;font-weight:600}
+#menu nav button.mi{display:flex;align-items:center;gap:14px;font-size:16px;min-height:52px;padding:0 8px}.mi .ic{flex:none;width:38px;height:38px;border-radius:12px;background:var(--bg);display:grid;place-items:center}#menu nav button.mi.on .ic{background:#ffe3d0}
+#menu nav button.out{margin-top:auto;color:var(--bad)}
+.tg{display:flex;gap:6px;background:var(--bg);padding:4px;border-radius:16px}#menu nav .tg button{flex:1;min-height:46px;padding:0;border-radius:12px;display:grid;place-items:center;font-size:0;background:none}#menu nav .tg button.on{background:var(--pri);color:#fff}
+#menu nav button.thb{margin-inline-start:auto;flex:none;width:58px;min-height:60px;padding:4px 0;border-radius:16px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:0}.thb small{font-size:11px;font-weight:600;color:var(--mut)}.thb svg{animation:thflip .4s cubic-bezier(.22,1,.36,1)}@keyframes thflip{from{transform:rotate(-120deg) scale(.5);opacity:0}to{transform:none;opacity:1}}
 </style>
 </head>
 <body>
@@ -199,7 +206,7 @@ addEventListener('appinstalled',()=>{$('ia').hidden=true;inst=null});
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;let rl=0;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl&&!NV.on){rl=1;location.reload()}})}
 ['gesturestart','gesturechange','gestureend'].forEach(t=>addEventListener(t,e=>e.preventDefault()));
-const mq=matchMedia('(prefers-color-scheme: dark)'),THEMES=['auto','dark','light'],THEME_LBL={auto:'تلقائي (زي الموبايل)',dark:'داكن',light:'فاتح'};
+const mq=matchMedia('(prefers-color-scheme: dark)'),THEMES=['auto','light','dark'],THEME_LBL={auto:'تلقائي (زي الموبايل)',dark:'داكن',light:'فاتح'};
 const themeMode=()=>{try{const m=JSON.parse(localStorage.getItem('togo_theme'));return THEMES.includes(m)?m:'auto'}catch(e){return'auto'}};
 const theme=()=>{const m=themeMode();document.body.classList.toggle('night',m==='dark'||(m==='auto'&&mq.matches))};
 const cycleTheme=()=>{sv('togo_theme',THEMES[(THEMES.indexOf(themeMode())+1)%3]);theme()};
@@ -449,9 +456,19 @@ async function shareApp(){
   try{if(navigator.share){await navigator.share(data);return}}catch(e){if(e&&e.name==='AbortError')return}
   try{await navigator.clipboard.writeText(url);toast('اتنسخ لينك التطبيق')}catch(e){window.open('https://wa.me/?text='+encodeURIComponent(data.text+' '+url),'_blank')}
 }
-function menu(){if(open&&sheetSet)sheetSet(false);$('plist').classList.remove('on');$('nav').innerHTML=`<h2>${esc(PF.name||'ToGo')}</h2><p class="mut" style="margin-bottom:10px" dir="ltr">${esc(PF.phone||'')}</p>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>`<button data-p="${k}" class="${k===page?'on':''}">${t}</button>`).join('')+(inst?`<button data-p="install">ثبّت التطبيق على الشاشة</button>`:'')+`<button data-p="theme">المظهر: ${THEME_LBL[themeMode()]}</button><button data-p="tour">شرح التطبيق</button><button data-p="share">مشاركة تطبيق ToGo</button><button data-p="out" style="margin-top:auto;color:var(--bad)">تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 24 · ملاحة</small>`;$('menu').classList.add('on')}
+const MI={orders:'<path d="M4 6h16M4 12h16M4 18h10"/>',wallet:'<path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v10a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-9H5a2 2 0 0 1-2-2z"/><circle cx="16.5" cy="13.5" r="1"/>',profile:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',install:'<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',tour:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/>',share:'<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.9l7.6-3.8M8.2 13.1l7.6 3.8"/>',out:'<path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4M16 8l4 4-4 4M20 12H9"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',auto:'<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/>'};
+const mic=k=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MI[k]}</svg>`;
+function menu(){
+  if(open&&sheetSet)sheetSet(false);$('plist').classList.remove('on');
+  const tm=themeMode(),nm=String(PF.name||'ToGo'),it=(k,t,x)=>`<button data-p="${k}" class="mi ${x||''}"><span class="ic">${mic(k)}</span>${t}</button>`;
+  $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2>${esc(nm)}</h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
+  +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
+  +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 26 · ملاحة</small>`;
+  $('menu').classList.add('on');
+}
 $('mn').onclick=menu;
-$('menu').onclick=e=>{const b=e.target.closest('[data-p]');if(b&&b.dataset.p==='theme'){cycleTheme();menu();return}if(b){$('menu').classList.remove('on');go(b.dataset.p)}else if(e.target===$('menu'))$('menu').classList.remove('on')};
+$('menu').onclick=e=>{if(e.target.closest('[data-thc]')){cycleTheme();menu();return}const b=e.target.closest('[data-p]');if(b&&b.dataset.p==='theme'){cycleTheme();menu();return}if(b){$('menu').classList.remove('on');go(b.dataset.p)}else if(e.target===$('menu'))$('menu').classList.remove('on')};
 $('vx').onclick=()=>{go('home');menu()};
 function go(p){
   if(p==='out')return signOut();
