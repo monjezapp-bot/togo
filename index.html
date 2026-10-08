@@ -391,7 +391,7 @@ function draw(){
 }
 function initDrag(){
   const sh=$('sheet'),pk=$('peek'),dt=$('det'),off=()=>dt.offsetHeight,set=y=>sh.style.setProperty('--y',y+'px');
-  sheetSet=v=>{open=v;set(open?0:off())};sh.classList.add('nt');set(open?0:off());
+  sheetSet=v=>{open=v;if(v)$('plist').classList.remove('on');set(open?0:off())};sh.classList.add('nt');set(open?0:off());
   requestAnimationFrame(()=>requestAnimationFrame(()=>sh.classList.remove('nt')));
   let y0=null,base=0,t0=0,drag=false,ly=0,ds=null,sc=false;
   sh.onpointerdown=e=>{if(e.target.closest&&e.target.closest('input,textarea,select'))return;y0=e.clientY;base=open?0:off();t0=performance.now();drag=false;ly=base;ds=dt.contains(e.target)&&open?dt.scrollTop:null;sc=false};
@@ -406,7 +406,7 @@ function initDrag(){
     if(y0==null)return;if(sc){sc=false;y0=null;ds=null;return}const v=(e.clientY-y0)/Math.max(1,performance.now()-t0),o=off();y0=null;sh.classList.remove('nt');
     if(!drag){if(e.target.closest&&e.target.closest('a,button,input,textarea,select,label'))return;if(!pk.contains(e.target))return;open=!open}
     else open=v<-.3?true:v>.3?false:ly<o/2;
-    set(open?0:o);
+    if(open)$('plist').classList.remove('on');set(open?0:o);
   };
   sh.onpointerup=end;sh.onpointercancel=end;
 }
@@ -467,7 +467,7 @@ function menu(){
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2>${esc(nm)}</h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 27 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 28 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -597,7 +597,8 @@ function fillList(){
   W.forEach(x=>rows.push(`<div class="pi"><span class="num" style="background:var(--mut)">!</span><b class="nm" data-o="${x.id}">${esc(x.name||'عميل')}</b><span class="mn g" role="img" aria-label="بدون موقع">${PINX}</span>${ctl(x.phone,true)}</div>`));
   $('plist').innerHTML=rows.join('')||'<p class="mut" style="padding:14px 0">مفيش أوردرات متبقية.</p>';
 }
-$('prog').onclick=()=>{const p=$('plist');if(p.classList.contains('on'))p.classList.remove('on');else{fillList();p.classList.add('on')}};
+$('prog').onclick=()=>{const p=$('plist');if(p.classList.contains('on'))p.classList.remove('on');else{if(open&&sheetSet)sheetSet(false);fillList();p.classList.add('on')}};
+document.addEventListener('pointerdown',e=>{const p=$('plist');if(p.classList.contains('on')&&!e.target.closest('#plist,#prog'))p.classList.remove('on')},true);
 $('plist').onclick=e=>{const r=e.target.closest('[data-o]');if(!r)return;$('plist').classList.remove('on');detail(S.find(s=>s.id===r.dataset.o))};
 $('rf').onclick=async()=>{const b=$('rf');b.classList.add('spin');const a=JSON.stringify(RAW);loadOk=0;try{await load();legAt=0;if(me&&!NV.on)await fetchLeg()}catch(e){}b.classList.remove('spin');toast(navigator.onLine===false?'أوفلاين: بيانات آخر مرة اتحمّلت':!loadOk?'مقدرتش أحدّث، اتأكد من النت':a!==JSON.stringify(RAW)?'اتحدّثت البيانات':'البيانات محدّثة بالفعل')};
 
