@@ -148,6 +148,7 @@ body.navon #peek h2{font-size:18px;white-space:nowrap;overflow:hidden;text-overf
 #nctl #nrc{position:static}
 #sheet,#sheet *{touch-action:none}
 #eta{white-space:nowrap!important}#nalt{display:flex;gap:6px;align-self:flex-start;flex-wrap:wrap}#nalt:empty{display:none}#nalt button{min-height:32px;padding:0 12px;border-radius:99px;background:#fff;color:var(--ink);font-size:13px;box-shadow:0 2px 8px #0004;border:2px solid #94a3b8}#nalt button.f{border-color:var(--ok);color:var(--ok)}
+#sheet::after{content:"";position:absolute;left:0;right:0;top:100%;height:220px;background:inherit;pointer-events:none}
 </style>
 </head>
 <body>
@@ -389,7 +390,7 @@ function initDrag(){
     if(!drag&&!sc&&Math.abs(dy)>6){const mx=dt.scrollHeight-dt.clientHeight;if(ds!=null&&mx>2&&ds-dy>0&&ds-dy<mx)sc=true;else{drag=true;sh.setPointerCapture(e.pointerId);sh.classList.add('nt')}}
     if(sc){dt.scrollTop=Math.max(0,Math.min(dt.scrollHeight-dt.clientHeight,ds-dy));return}
     if(!drag)return;
-    const o=off();let y=base+dy;y=y<0?y/4:y>o?o+(y-o)/4:y;ly=y;set(y);
+    const o=off();let y=base+dy;y=Math.max(0,Math.min(o,y));ly=y;set(y);
   };
   const end=e=>{
     if(y0==null)return;if(sc){sc=false;y0=null;ds=null;return}const v=(e.clientY-y0)/Math.max(1,performance.now()-t0),o=off();y0=null;sh.classList.remove('nt');
@@ -448,7 +449,7 @@ async function shareApp(){
   try{if(navigator.share){await navigator.share(data);return}}catch(e){if(e&&e.name==='AbortError')return}
   try{await navigator.clipboard.writeText(url);toast('اتنسخ لينك التطبيق')}catch(e){window.open('https://wa.me/?text='+encodeURIComponent(data.text+' '+url),'_blank')}
 }
-function menu(){if(open&&sheetSet)sheetSet(false);$('plist').classList.remove('on');$('nav').innerHTML=`<h2>${esc(PF.name||'ToGo')}</h2><p class="mut" style="margin-bottom:10px" dir="ltr">${esc(PF.phone||'')}</p>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>`<button data-p="${k}" class="${k===page?'on':''}">${t}</button>`).join('')+(inst?`<button data-p="install">ثبّت التطبيق على الشاشة</button>`:'')+`<button data-p="theme">المظهر: ${THEME_LBL[themeMode()]}</button><button data-p="tour">شرح التطبيق</button><button data-p="share">مشاركة تطبيق ToGo</button><button data-p="out" style="margin-top:auto;color:var(--bad)">تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 23 · ملاحة</small>`;$('menu').classList.add('on')}
+function menu(){if(open&&sheetSet)sheetSet(false);$('plist').classList.remove('on');$('nav').innerHTML=`<h2>${esc(PF.name||'ToGo')}</h2><p class="mut" style="margin-bottom:10px" dir="ltr">${esc(PF.phone||'')}</p>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>`<button data-p="${k}" class="${k===page?'on':''}">${t}</button>`).join('')+(inst?`<button data-p="install">ثبّت التطبيق على الشاشة</button>`:'')+`<button data-p="theme">المظهر: ${THEME_LBL[themeMode()]}</button><button data-p="tour">شرح التطبيق</button><button data-p="share">مشاركة تطبيق ToGo</button><button data-p="out" style="margin-top:auto;color:var(--bad)">تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 24 · ملاحة</small>`;$('menu').classList.add('on')}
 $('mn').onclick=menu;
 $('menu').onclick=e=>{const b=e.target.closest('[data-p]');if(b&&b.dataset.p==='theme'){cycleTheme();menu();return}if(b){$('menu').classList.remove('on');go(b.dataset.p)}else if(e.target===$('menu'))$('menu').classList.remove('on')};
 $('vx').onclick=()=>{go('home');menu()};
@@ -732,7 +733,7 @@ function navTick(){
     let j=0;while(j+1<st.length&&NV.sd[j+1]<=sn.s)j++;
     u=Math.min(j+1,st.length-1);dm=Math.max(0,NV.sd[u]-sn.s);
     rt=Math.max(0,NV.dur-NV.td[j]-(st[j].distance?Math.min(1,(sn.s-NV.sd[j])/st[j].distance):1)*st[j].duration);
-    if(sn.i!==NV.li||Date.now()-NV.lt>4000){NV.li=sn.i;NV.lt=Date.now();let e=sn.i+1;while(e<NV.C.length-1&&NV.CD[e]<sn.s+3000)e++;setLine('leg',[sn.pt,...NV.C.slice(sn.i+1,e+1)])}
+    if(sn.i!==NV.li||Date.now()-NV.lt>4000){NV.li=sn.i;NV.lt=Date.now();let e=sn.i+1;while(e<NV.C.length-1&&(NV.ov||NV.CD[e]<sn.s+3000))e++;setLine('leg',[sn.pt,...NV.C.slice(sn.i+1,e+1)])}
     const lv=dm<=45?3:dm<=220?2:dm<=520?1:0,last=u===st.length-1;
     if(lv>(NV.lvl[u]||0)){NV.lvl[u]=lv;if(Date.now()>NV.quiet&&!NV.arrived&&!(last&&lv===3))say(lv===3?instr(st[u]):'بعد '+spD(dm)+'، '+(last?'ستصل إلى وجهتك':instr(st[u])))}
   }
@@ -777,16 +778,16 @@ function navLoop(t){
   }
 }
 function navPause(s){follow=false;$('nrc').classList.remove('on');clearTimeout(navT);navT=setTimeout(navFollow,s*1000)}
-function navFollow(){clearTimeout(navT);follow=true;NV.ov=false;NV.zm=map.getZoom();$('nrc').classList.add('on');navIc()}
+function navFollow(){clearTimeout(navT);follow=true;NV.ov=false;NV.zm=map.getZoom();NV.li=-1;$('nrc').classList.add('on');navIc()}
 function navOverview(){
   if(!NV.C||!me)return;if(NV.ov)return navFollow();
-  NV.ov=true;follow=false;clearTimeout(navT);$('nrc').classList.remove('on');navIc();const pts=[[me.lng,me.lat],...NV.C.slice(NV.i)];
+  NV.ov=true;follow=false;clearTimeout(navT);$('nrc').classList.remove('on');navIc();setLine('leg',[NV.pos||NV.C[NV.i],...NV.C.slice(NV.i+1)]);NV.li=-1;const pts=[[me.lng,me.lat],...NV.C.slice(NV.i)];
   map.setPadding({top:0,bottom:0,left:0,right:0});map.fitBounds(pts.reduce((b,c)=>b.extend(c),new maplibregl.LngLatBounds(pts[0],pts[0])),{essential:true,padding:{top:Math.round(innerHeight*.28),bottom:Math.round(innerHeight-$('sheet').getBoundingClientRect().top)+30,left:50,right:50},bearing:0,pitch:0,maxZoom:17,duration:800});
 }
-map.on('movestart',e=>{if(NV.on&&e.originalEvent)navPause(20)});
+map.on('movestart',e=>{if(e.originalEvent&&open&&sheetSet)sheetSet(false);if(NV.on&&e.originalEvent)navPause(20)});map.on('click',()=>{if(open&&sheetSet)sheetSet(false)});
 /* start / stop / next */
 function navCust(){}
-const navVoiceBtn=()=>{};const navIc=()=>{const b=$('nov');b.innerHTML=NV.ov?IC_NAV.replace(/ style="[^"]*"/,''):IC_FIT;b.classList.toggle('on',!!NV.ov)};
+const navVoiceBtn=()=>{};const navIc=()=>{const b=$('nov');b.innerHTML=NV.ov?IC_NAV.replace(/ style="[^"]*"/,''):IC_FIT;b.classList.toggle('on',!!NV.ov);if(map.getLayer('trip'))map.setLayoutProperty('trip','visibility',NV.ov?'visible':'none')};
 async function startNav(){
   const n=nextStop();
   if(!n)return toast('مفيش أوردر جاي');if(!ready)return toast('الخريطة لسه بتحمّل');if(!me)return toast('بانتظار إشارة الـ GPS');
