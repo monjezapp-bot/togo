@@ -174,12 +174,13 @@ body.night .bb.su,body.night .sb textarea,body.night .chips button{background:#2
 body.night .wp button,body.night .wd{background:#2b2f36;color:#f5f1e6}body.night .wp button.on{background:var(--pri);color:#fff}
 .sum.due{border-top:2px solid var(--line);margin-top:8px;padding-top:12px;font-weight:700}.sum.due b{color:var(--pri)}
 dialog#scn{border:0;padding:0;width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;background:#0b1220;color:#fff}.scn{display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px}.scn p{margin:4px 0;font-size:15px}#scc{touch-action:none;border-radius:8px;max-width:100%}.scn .row{width:100%;max-width:720px;display:flex;gap:8px}.scn .row button{flex:1;min-height:48px}
+#mn.dot::after{content:attr(data-n);top:4px;inset-inline-end:4px;width:20px;height:20px;display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff;line-height:1}.num[data-pk]{cursor:pointer}
 </style>
 </head>
 <body>
 <div id="map"></div>
 <div id="splash"><img src="logo.png" alt="ToGo"></div>
-<div class="top"><button class="rb" id="mn" aria-label="القائمة">☰</button><div class="prog" id="prog"></div><button class="rb" id="rf" aria-label="تحديث">↻</button></div>
+<div class="top"><button class="rb" id="mn" aria-label="القائمة">☰</button><div class="prog" id="prog"></div><button class="rb" id="rf" aria-label="تحديث"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4.5V11h-6.5"/></svg></button></div>
 <div id="plist"></div>
 <div id="sheet"><button class="rb on" id="loc" aria-label="موقعي">◎</button><button id="gon" hidden aria-label="ابدأ الملاحة"></button><div id="sc"></div></div>
 <div id="menu"><nav id="nav"></nav></div>
@@ -226,8 +227,8 @@ if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;
 ['gesturestart','gesturechange','gestureend'].forEach(t=>addEventListener(t,e=>e.preventDefault()));
 const mq=matchMedia('(prefers-color-scheme: dark)'),THEMES=['auto','light','dark'],THEME_LBL={auto:'تلقائي (زي الموبايل)',dark:'داكن',light:'فاتح'};
 const themeMode=()=>{try{const m=JSON.parse(localStorage.getItem('togo_theme'));return THEMES.includes(m)?m:'auto'}catch(e){return'auto'}};
-const theme=()=>{const m=themeMode();document.body.classList.toggle('night',m==='dark'||(m==='auto'&&mq.matches))};
-const cycleTheme=()=>{sv('togo_theme',THEMES[(THEMES.indexOf(themeMode())+1)%3]);theme()};
+const theme=()=>{const m=themeMode(),hr=new Date().getHours();document.body.classList.toggle('night',m==='dark'||(m==='auto'&&(mq.matches||hr>=18||hr<5)))};
+const cycleTheme=()=>{sv('togo_theme',THEMES[(THEMES.indexOf(themeMode())+1)%3]);theme()};setInterval(theme,600000);mq.addEventListener&&mq.addEventListener('change',theme);
 theme();if(mq.addEventListener)mq.addEventListener('change',theme);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const hav=(a,b)=>{const d=Math.PI/180,x=Math.sin((b.lat-a.lat)*d/2)**2+Math.cos(a.lat*d)*Math.cos(b.lat*d)*Math.sin((b.lng-a.lng)*d/2)**2;return 12742*Math.asin(Math.sqrt(x))};
@@ -239,7 +240,7 @@ const ld=(k,f)=>{try{return JSON.parse(localStorage.getItem(k))||f}catch(e){retu
 const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 let D=ld('togo_days',{}),PF=ld('togo_profile',{name:'',phone:'',rate:0});
 let S=[],order=[],me=null,uid=null,work=false,leg=null,legAt=0,geo=null,follow=true,ready=false,mk=[],meMk=null,open=false,wasNear=false,page='home',wk=new Date(),selDay=ymd(new Date());
-const today=()=>ymd(new Date());const NV={on:false,lvl:{}};let loadOk=0;const SP={msgs:[],unread:0,tid:null,status:null,t:0};
+const today=()=>ymd(new Date());const NV={on:false,lvl:{}};let loadOk=0;const SP={msgs:[],unread:0,tid:null,status:null,t:0};let PICK=null;
 const dayOf=s=>s.day||D[s.id]||today();
 const row=r=>({id:r.id,lat:r.lat,lng:r.lng,name:r.customer_name,phone:r.phone,ord:r.order_details,addr:r.address,bld:r.building,apt:r.apartment,inv:r.invoice_no,amt:r.amount==null?null:+r.amount,cash:r.cash!==false,done:!!r.done,at:r.done_at,got:r.received==null?null:+r.received,rk:r.receipt_kept,day:r.delivery_date});
 const active=()=>S.filter(s=>!s.done&&dayOf(s)<=today());
@@ -371,11 +372,11 @@ async function optimize(){
   }catch(e){let cur=me||P[0],left=[...P];order=[];while(left.length){left.sort((a,b)=>hav(cur,a)-hav(cur,b));cur=left.shift();order.push(cur.id)}legDur=[];let pv=me||P[0];order.forEach(id=>{const t=S.find(x=>x.id===id);legDur.push(hav(pv,t)*1.35/22*3600);pv=t})}
   render(true);
 }
-function render(fit){
+function render(fit){if(PICK){if(!S.some(s=>s.id===PICK&&!s.done))PICK=null;else if(order[0]!==PICK&&order.includes(PICK))order=[PICK,...order.filter(x=>x!==PICK)]}
   mk.forEach(m=>m.remove());mk=[];
   const P=order.map(id=>S.find(s=>s.id===id)).filter(Boolean);
   if(ready){
-    P.forEach((s,i)=>{const e=document.createElement('div');e.className='pin'+(i?'':' f');e.textContent=i+1;mk.push(new maplibregl.Marker({element:e}).setLngLat([s.lng,s.lat]).addTo(map))});
+    P.forEach((s,i)=>{const e=document.createElement('div');e.className='pin'+(i?'':' f');e.textContent=i+1;e.onclick=()=>pickStop(s.id);mk.push(new maplibregl.Marker({element:e}).setLngLat([s.lng,s.lat]).addTo(map))});
     const pts=geo||[...(me?[[me.lng,me.lat]]:[]),...P.map(s=>[s.lng,s.lat])];setLine('trip',pts);
     if(fit&&pts.length>1&&!(follow&&work)&&!NV.on)map.fitBounds(pts.reduce((b,c)=>b.extend(c),new maplibregl.LngLatBounds(pts[0],pts[0])),{padding:{top:90,bottom:Math.round(innerHeight*.4),left:40,right:40},maxZoom:16,duration:600});
   }
@@ -460,7 +461,7 @@ async function deliver(n){
   const at=new Date().toISOString();
   const{error}=await stopUpd(n.id,{done:true,done_at:at,cash_collected:n.cash,received:got,receipt_kept:rk},['receipt_kept']);
   if(error)return toast('ماتحفظش، جرّب تاني');
-  Object.assign(n,{done:true,at,got,rk});wasNear=false;open=false;const cont=NV.on;if(cont)NV.hold=1;
+  Object.assign(n,{done:true,at,got,rk});if(PICK===n.id)PICK=null;wasNear=false;open=false;const cont=NV.on;if(cont)NV.hold=1;
   toast('تم تسليم '+(n.name||'العميل'),'تراجع',()=>undo(n));
   me&&(me={lat:n.lat,lng:n.lng});await optimize();if(cont){NV.hold=0;navNext()}
 }
@@ -482,7 +483,7 @@ function menu(){
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2>${esc(nm)}</h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 32 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 33 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -520,7 +521,8 @@ function pWallet(){
 }
 /* ---------- support chat (stored in the database, answered from the dev side) ---------- */
 const SEND='<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true" style="transform:scaleX(-1)"><path d="M3 20l18-8L3 4v6l11 2-11 2z"/></svg>';
-const spDot=()=>{const b=$('mn');if(b)b.classList.toggle('dot',SP.unread>0)};
+const spDot=()=>{const b=$('mn');if(b){b.classList.toggle('dot',SP.unread>0);b.dataset.n=SP.unread>9?'9+':SP.unread}try{SP.unread>0?navigator.setAppBadge&&navigator.setAppBadge(SP.unread):navigator.clearAppBadge&&navigator.clearAppBadge()}catch(e){}};
+function spNotify(n){try{vib([200,100,200]);if('Notification' in window&&Notification.permission==='granted'&&navigator.serviceWorker)navigator.serviceWorker.ready.then(r=>r.showNotification('الدعم الفني',{body:'وصلك رد جديد',icon:'icon-192.png',tag:'support',renotify:true,vibrate:[200,100,200]}))}catch(e){}}
 async function spFetch(){
   if(!uid||navigator.onLine===false)return false;
   let r;try{r=await withT(db.from('support_threads').select('id,status').order('updated_at',{ascending:false}).limit(1))}catch(e){return false}
@@ -550,6 +552,7 @@ async function spSend(){
   SP.sending=0;$('ss').disabled=false;
 }
 function pSupport(){
+  try{if('Notification' in window&&Notification.permission==='default')Notification.requestPermission()}catch(e){}
   const vb=$('vb');vb.style.padding='0';vb.style.overflow='hidden';
   vb.innerHTML=`<div class="sp"><div class="spm" id="sm"></div><div id="sx"></div><div class="sb"><textarea id="si" rows="1" maxlength="2000" placeholder="اكتب مشكلتك أو رسالتك…"></textarea><button class="p" id="ss" aria-label="إرسال">${SEND}</button></div></div>`;
   $('ss').onclick=spSend;$('si').oninput=e=>{e.target.style.height='auto';e.target.style.height=Math.min(120,e.target.scrollHeight)+'px'};
@@ -558,9 +561,11 @@ function pSupport(){
 }
 async function spBadge(){
   if(!uid||navigator.onLine===false||page==='support')return;
-  try{const r=await withT(db.from('support_messages').select('id',{count:'exact',head:true}).eq('sender','support').eq('read_by_courier',false),6000);if(r.error)return;const n=r.count||0;if(n>SP.unread)toast('وصلك رد من الدعم الفني');SP.unread=n;spDot()}catch(e){}
+  try{const r=await withT(db.from('support_messages').select('id',{count:'exact',head:true}).eq('sender','support').eq('read_by_courier',false),6000);if(r.error)return;const n=r.count||0;if(n>SP.unread){toast('وصلك رد من الدعم الفني');spNotify(n)}SP.unread=n;spDot()}catch(e){}
 }
-setInterval(spBadge,60000);setTimeout(spBadge,5000);
+setInterval(spBadge,20000);setTimeout(spBadge,4000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)spBadge()});
+try{navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.t==='support')go('support')})}catch(e){}
+if(/[?&]support=1/.test(location.search))setTimeout(()=>go('support'),2500);
 function pProfile(){
   $('vb').innerHTML=`<div class="card"><label><small>الاسم</small><input id="pn" value="${esc(PF.name)}"></label><label><small>رقم التليفون</small><input id="pp" value="${esc(PF.phone)}" inputmode="tel"></label><label><small>سعر الأوردر اللي بتاخده من الشركة (ج.م)</small><input id="pr" value="${esc(PF.rate||'')}" inputmode="decimal"></label><button class="p w" id="ps" style="margin-top:14px">حفظ</button></div><button class="w" id="da" style="margin-top:14px;background:none;color:var(--bad)">حذف الحساب نهائيًا</button>`;
   $('da').onclick=deleteAccount;
@@ -736,16 +741,17 @@ const locMsg=()=>`السلام عليكم ورحمة الله وبركاته �
 const waUrl=ph=>'https://wa.me/'+waNum(ph)+'?text='+encodeURIComponent(locMsg());
 const ctl=(ph,loc)=>{const d=String(ph||'').replace(/[^\d+]/g,'');return d?`<a class="ib c" href="tel:${esc(d)}" aria-label="اتصال">${IC_CALL}</a><a class="ib w" href="${waUrl(d)}" target="_blank" rel="noopener" aria-label="واتساب">${IC_WA}</a>`:''};
 const PINX='<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.2-6-10a6 6 0 0 1 12 0c0 4.8-6 10-6 10z"/><path d="M10 9l4 4M14 9l-4 4"/></svg>';
+async function pickStop(id){const s=S.find(x=>x.id===id);if(!s||s.done||order[0]===id)return;if(!await ask('تغيير الوجهة','تروح لـ '+(s.name||'العميل')+' الأول؟','أيوه'))return;PICK=id;render();draw();if($('plist').classList.contains('on'))fillList();toast('وجهتك الجاية: '+(s.name||'العميل'))}
 function fillList(){
   const P=order.map(id=>S.find(x=>x.id===id)).filter(Boolean),W=active().filter(x=>x.lat==null),now=Date.now();
   let t=leg?leg.duration:(legDur[0]||0);
-  const rows=P.map((x,i)=>{if(i>0)t+=(legDur[i]||300)+DWELL;return `<div class="pi"><span class="num">${i+1}</span><b class="nm" data-o="${x.id}">${esc(x.name||'عميل')}</b><span class="mn">${Math.max(1,Math.round(t/60))} د</span>${ctl(x.phone)}</div>`});
+  const rows=P.map((x,i)=>{if(i>0)t+=(legDur[i]||300)+DWELL;return `<div class="pi"><span class="num" data-pk="${x.id}">${i+1}</span><b class="nm" data-o="${x.id}">${esc(x.name||'عميل')}</b><span class="mn">${Math.max(1,Math.round(t/60))} د</span>${ctl(x.phone)}</div>`});
   W.forEach(x=>rows.push(`<div class="pi"><span class="num" style="background:var(--mut)">!</span><b class="nm" data-o="${x.id}">${esc(x.name||'عميل')}</b><span class="mn g" role="img" aria-label="بدون موقع">${PINX}</span>${ctl(x.phone,true)}</div>`));
   $('plist').innerHTML=rows.join('')||'<p class="mut" style="padding:14px 0">مفيش أوردرات متبقية.</p>';
 }
 $('prog').onclick=()=>{const p=$('plist');if(p.classList.contains('on'))p.classList.remove('on');else{if(open&&sheetSet)sheetSet(false);fillList();p.classList.add('on')}};
 document.addEventListener('pointerdown',e=>{const p=$('plist');if(p.classList.contains('on')&&!e.target.closest('#plist,#prog'))p.classList.remove('on')},true);
-$('plist').onclick=e=>{const r=e.target.closest('[data-o]');if(!r)return;$('plist').classList.remove('on');detail(S.find(s=>s.id===r.dataset.o))};
+$('plist').onclick=e=>{const k=e.target.closest('[data-pk]');if(k){pickStop(k.dataset.pk);return}const r=e.target.closest('[data-o]');if(!r)return;$('plist').classList.remove('on');detail(S.find(s=>s.id===r.dataset.o))};
 $('rf').onclick=async()=>{const b=$('rf');b.classList.add('spin');const a=JSON.stringify(RAW);loadOk=0;try{await load();legAt=0;if(me&&!NV.on)await fetchLeg()}catch(e){}b.classList.remove('spin');toast(navigator.onLine===false?'أوفلاين: بيانات آخر مرة اتحمّلت':!loadOk?'مقدرتش أحدّث، اتأكد من النت':a!==JSON.stringify(RAW)?'اتحدّثت البيانات':'البيانات محدّثة بالفعل')};
 
 /* ---------- first-run guided tour ---------- */

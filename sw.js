@@ -1,4 +1,4 @@
-const V='togo-v32',TILES='togo-tiles-v1',LIBS='togo-libs-v1';
+const V='togo-v33',TILES='togo-tiles-v1',LIBS='togo-libs-v1';
 const KEEP=[V,TILES,LIBS];
 const SHELL=['./','index.html','install.html','manifest.webmanifest','icon-192.png','icon-512.png','logo.png'];
 const LIB_URLS=[
@@ -65,3 +65,5 @@ self.addEventListener('fetch',e=>{
   if(u.hostname==='esm.sh'||u.hostname.endsWith('.esm.sh')||u.hostname==='cdn.jsdelivr.net'||u.hostname==='fonts.googleapis.com'||u.hostname==='fonts.gstatic.com'){e.respondWith(swr(r,LIBS));return}
   // everything else (database, login, routing) goes straight to the network; the app handles being offline
 });
+
+self.addEventListener('notificationclick',e=>{e.notification.close();e.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(cs=>{const c=cs[0];if(c){c.focus();c.postMessage({t:'support'});return}return self.clients.openWindow('./?support=1')}))});
