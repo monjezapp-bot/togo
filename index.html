@@ -483,7 +483,7 @@ function menu(){
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2>${esc(nm)}</h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 34 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 33 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -515,7 +515,7 @@ function walletCalc(k='today'){
 function periods(){const n=new Date(),t0=new Date(n.getFullYear(),n.getMonth(),n.getDate()),w0=new Date(t0);w0.setDate(t0.getDate()-((t0.getDay()+1)%7));const m0=new Date(n.getFullYear(),n.getMonth(),1),dn=S.filter(s=>s.done&&s.at),c=d0=>dn.filter(s=>new Date(s.at)>=d0).length;return[['اليوم',c(t0)],['هذا الأسبوع',c(w0)],['هذا الشهر',c(m0)]]}
 function pWallet(){
   const w=walletCalc(WP.k),L={today:'اليوم',yest:'أمس',week:'هذا الأسبوع',month:'هذا الشهر',day:'يوم محدد'},lab=WP.k==='day'?(WP.d||'—'):L[WP.k];
-  $('vb').innerHTML=`<div class="wp">${Object.keys(L).map(k=>`<button data-wk="${k}" class="${WP.k===k?'on':''}">${L[k]}</button>`).join('')}</div>${WP.k==='day'?`<input type="date" id="wd" class="wd" value="${WP.d||today()}" max="${today()}">`:''}<div class="owe"><small>دخلك · ${lab}</small><div>${money(w.com)}</div></div><div class="card"><div class="sum"><span>أوردرات اتسلّمت (${lab})</span><b>${w.n}</b></div><div class="sum"><span>سعر الأوردر</span><b>${money(PF.rate)}</b></div><div class="sum"><span>كاش اتحصّل (${w.cashN})</span><b>${money(w.col)}</b></div><div class="sum"><span>فيزا</span><b>${w.visa}</b></div><div class="sum due"><span>المطلوب تسلّمه للشركة</span><b>${money(w.owed)}</b></div></div>${PF.rate?'':'<p class="mut">حدّد سعر الأوردر من «الملف الشخصي» عشان يتحسب أجرك.</p>'}`;
+  $('vb').innerHTML=`<div class="wp">${Object.keys(L).map(k=>`<button data-wk="${k}" class="${WP.k===k?'on':''}">${L[k]}</button>`).join('')}</div>${WP.k==='day'?`<input type="date" id="wd" class="wd" value="${WP.d||today()}" max="${today()}">`:''}<div class="owe"><small>دخلك · ${lab}</small><div>${money(w.com)}</div></div><div class="card"><div class="sum"><span>أوردرات اتسلّمت (${lab})</span><b>${w.n}</b></div><div class="sum"><span>سعر الأوردر</span><b>${money(PF.rate)}</b></div><div class="sum"><span>كاش اتحصّل (${w.cashN})</span><b>${money(w.col)}</b></div><div class="sum"><span>فيزا</span><b>${w.visa}</b></div><div class="sum due"><span>المطلوب تسلّمه للشركة<small class="mut" style="display:block;font-weight:400">الكاش − دخلك</small></span><b>${money(w.owed)}</b></div></div>${PF.rate?'':'<p class="mut">حدّد سعر الأوردر من «الملف الشخصي» عشان يتحسب أجرك.</p>'}<p class="mut" style="font-size:12px">اليوم بيبدأ الساعة 5 الفجر، عشان الشفت الليلي ماينقطعش عند نص الليل.</p>`;
   $('vb').querySelectorAll('[data-wk]').forEach(b=>b.onclick=()=>{WP.k=b.dataset.wk;if(WP.k==='day'&&!WP.d)WP.d=today();pWallet()});
   const wd=$('wd');if(wd)wd.onchange=()=>{WP.d=wd.value;pWallet()};
 }
@@ -536,7 +536,7 @@ async function spFetch(){
 }
 function spRender(sc){
   const sm=$('sm');if(!sm)return;const near=sm.scrollHeight-sm.scrollTop-sm.clientHeight<80;
-  sm.innerHTML=SP.msgs.length?SP.msgs.map(m=>`<div class="bb ${m.sender==='courier'?'mine':'su'}">${m.sender==='support'?'<b class="sl">الدعم الفني</b>':''}${esc(m.body)}<small>${clk(new Date(m.created_at))}</small></div>`).join(''):`<div class="se"><div class="si2">${mic('support')}</div><h3>إزاي نقدر نساعدك؟</h3><div class="chips">${['مشكلة في الخريطة','مشكلة في الأوردر','مشكلة في المحفظة','اقتراح'].map(t=>`<button data-q="${t}">${t}</button>`).join('')}</div></div>`;
+  sm.innerHTML=SP.msgs.length?SP.msgs.map(m=>`<div class="bb ${m.sender==='courier'?'mine':'su'}">${m.sender==='support'?'<b class="sl">الدعم الفني</b>':''}${esc(m.body)}<small>${clk(new Date(m.created_at))}</small></div>`).join(''):`<div class="se"><div class="si2">${mic('support')}</div><h3>إزاي نقدر نساعدك؟</h3><p class="mut">اكتب مشكلتك وهنرد عليك هنا في أقرب وقت.</p><div class="chips">${['مشكلة في الخريطة','مشكلة في الأوردر','مشكلة في المحفظة','اقتراح'].map(t=>`<button data-q="${t}">${t}</button>`).join('')}</div></div>`;
   $('sx').innerHTML=SP.status==='resolved'?'<div class="sok">✓ تم حل مشكلتك. لو لسه فيه حاجة اكتبها هنا وهنفتح المحادثة تاني.</div>':'';
   sm.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const i=$('si');i.value=b.dataset.q+': ';i.focus()});
   if(sc||near)sm.scrollTop=sm.scrollHeight;
@@ -614,7 +614,7 @@ async function del(s){if(!await ask('حذف الأوردر',`هيتمسح ${s.na
 /* ---------- order form (add / edit) ---------- */
 function parse(t){t=decodeURIComponent(t||'');for(const x of[/[?&](?:q|ll|query|destination|center)=(-?\d+\.\d+)[, ]+(-?\d+\.\d+)/,/@(-?\d+\.\d+),(-?\d+\.\d+)/,/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/,/(-?\d{1,2}\.\d{3,})\s*,\s*(-?\d{1,3}\.\d{3,})/]){const m=t.match(x);if(m)return{lat:+m[1],lng:+m[2]}}return null}
 async function coordsFrom(s){const c=parse(s);if(c)return c;const m=(s||'').match(/https?:\/\/\S+/);if(!m)return null;try{const j=await(await fetch('https://br-polished-fire-b7bwdesx-resolve.compute.c-13.us-east-1.aws.neon.tech/?url='+encodeURIComponent(m[0]),tmo(6000))).json();return j.lat?j:null}catch(e){return null}}
-function parseInvoiceLegacy(raw){
+function parseInvoice(raw){
   const L=raw.split(/\r?\n/).map(s=>s.trim()).filter(Boolean),T=L.join('\n'),o={};let m;
   if((m=T.match(/\b(01[0125]\d{8})\b/)))o.phone=m[1];else if((m=T.match(/(?:phone|tel)[ \t]*[:.]?[ \t]*([+\d][\d \t\-]{8,14}\d)/i)))o.phone=m[1].replace(/[ \t\-]/g,'');
   if((m=T.match(/invoice\s*#?\s*[:.]?\s*(\d{3,})/i)))o.inv=m[1];
@@ -627,62 +627,6 @@ function parseInvoiceLegacy(raw){
   for(;k<L.length;k++){const l=L[k];if(/^phone/i.test(l)||/^egypt$/i.test(l)||/payment details|^image|quantity/i.test(l))break;if(junk.test(l))continue;seg.push(l)}
   if(seg.length>1&&seg[0].toLowerCase()===seg[1].toLowerCase())seg.shift();
   if(seg[0]&&!/\d/.test(seg[0]))o.name=seg[0];if(seg.length>1)o.addr=seg.slice(o.name?1:0).join(', ');return o}
-/* invoice parser */
-const ANRM=s=>String(s||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[إأآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه');
-const DG=s=>String(s||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
-const LB={
-  name:'اسم العميل|اسم المستلم|العميل|المستلم|الاسم|customer name|customer|client|bill to|ship to|deliver to|recipient|name',
-  phone:'رقم الموبايل|رقم الهاتف|رقم التليفون|الموبايل|الهاتف|التليفون|تليفون|موبايل|هاتف|واتس اب|واتساب|phone number|mobile|phone|tel|whatsapp|contact',
-  addr:'عنوان التوصيل|عنوان الشحن|العنوان|عنوان|delivery address|shipping address|address|shipping details',
-  inv:'رقم الفاتوره|فاتوره رقم|رقم الايصال|رقم الاوردر|رقم الطلب|طلب رقم|فاتوره|invoice number|invoice no|invoice|inv|order number|order no|order|receipt',
-  bld:'عماره رقم|رقم العماره|عماره|مبني|بنايه|building|bldg|bld',
-  apt:'شقه رقم|رقم الشقه|شقه|وحده|apartment|apt|flat|unit',
-  tot:'المبلغ المطلوب|المطلوب دفعه|المطلوب سداده|الاجمالي النهائي|اجمالي الفاتوره|الاجمالي|اجمالي|المجموع|المستحق|الدفع عند الاستلام|grand total|total due|amount due|balance due|cod|cash on delivery|total',
-  itm:'تفاصيل الطلب|الاصناف|الصنف|المنتجات|المنتج|البيان|الوصف|order details|items|item|product|description'
-};
-const lblRe=k=>new RegExp('(?:^|[^\\p{L}\\p{N}])(?:'+LB[k]+')(?![\\p{L}\\p{N}])\\s*[:：#.\\-–]?\\s*(.*)$','iud');
-const ALLRE=new RegExp('(?:^|\\s)(?:'+Object.values(LB).join('|')+')\\s*[:：]','iu');
-function grab(LO,LN,k,withIdx){
-  const re=lblRe(k);
-  for(let i=0;i<LN.length;i++){
-    const m=LN[i].match(re);if(!m)continue;const st=m.indices[1][0];let vn=LN[i].slice(st),vo=LO[i].slice(st);
-    const c=vn.search(ALLRE);if(c>0)vo=vo.slice(0,c);vo=vo.trim().replace(/^[|:\-–\s]+|[|\s]+$/g,'');
-    let li=i;if(!vo&&LO[i+1]&&!ALLRE.test(LN[i+1])){vo=LO[i+1].trim();li=i+1}
-    if(vo)return withIdx?{v:DG(vo),i:li}:DG(vo);
-  }
-}
-function findPhone(T,LO,LN){
-  const cand=s=>{const out=[];for(const m of s.matchAll(/(?<!\d)(?:\+?\s?20|0020)?[\s\-]?0?1[0125](?:[\s\-]?\d){8}(?!\d)/g)){let d=m[0].replace(/\D/g,'');if(d.startsWith('0020'))d=d.slice(2);if(d.startsWith('20')&&d.length===12)d='0'+d.slice(2);if(d.length===10&&d[0]==='1')d='0'+d;if(/^01[0125]\d{8}$/.test(d))out.push(d)}return out};
-  const lb=grab(LO,LN,'phone');if(lb){const c=cand(ANRM(lb));if(c[0])return c[0]}
-  return cand(T)[0];
-}
-function findAmount(LN,T){
-  const num=s=>(String(s).match(/\d{1,3}(?:[,٬]\d{3})+(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?/g)||[]).map(x=>parseFloat(x.replace(/[,٬]/g,''))).filter(x=>x>0);
-  const re=lblRe('tot');let best=null;
-  for(let i=0;i<LN.length;i++){
-    const m=LN[i].match(re);if(!m)continue;
-    if(/subtotal|المجموع الفرعي|shipping|الشحن|tax|ضريبه|discount|خصم/i.test(LN[i])&&!/grand|اجمالي|total due|amount due/i.test(LN[i]))continue;
-    const n=num(m[1]||'').concat(num(LN[i+1]||''));if(n.length){const v=n[n.length-1];best=best==null?v:Math.max(best,v)}
-  }
-  if(best!=null)return best;
-  const c=[...T.matchAll(/(\d[\d,]*(?:\.\d{1,2})?)\s*(?:EGP|L\.?E|ج\.?\s?م|جنيه)/gi)].map(x=>parseFloat(x[1].replace(/,/g,''))).filter(x=>x>0);
-  return c.length?Math.max(...c):undefined;
-}
-function parseInvoice(raw){
-  const LO=String(raw||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean),LN=LO.map(ANRM),T=LN.join('\n'),o={};
-  const lg=/shipping details|marmelade/i.test(raw||'')?parseInvoiceLegacy(raw||''):{};
-  const ph=findPhone(T,LO,LN);if(ph)o.phone=ph;
-  const am=findAmount(LN,T);if(am!=null)o.amt=am;
-  const iv=grab(LO,LN,'inv');if(iv){const m=ANRM(iv).match(/[A-Za-z]{0,4}-?\d{3,}[\w-]*/);if(m)o.inv=m[0]}
-  const nm=grab(LO,LN,'name');if(nm&&!/^\d+$/.test(nm)&&nm.length<70)o.name=nm.replace(/\d{6,}/g,'').trim();
-  const ad=grab(LO,LN,'addr',true);if(ad){let a=ad.v;const nx=LO[ad.i+1];if(nx&&!ALLRE.test(LN[ad.i+1])&&!/^[\d\s+\-]+$/.test(nx)&&nx.length<80&&!lblRe('tot').test(LN[ad.i+1])&&!lblRe('bld').test(LN[ad.i+1])&&!lblRe('apt').test(LN[ad.i+1]))a+='، '+DG(nx);o.addr=a}
-  else{const k=LN.findIndex(l=>/^(?:ship to|deliver to|bill to)\s*:?$/i.test(l));if(k>=0){const p=[];for(let j=k+1;j<LO.length&&p.length<2;j++){if(ALLRE.test(LN[j])||lblRe('tot').test(LN[j])||LO[j]===o.name||/^[\d\s+\-]+$/.test(LO[j]))continue;p.push(DG(LO[j]))}if(p.length)o.addr=p.join('، ')}}
-  let m;if((m=T.match(new RegExp('(?:'+LB.bld+')(?![\\p{L}\\p{N}])\\s*[:#.\\-]?\\s*([\\p{L}\\p{N}]+)','iu'))))o.bld=m[1];
-  if((m=T.match(new RegExp('(?:'+LB.apt+')(?![\\p{L}\\p{N}])\\s*[:#.\\-]?\\s*([\\p{L}\\p{N}]+)','iu'))))o.apt=m[1];
-  const it=grab(LO,LN,'itm',true);if(it){let a=it.v;for(let j=1;j<=2;j++){const l=LO[it.i+j];if(l&&!ALLRE.test(LN[it.i+j])&&!lblRe('tot').test(LN[it.i+j])&&l.length<90)a+=' ، '+DG(l);else break}o.ord=a}
-  const out={...lg};Object.keys(o).forEach(k=>{if(o[k]!==undefined&&o[k]!=='')out[k]=o[k]});return out;
-}
-/* end invoice parser */
 const loadTess=()=>new Promise((res,rej)=>{if(window.Tesseract)return res();const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s)});
 async function prep(f){
   const im=await createImageBitmap(f),k=Math.min(2.2,2400/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
@@ -694,9 +638,9 @@ async function prep(f){
   x.putImageData(d,0,0);return c;
 }
 async function ocrRun(c,o){
-  const lg=m=>{if(m.status==='recognizing text')o.textContent='جاري قراءة الفاتورة… '+Math.round(m.progress*100)+'%'};
-  try{const w=await Tesseract.createWorker('ara+eng',1,{langPath:'https://tessdata.projectnaptha.com/4.0.0_best',logger:lg});await w.setParameters({preserve_interword_spaces:'1',user_defined_dpi:'300'});const r=await w.recognize(c);await w.terminate();return r}
-  catch(e){return await Tesseract.recognize(c,'ara+eng',{logger:lg})}
+  const lg=m=>{if(m.status==='recognizing text')o.textContent='بقرا الفاتورة... '+Math.round(m.progress*100)+'%'};
+  try{const w=await Tesseract.createWorker('eng',1,{langPath:'https://tessdata.projectnaptha.com/4.0.0_best',logger:lg});await w.setParameters({preserve_interword_spaces:'1',user_defined_dpi:'300'});const r=await w.recognize(c);await w.terminate();return r}
+  catch(e){return await Tesseract.recognize(c,'eng',{logger:lg})}
 }
 /* ---------- document scanner: 4 draggable corners -> flat "scanned sheet" ---------- */
 function homog(q){
@@ -724,7 +668,7 @@ function autoQuad(src){
       if(py<h-1&&!lab[p+w]&&g[p+w]>th){lab[p+w]=1;qu[qt++]=p+w}}
     if(n>bn){bn=n;bp=[tl,tr,br,bl]}}
   if(bp&&bn>tot*.2&&bn<tot*.97)return bp.map(p=>[p[1]/k,p[2]/k]);
-  return null;
+  const m=.06;return[[W*m,H*m],[W*(1-m),H*m],[W*(1-m),H*(1-m)],[W*m,H*(1-m)]];
 }
 function warpScan(src,q){
   const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);let w=Math.max(dist(q[0],q[1]),dist(q[3],q[2])),h=Math.max(dist(q[0],q[3]),dist(q[1],q[2]));
@@ -740,19 +684,31 @@ function warpScan(src,q){
   const B=bx.getImageData(0,0,w,h).data;for(let p=0;p<w*h*4;p+=4){const v=Math.min(255,O[p]/Math.max(60,B[p])*238);O[p]=O[p+1]=O[p+2]=v}
   cx.putImageData(od,0,0);return cc;
 }
-async function scanDoc(f){
-  try{
-    const im=await createImageBitmap(f),k=Math.min(1,2400/Math.max(im.width,im.height)),W=Math.round(im.width*k),H=Math.round(im.height*k),src=document.createElement('canvas');src.width=W;src.height=H;
-    src.getContext('2d',{willReadFrequently:true}).drawImage(im,0,0,W,H);
-    const q=autoQuad(src);
-    if(q){const ar=Math.abs(q.reduce((s,p,i)=>{const n=q[(i+1)%4];return s+(p[0]*n[1]-n[0]*p[1])},0))/2;if(ar>W*H*.3&&ar<W*H*.98)return warpScan(src,q)}
-  }catch(e){}
-  try{return await prep(f)}catch(e){return null}
+function scanDoc(f){
+  return new Promise(async res=>{
+    try{
+      const im=await createImageBitmap(f),k=Math.min(1,2400/Math.max(im.width,im.height)),W=Math.round(im.width*k),H=Math.round(im.height*k),src=document.createElement('canvas');src.width=W;src.height=H;
+      src.getContext('2d',{willReadFrequently:true}).drawImage(im,0,0,W,H);let q=autoQuad(src);
+      const dg=document.createElement('dialog');dg.id='scn';dg.innerHTML='<div class="scn"><p>حرّك الأركان الأربعة على حواف الورقة</p><canvas id="scc"></canvas><div class="row"><button id="sc-x">إلغاء</button><button id="sc-a">الصورة كاملة</button><button class="p" id="sc-o">قص ومسح</button></div></div>';
+      document.body.appendChild(dg);dg.showModal();
+      const cv=dg.querySelector('#scc'),cx=cv.getContext('2d'),sc=Math.min((innerWidth-24)/W,(innerHeight-200)/H);cv.width=Math.round(W*sc);cv.height=Math.round(H*sc);
+      const draw=()=>{cx.drawImage(src,0,0,cv.width,cv.height);cx.lineWidth=3;cx.strokeStyle='#f26a1b';cx.fillStyle='rgba(242,106,27,.18)';cx.beginPath();q.forEach((p,i)=>cx[i?'lineTo':'moveTo'](p[0]*sc,p[1]*sc));cx.closePath();cx.fill();cx.stroke();q.forEach(p=>{cx.beginPath();cx.arc(p[0]*sc,p[1]*sc,15,0,7);cx.fillStyle='#fff';cx.fill();cx.stroke()})};
+      let di=-1;const pt=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*cv.width/r.width/sc,(e.clientY-r.top)*cv.height/r.height/sc]};
+      cv.onpointerdown=e=>{const p=pt(e);let b=1e9;q.forEach((c,i)=>{const d=Math.hypot(c[0]-p[0],c[1]-p[1]);if(d<b){b=d;di=i}});if(b*sc>70)di=-1;else cv.setPointerCapture(e.pointerId)};
+      cv.onpointermove=e=>{if(di<0)return;const p=pt(e);q[di]=[Math.max(0,Math.min(W,p[0])),Math.max(0,Math.min(H,p[1]))];draw()};
+      cv.onpointerup=cv.onpointercancel=()=>{di=-1};
+      const done=v=>{try{dg.close()}catch(e){}dg.remove();res(v)};
+      dg.querySelector('#sc-x').onclick=()=>done(null);
+      dg.querySelector('#sc-a').onclick=async()=>done(await prep(f));
+      dg.querySelector('#sc-o').onclick=()=>{let r=null;try{r=warpScan(src,q)}catch(e){}done(r)};
+      dg.addEventListener('cancel',e=>{e.preventDefault();done(null)});draw();
+    }catch(e){try{res(await prep(f))}catch(_){res(null)}}
+  });
 }
-async function ocrFill(e){const f=e.target.files[0];if(!f)return;const o=$('f-ocr');const sc=await scanDoc(f);if(!sc){e.target.value='';return}o.textContent='جاري قراءة الفاتورة…';
+async function ocrFill(e){const f=e.target.files[0];if(!f)return;const o=$('f-ocr');const sc=await scanDoc(f);if(!sc){e.target.value='';return}o.textContent='بقرا الفاتورة... ممكن تاخد نص دقيقة';
   try{await loadTess();const c=sc,{data}=await ocrRun(c,o),d=parseInvoice(data.text),set=(i,v)=>{if(v!=null&&v!=='')$('f-'+i).value=v};
-    set('name',d.name);set('phone',d.phone);set('addr',d.addr);set('bld',d.bld);set('apt',d.apt);set('ord',d.ord);set('inv',d.inv);set('amt',d.amt);o.textContent=''}
-  catch(err){o.textContent='تعذّرت قراءة الفاتورة'}e.target.value=''}
+    set('name',d.name);set('phone',d.phone);set('addr',d.addr);set('bld',d.bld);set('apt',d.apt);set('ord',d.ord);set('inv',d.inv);set('amt',d.amt);o.textContent='خلصت قراءة الفاتورة. راجع البيانات قبل الحفظ، خصوصًا التليفون والمبلغ.';o.insertAdjacentHTML('beforeend','<details style="margin-top:6px"><summary>النص اللي اتقرا</summary><pre style="white-space:pre-wrap;font-size:12px;direction:ltr;text-align:left">'+esc(data.text)+'</pre></details>')}
+  catch(err){o.textContent='ماقدرتش أقرا الفاتورة. اكتب البيانات بإيدك أو صوّرها تاني.'}e.target.value=''}
 async function orderForm(s){
   let cash=s?s.cash:true;const v=s||{};
   const get=()=>{const g=i=>$('f-'+i).value.trim();return{name:g('name'),phone:g('phone'),addr:g('addr'),bld:g('bld'),apt:g('apt'),ord:g('ord'),inv:g('inv'),amt:g('amt'),date:g('date'),link:g('link')}};
@@ -923,7 +879,7 @@ async function navRoute(mode){
   NV.busy=0;NV.msg='';
   if(!NV.on||NV.sid!==n.id)return;
   if(r){NV.fb=0;const C=r.geometry.coordinates;navSet(C,r.legs.flatMap(l=>l.steps),r.distance,r.duration);if(mode===1)NV.hd=NV.tg=brg(C[0],C[1]||C[0]);if(mode===0)say('تم احتساب مسار جديد')}
-  else if(!NV.fb||mode===1){const d=hav(me,n)*1000;NV.fb=1;navSet([[me.lng,me.lat],[n.lng,n.lat]],[{maneuver:{type:'depart',modifier:'straight'},distance:d,duration:d/6,name:''},{maneuver:{type:'arrive',modifier:'straight'},distance:0,duration:0,name:''}],d,d/6);toast('مفيش نت، الملاحة تقريبية')}
+  else if(!NV.fb||mode===1){const d=hav(me,n)*1000;NV.fb=1;navSet([[me.lng,me.lat],[n.lng,n.lat]],[{maneuver:{type:'depart',modifier:'straight'},distance:d,duration:d/6,name:''},{maneuver:{type:'arrive',modifier:'straight'},distance:0,duration:0,name:''}],d,d/6);toast('مفيش اتصال بالراوتر. ملاحة تقريبية لحد ما النت يرجع.')}
   setLine('leg',NV.fb?null:NV.C);NV.li=-1;navSt();navTick();if(!NV.fb)navAlts();
 }
 function snap(p){
