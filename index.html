@@ -173,6 +173,7 @@ body.night .bb.su,body.night .sb textarea,body.night .chips button{background:#2
 .wp{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.wp button{min-height:40px;padding:0 14px;border-radius:99px;background:#fff;border:1px solid var(--line);font-size:14px;color:var(--ink)}.wp button.on{background:var(--pri);color:#fff;border-color:var(--pri)}.wd{width:100%;min-height:46px;border-radius:14px;border:1px solid var(--line);padding:0 14px;margin-bottom:12px;font:inherit;background:#fff;color:var(--ink)}
 body.night .wp button,body.night .wd{background:#2b2f36;color:#f5f1e6}body.night .wp button.on{background:var(--pri);color:#fff}
 .sum.due{border-top:2px solid var(--line);margin-top:8px;padding-top:12px;font-weight:700}.sum.due b{color:var(--pri)}
+dialog#scn{border:0;padding:0;width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;background:#0b1220;color:#fff}.scn{display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px}.scn p{margin:4px 0;font-size:15px}#scc{touch-action:none;border-radius:8px;max-width:100%}.scn .row{width:100%;max-width:720px;display:flex;gap:8px}.scn .row button{flex:1;min-height:48px}
 </style>
 </head>
 <body>
@@ -481,7 +482,7 @@ function menu(){
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2>${esc(nm)}</h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 31 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 32 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -636,8 +637,71 @@ async function ocrRun(c,o){
   try{const w=await Tesseract.createWorker('eng',1,{langPath:'https://tessdata.projectnaptha.com/4.0.0_best',logger:lg});await w.setParameters({preserve_interword_spaces:'1',user_defined_dpi:'300'});const r=await w.recognize(c);await w.terminate();return r}
   catch(e){return await Tesseract.recognize(c,'eng',{logger:lg})}
 }
-async function ocrFill(e){const f=e.target.files[0];if(!f)return;const o=$('f-ocr');o.textContent='بقرا الفاتورة... ممكن تاخد نص دقيقة';
-  try{await loadTess();const c=await prep(f),{data}=await ocrRun(c,o),d=parseInvoice(data.text),set=(i,v)=>{if(v!=null&&v!=='')$('f-'+i).value=v};
+/* ---------- document scanner: 4 draggable corners -> flat "scanned sheet" ---------- */
+function homog(q){
+  const[x0,y0]=q[0],[x1,y1]=q[1],[x2,y2]=q[2],[x3,y3]=q[3],dx1=x1-x2,dx2=x3-x2,dx3=x0-x1+x2-x3,dy1=y1-y2,dy2=y3-y2,dy3=y0-y1+y2-y3;
+  let a,b,d,e,g=0,hh=0;
+  if(Math.abs(dx3)<1e-9&&Math.abs(dy3)<1e-9){a=x1-x0;b=x3-x0;d=y1-y0;e=y3-y0}
+  else{const det=dx1*dy2-dx2*dy1;g=(dx3*dy2-dx2*dy3)/det;hh=(dx1*dy3-dx3*dy1)/det;a=x1-x0+g*x1;b=x3-x0+hh*x3;d=y1-y0+g*y1;e=y3-y0+hh*y3}
+  return(s,t)=>{const w=g*s+hh*t+1;return[(a*s+b*t+x0)/w,(d*s+e*t+y0)/w]};
+}
+function autoQuad(src){
+  const W=src.width,H=src.height,k=Math.min(1,320/Math.max(W,H)),w=Math.max(8,Math.round(W*k)),h=Math.max(8,Math.round(H*k)),t=document.createElement('canvas');t.width=w;t.height=h;
+  const x=t.getContext('2d',{willReadFrequently:true});x.drawImage(src,0,0,w,h);
+  const d=x.getImageData(0,0,w,h).data,g=new Uint8Array(w*h),hist=new Uint32Array(256),tot=w*h;
+  for(let i=0;i<tot;i++){const v=(d[4*i]*.299+d[4*i+1]*.587+d[4*i+2]*.114)|0;g[i]=v;hist[v]++}
+  let sum=0;for(let i=0;i<256;i++)sum+=i*hist[i];let sB=0,wB=0,best=0,th=128;
+  for(let i=0;i<256;i++){wB+=hist[i];if(!wB)continue;const wF=tot-wB;if(!wF)break;sB+=i*hist[i];const mB=sB/wB,mF=(sum-sB)/wF,v=wB*wF*(mB-mF)*(mB-mF);if(v>best){best=v;th=i}}
+  const lab=new Uint8Array(tot),qu=new Int32Array(tot);let bp=null,bn=0;
+  for(let s=0;s<tot;s++){
+    if(lab[s]||g[s]<=th)continue;let n=0,qh=0,qt=0;qu[qt++]=s;lab[s]=1;let tl=[1e9,0,0],br=[-1e9,0,0],tr=[-1e9,0,0],bl=[1e9,0,0];
+    while(qh<qt){const p=qu[qh++],px=p%w,py=(p/w)|0,a=px+py,b=px-py;n++;
+      if(a<tl[0])tl=[a,px,py];if(a>br[0])br=[a,px,py];if(b>tr[0])tr=[b,px,py];if(b<bl[0])bl=[b,px,py];
+      if(px>0&&!lab[p-1]&&g[p-1]>th){lab[p-1]=1;qu[qt++]=p-1}
+      if(px<w-1&&!lab[p+1]&&g[p+1]>th){lab[p+1]=1;qu[qt++]=p+1}
+      if(py>0&&!lab[p-w]&&g[p-w]>th){lab[p-w]=1;qu[qt++]=p-w}
+      if(py<h-1&&!lab[p+w]&&g[p+w]>th){lab[p+w]=1;qu[qt++]=p+w}}
+    if(n>bn){bn=n;bp=[tl,tr,br,bl]}}
+  if(bp&&bn>tot*.2&&bn<tot*.97)return bp.map(p=>[p[1]/k,p[2]/k]);
+  const m=.06;return[[W*m,H*m],[W*(1-m),H*m],[W*(1-m),H*(1-m)],[W*m,H*(1-m)]];
+}
+function warpScan(src,q){
+  const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);let w=Math.max(dist(q[0],q[1]),dist(q[3],q[2])),h=Math.max(dist(q[0],q[3]),dist(q[1],q[2]));
+  const L=Math.max(w,h),k=L<1700?Math.min(3,1700/L):L>2400?2400/L:1;w=Math.max(16,Math.round(w*k));h=Math.max(16,Math.round(h*k));
+  const SW=src.width,SH=src.height,S=src.getContext('2d').getImageData(0,0,SW,SH).data,f=homog(q),cc=document.createElement('canvas');cc.width=w;cc.height=h;
+  const cx=cc.getContext('2d',{willReadFrequently:true}),od=cx.createImageData(w,h),O=od.data,gr=(o)=>S[o]*.299+S[o+1]*.587+S[o+2]*.114;
+  for(let j=0;j<h;j++){const t=j/(h-1);for(let i=0;i<w;i++){const[X,Y]=f(i/(w-1),t),xi=Math.floor(X),yi=Math.floor(Y);let v=255;
+    if(xi>=0&&yi>=0&&xi<SW-1&&yi<SH-1){const fx=X-xi,fy=Y-yi,o=(yi*SW+xi)*4,o2=o+SW*4;v=(gr(o)*(1-fx)+gr(o+4)*fx)*(1-fy)+(gr(o2)*(1-fx)+gr(o2+4)*fx)*fy}
+    const p=(j*w+i)*4;O[p]=O[p+1]=O[p+2]=v;O[p+3]=255}}
+  cx.putImageData(od,0,0);
+  const sm=document.createElement('canvas');sm.width=Math.max(8,Math.round(w/24));sm.height=Math.max(8,Math.round(h/24));sm.getContext('2d').drawImage(cc,0,0,sm.width,sm.height);
+  const bg=document.createElement('canvas');bg.width=w;bg.height=h;const bx=bg.getContext('2d',{willReadFrequently:true});bx.imageSmoothingQuality='high';bx.drawImage(sm,0,0,w,h);
+  const B=bx.getImageData(0,0,w,h).data;for(let p=0;p<w*h*4;p+=4){const v=Math.min(255,O[p]/Math.max(60,B[p])*238);O[p]=O[p+1]=O[p+2]=v}
+  cx.putImageData(od,0,0);return cc;
+}
+function scanDoc(f){
+  return new Promise(async res=>{
+    try{
+      const im=await createImageBitmap(f),k=Math.min(1,2400/Math.max(im.width,im.height)),W=Math.round(im.width*k),H=Math.round(im.height*k),src=document.createElement('canvas');src.width=W;src.height=H;
+      src.getContext('2d',{willReadFrequently:true}).drawImage(im,0,0,W,H);let q=autoQuad(src);
+      const dg=document.createElement('dialog');dg.id='scn';dg.innerHTML='<div class="scn"><p>حرّك الأركان الأربعة على حواف الورقة</p><canvas id="scc"></canvas><div class="row"><button id="sc-x">إلغاء</button><button id="sc-a">الصورة كاملة</button><button class="p" id="sc-o">قص ومسح</button></div></div>';
+      document.body.appendChild(dg);dg.showModal();
+      const cv=dg.querySelector('#scc'),cx=cv.getContext('2d'),sc=Math.min((innerWidth-24)/W,(innerHeight-200)/H);cv.width=Math.round(W*sc);cv.height=Math.round(H*sc);
+      const draw=()=>{cx.drawImage(src,0,0,cv.width,cv.height);cx.lineWidth=3;cx.strokeStyle='#f26a1b';cx.fillStyle='rgba(242,106,27,.18)';cx.beginPath();q.forEach((p,i)=>cx[i?'lineTo':'moveTo'](p[0]*sc,p[1]*sc));cx.closePath();cx.fill();cx.stroke();q.forEach(p=>{cx.beginPath();cx.arc(p[0]*sc,p[1]*sc,15,0,7);cx.fillStyle='#fff';cx.fill();cx.stroke()})};
+      let di=-1;const pt=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*cv.width/r.width/sc,(e.clientY-r.top)*cv.height/r.height/sc]};
+      cv.onpointerdown=e=>{const p=pt(e);let b=1e9;q.forEach((c,i)=>{const d=Math.hypot(c[0]-p[0],c[1]-p[1]);if(d<b){b=d;di=i}});if(b*sc>70)di=-1;else cv.setPointerCapture(e.pointerId)};
+      cv.onpointermove=e=>{if(di<0)return;const p=pt(e);q[di]=[Math.max(0,Math.min(W,p[0])),Math.max(0,Math.min(H,p[1]))];draw()};
+      cv.onpointerup=cv.onpointercancel=()=>{di=-1};
+      const done=v=>{try{dg.close()}catch(e){}dg.remove();res(v)};
+      dg.querySelector('#sc-x').onclick=()=>done(null);
+      dg.querySelector('#sc-a').onclick=async()=>done(await prep(f));
+      dg.querySelector('#sc-o').onclick=()=>{let r=null;try{r=warpScan(src,q)}catch(e){}done(r)};
+      dg.addEventListener('cancel',e=>{e.preventDefault();done(null)});draw();
+    }catch(e){try{res(await prep(f))}catch(_){res(null)}}
+  });
+}
+async function ocrFill(e){const f=e.target.files[0];if(!f)return;const o=$('f-ocr');const sc=await scanDoc(f);if(!sc){e.target.value='';return}o.textContent='بقرا الفاتورة... ممكن تاخد نص دقيقة';
+  try{await loadTess();const c=sc,{data}=await ocrRun(c,o),d=parseInvoice(data.text),set=(i,v)=>{if(v!=null&&v!=='')$('f-'+i).value=v};
     set('name',d.name);set('phone',d.phone);set('addr',d.addr);set('bld',d.bld);set('apt',d.apt);set('ord',d.ord);set('inv',d.inv);set('amt',d.amt);o.textContent='خلصت قراءة الفاتورة. راجع البيانات قبل الحفظ، خصوصًا التليفون والمبلغ.';o.insertAdjacentHTML('beforeend','<details style="margin-top:6px"><summary>النص اللي اتقرا</summary><pre style="white-space:pre-wrap;font-size:12px;direction:ltr;text-align:left">'+esc(data.text)+'</pre></details>')}
   catch(err){o.textContent='ماقدرتش أقرا الفاتورة. اكتب البيانات بإيدك أو صوّرها تاني.'}e.target.value=''}
 async function orderForm(s){
