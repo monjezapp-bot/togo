@@ -483,7 +483,7 @@ function menu(){
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2>${esc(nm)}</h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 35 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 36 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -657,6 +657,15 @@ function findPhone(T,LO,LN){
   return cand(T)[0];
 }
 function findAmount(LN,T){
+  const nm=s=>(String(s).match(/\d{1,3}(?:[,٬]\d{3})+(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?/g)||[]).map(x=>parseFloat(x.replace(/[,٬]/g,''))).filter(x=>x>0);
+  const strong=/grand total|total due|amount due|balance due|الاجمالي النهائي|اجمالي الفاتوره|المطلوب دفعه|المبلغ المطلوب|المستحق|الدفع عند الاستلام|cash on delivery|\bcod\b/i;
+  let b=null;for(let i=0;i<LN.length;i++){if(!strong.test(LN[i]))continue;const n=nm(LN[i].replace(strong,' ')).concat(nm(LN[i+1]||''));if(n.length){const v=n[n.length-1];b=b==null?v:Math.max(b,v)}}
+  if(b!=null)return b;
+  const cur=[...T.matchAll(/(\d{1,3}(?:[,٬]\d{3})+(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?)\s*(?:EGP|L\.?E|ج\.?\s?م|جنيه)/gi)].map(x=>parseFloat(x[1].replace(/[,٬]/g,''))).filter(x=>x>0);
+  if(cur.length)return Math.max(...cur);
+  return findAmountOld(LN,T);
+}
+function findAmountOld(LN,T){
   const num=s=>(String(s).match(/\d{1,3}(?:[,٬]\d{3})+(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?/g)||[]).map(x=>parseFloat(x.replace(/[,٬]/g,''))).filter(x=>x>0);
   const re=lblRe('tot');let best=null;
   for(let i=0;i<LN.length;i++){
@@ -667,6 +676,19 @@ function findAmount(LN,T){
   if(best!=null)return best;
   const c=[...T.matchAll(/(\d[\d,]*(?:\.\d{1,2})?)\s*(?:EGP|L\.?E|ج\.?\s?م|جنيه)/gi)].map(x=>parseFloat(x[1].replace(/,/g,''))).filter(x=>x>0);
   return c.length?Math.max(...c):undefined;
+}
+const jclean=s=>String(s||'').replace(/^[^\p{L}\p{N}]+/u,'').replace(/^[\u0600-\u06FF]{1,2}\s*[,،]\s*/,'').replace(/[|_~]+/g,' ').replace(/\s+[a-z]{1,2}$/,'').replace(/\s{2,}/g,' ').trim();
+function shipBlock(LO,LN){
+  const k=LN.findIndex(l=>/shipping details|بيانات الشحن|تفاصيل الشحن|عنوان الشحن/i.test(l));if(k<0)return null;
+  const rows=[];for(let j=k+1;j<LO.length&&rows.length<9;j++){const l=jclean(LO[j]);if(!l||l.length<2||!/[\p{L}\p{N}]{2}/u.test(l))continue;if(/^(egypt|مصر)$/i.test(ANRM(l)))break;rows.push(l)}
+  if(!rows.length)return null;const name=rows[0];return{name,addr:rows.slice(1).filter(l=>l.toLowerCase()!==name.toLowerCase()).join('، ')};
+}
+function findItems(LO,LN){
+  const out=[];for(let i=0;i<LO.length;i++){const m=LO[i].match(/^\s*(\d{1,3})\s*[xX×]\s*(.*)$/);if(!m)continue;
+    let t=m[2].replace(/SKU.*$/i,'').replace(/[\d,]+\.\d{2}\s*(?:EGP|LE|L\.E)?/gi,'').replace(/\bEGP\b/gi,'').trim();
+    if(t.length<3){const p=LO[i-1]||'';if(p&&!/quantity|item|price|image|الكميه|الصنف|السعر/i.test(ANRM(p))&&!/EGP/i.test(p))t=p.trim()}
+    if(t.length>=3)out.push(m[1]+'x '+jclean(t))}
+  return out.length?out.join('، '):null;
 }
 function parseInvoice(raw){
   const LO=String(raw||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean),LN=LO.map(ANRM),T=LN.join('\n'),o={};
@@ -680,7 +702,11 @@ function parseInvoice(raw){
   let m;if((m=T.match(new RegExp('(?:'+LB.bld+')(?![\\p{L}\\p{N}])\\s*[:#.\\-]?\\s*([\\p{L}\\p{N}]+)','iu'))))o.bld=m[1];
   if((m=T.match(new RegExp('(?:'+LB.apt+')(?![\\p{L}\\p{N}])\\s*[:#.\\-]?\\s*([\\p{L}\\p{N}]+)','iu'))))o.apt=m[1];
   const it=grab(LO,LN,'itm',true);if(it){let a=it.v;for(let j=1;j<=2;j++){const l=LO[it.i+j];if(l&&!ALLRE.test(LN[it.i+j])&&!lblRe('tot').test(LN[it.i+j])&&l.length<90)a+=' ، '+DG(l);else break}o.ord=a}
-  const out={...lg};Object.keys(o).forEach(k=>{if(o[k]!==undefined&&o[k]!=='')out[k]=o[k]});return out;
+  const out={...lg};Object.keys(o).forEach(k=>{if(o[k]!==undefined&&o[k]!=='')out[k]=o[k]});
+  const sb=shipBlock(LO,LN);if(sb){if(sb.name&&sb.name.length<70)out.name=sb.name;if(sb.addr)out.addr=sb.addr}
+  const items=findItems(LO,LN);if(items)out.ord=items;
+  ['bld','apt'].forEach(k=>{if(out[k]!=null){const v=DG(out[k]);if(/^\d{1,4}[A-Za-z]?$/.test(v))out[k]=v;else delete out[k]}});
+  return out;
 }
 /* end invoice parser */
 const loadTess=()=>new Promise((res,rej)=>{if(window.Tesseract)return res();const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s)});
@@ -695,11 +721,14 @@ async function prep(f){
 }
 function rot(c,d){const o=document.createElement('canvas'),q=d%180!==0;o.width=q?c.height:c.width;o.height=q?c.width:c.height;const x=o.getContext('2d');x.translate(o.width/2,o.height/2);x.rotate(d*Math.PI/180);x.drawImage(c,-c.width/2,-c.height/2);return o}
 const portrait=c=>c.width>c.height*1.05?rot(c,90):c;
+let OCRW=null,OCRX=0,OCRB=0;
+const ocrStop=()=>{OCRX=1;try{OCRW&&OCRW.terminate()}catch(e){}OCRW=null};
 async function ocrRun(c,o){
-  const lg=m=>{if(m.status==='recognizing text')o.textContent='جاري قراءة الفاتورة… '+Math.round(m.progress*100)+'%'};
-  const go=async w=>{let r=await w.recognize(c);const a=r.data.confidence||0;if(a<55){const r2=await w.recognize(rot(c,180));if((r2.data.confidence||0)>a)r=r2}return r};
-  try{const w=await Tesseract.createWorker('ara+eng',1,{langPath:'https://tessdata.projectnaptha.com/4.0.0_best',logger:lg});await w.setParameters({preserve_interword_spaces:'1',user_defined_dpi:'300'});const r=await go(w);await w.terminate();return r}
-  catch(e){return await Tesseract.recognize(c,'ara+eng',{logger:lg})}
+  OCRX=0;let live=true;
+  const lg=m=>{if(!live||OCRX)return;const p=Math.round((m.progress||0)*100);if(m.status==='recognizing text')o.textContent='جاري قراءة الفاتورة… '+p+'%';else if(/load|init/i.test(m.status||''))o.textContent='جاري تجهيز القراءة… '+p+'%'};
+  const go=async w=>{let r=await w.recognize(c);const a=r.data.confidence||0,ok=/invoice|phone|total|shipping|EGP|فاتور|هاتف|موبايل/i.test(r.data.text||'');if(a<55&&!ok&&!OCRX){const r2=await w.recognize(rot(c,180));if((r2.data.confidence||0)>a)r=r2}return r};
+  try{const w=await Tesseract.createWorker('ara+eng',1,{langPath:'https://tessdata.projectnaptha.com/4.0.0_best',logger:lg});OCRW=w;await w.setParameters({preserve_interword_spaces:'1',user_defined_dpi:'300',tessedit_pageseg_mode:'4'});const r=await go(w);live=false;OCRW=null;await w.terminate();return r}
+  catch(e){live=false;if(OCRX)throw e;return await Tesseract.recognize(c,'ara+eng')}
 }
 /* ---------- document scanner: 4 draggable corners -> flat "scanned sheet" ---------- */
 function homog(q){
@@ -752,17 +781,24 @@ async function scanDoc(f){
   }catch(e){}
   try{return portrait(await prep(f))}catch(e){return null}
 }
-async function ocrFill(e){const f=e.target.files[0];if(!f)return;const o=$('f-ocr');const sc=await scanDoc(f);if(!sc){e.target.value='';return}o.textContent='جاري قراءة الفاتورة…';
-  try{await loadTess();const c=sc,{data}=await ocrRun(c,o),d=parseInvoice(data.text),set=(i,v)=>{if(v!=null&&v!=='')$('f-'+i).value=v};
-    set('name',d.name);set('phone',d.phone);set('addr',d.addr);set('bld',d.bld);set('apt',d.apt);set('ord',d.ord);set('inv',d.inv);set('amt',d.amt);o.textContent=''}
-  catch(err){o.textContent='تعذّرت قراءة الفاتورة'}e.target.value=''}
+async function ocrFill(e){
+  const f=e.target.files[0];if(!f||OCRB)return;OCRB=1;const o=$('f-ocr');
+  try{
+    o.textContent='جاري تجهيز الصورة…';const c=await scanDoc(f);if(!c){o.textContent='';return}
+    await loadTess();o.textContent='جاري قراءة الفاتورة…';const{data}=await ocrRun(c,o);
+    if(!document.body.contains(o))return;
+    const d=parseInvoice(data.text),set=(i,v)=>{const el=$('f-'+i);if(el&&v!=null&&v!=='')el.value=v};
+    set('name',d.name);set('phone',d.phone);set('addr',d.addr);set('bld',d.bld);set('apt',d.apt);set('ord',d.ord);set('inv',d.inv);set('amt',d.amt);o.textContent='';
+  }catch(err){if(document.body.contains(o))o.textContent=OCRX?'':'تعذّرت قراءة الفاتورة'}
+  finally{OCRB=0;e.target.value=''}
+}
 async function orderForm(s){
   let cash=s?s.cash:true;const v=s||{};
   const get=()=>{const g=i=>$('f-'+i).value.trim();return{name:g('name'),phone:g('phone'),addr:g('addr'),bld:g('bld'),apt:g('apt'),ord:g('ord'),inv:g('inv'),amt:g('amt'),date:g('date'),link:g('link')}};
   const wire=()=>{$('f-ph').onchange=ocrFill;$('f-ph2').onchange=ocrFill;$('f-cash').onclick=()=>{cash=true;$('f-cash').classList.add('on');$('f-visa').classList.remove('on')};$('f-visa').onclick=()=>{cash=false;$('f-visa').classList.add('on');$('f-cash').classList.remove('on')}};
   while(true){
     const p=modal(`<button class="cx" data-r="x" aria-label="إغلاق">✕</button><h2 class="cxh">${s?'تعديل الأوردر':'أوردر جديد'}</h2><div class="row" style="margin:8px 0"><label class="p big" for="f-ph" style="display:grid;place-items:center;border-radius:18px;font-weight:600;font-size:17px;text-align:center">تصوير الفاتورة</label><label class="big" for="f-ph2" style="display:grid;place-items:center;border-radius:18px;font-weight:600;font-size:17px;text-align:center;background:var(--bg)">من المعرض</label></div><input type="file" id="f-ph" accept="image/*" capture="environment" hidden><input type="file" id="f-ph2" accept="image/*" hidden><p class="mut" id="f-ocr"></p><input id="f-name" placeholder="اسم العميل" value="${esc(v.name)}"><input id="f-phone" placeholder="رقم التليفون" inputmode="tel" value="${esc(v.phone)}"><input id="f-addr" placeholder="العنوان" value="${esc(v.addr)}"><div class="row"><input id="f-bld" placeholder="عمارة" value="${esc(v.bld)}"><input id="f-apt" placeholder="شقة" value="${esc(v.apt)}"></div><input id="f-ord" placeholder="المنتجات" value="${esc(v.ord)}"><div class="row"><input id="f-inv" placeholder="رقم الفاتورة" value="${esc(v.inv)}"><input id="f-amt" placeholder="المبلغ" inputmode="decimal" value="${v.amt??''}"></div><div class="seg" style="margin-top:8px"><button type="button" id="f-cash" class="${cash?'on':''}">كاش</button><button type="button" id="f-visa" class="${cash?'':'on'}">فيزا</button></div><label><small>موعد التسليم</small><input type="date" id="f-date" value="${s?dayOf(s):selDay>=today()?selDay:today()}" min="${today()}"></label><textarea id="f-link" rows="2" placeholder="لينك الموقع (اختياري)"></textarea><div class="row"><button class="p" data-r="save">حفظ</button></div>`,get,wire);
-    const x=await p;if(!x||x.r==='x')return;const f=x.v;
+    const x=await p;ocrStop();if(!x||x.r==='x')return;const f=x.v;
     if(!f.name&&!f.phone){toast('اكتب اسم العميل أو رقمه');Object.assign(v,f);continue}
     let c=null;if(f.link){c=await coordsFrom(f.link);if(!c){if(navigator.onLine===false)toast('أوفلاين: اتحفظ من غير موقع، ضيف الموقع لما النت يرجع');else{toast('مش قادر أطلّع المكان من اللينك');Object.assign(v,f);continue}}}
     const am=parseFloat(f.amt.replace(/,/g,''));
