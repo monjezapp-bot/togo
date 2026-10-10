@@ -183,6 +183,7 @@ dialog .row button{min-height:48px;font-size:16px}
 .sfp{position:sticky;bottom:0;z-index:4;margin:12px -14px 0;padding:10px 14px calc(12px + env(safe-area-inset-bottom));background:var(--bg);box-shadow:0 -8px 14px -8px #0002}.sfp button{width:100%}
 .wt{margin:4px 0 2px;font-size:16px}.wr{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}.wr:last-child{border-bottom:0}.wl,.wv{display:flex;flex-direction:column;gap:2px;min-width:0}.wl b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wv{align-items:flex-end;flex:none}
 .wr{cursor:pointer}.wc{align-self:center;font-style:normal;color:var(--mut);font-size:24px;line-height:1;padding-inline-start:2px}
+dialog{scroll-padding-top:84px}
 </style>
 </head>
 <body>
@@ -444,8 +445,8 @@ function shut(){dg.classList.add('out');busy=new Promise(r=>setTimeout(()=>{dg.c
 const ico=p=>`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
 const HB_EDIT=`<button class="hb" data-r="edit" aria-label="تعديل">${ico('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>')}</button>`;
 const HB_DEL=`<button class="hb del" data-r="del" aria-label="حذف">${ico('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>')}</button>`;
-const dhead=(t,x='')=>`<div class="dh"><h2>${t}</h2><span class="ia">${x}<button class="hb" data-r="x" aria-label="إغلاق">✕</button></span></div>`;
-function modal(html,collect,onOpen){const run=()=>new Promise(res=>{curRes=res;dg.innerHTML=html;dg.onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;const v=collect?collect():null;dg.onclose=null;shut();res({r:b.dataset.r,v})};dg.oncancel=()=>res(null);dg.onclose=()=>{if(!dg.open)res(null)};dg.showModal();if(onOpen)onOpen()});return busy?busy.then(run):run()}
+const dhead=(t,x='')=>`<div class="dh"><button class="hb" data-r="x" aria-label="إغلاق">✕</button><h2>${t}</h2><span class="ia">${x}</span></div>`;
+function modal(html,collect,onOpen){const run=()=>new Promise(res=>{curRes=res;dg.innerHTML=html;dg.onclick=e=>{if(e.target===dg&&!dg.querySelector('input,textarea,select')){const r=dg.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom){const c=dg.querySelector('[data-r="x"],[data-r="n"]');if(c){c.click();return}}}const b=e.target.closest('[data-r]');if(!b)return;const v=collect?collect():null;dg.onclose=null;shut();res({r:b.dataset.r,v})};dg.oncancel=()=>res(null);dg.onclose=()=>{if(!dg.open)res(null)};dg.showModal();dg.scrollTop=0;if(onOpen)onOpen()});return busy?busy.then(run):run()}
 async function ask(t,p,ok,danger){const x=await modal(`<h2>${esc(t)}</h2><p class="mut">${esc(p)}</p><div class="row" style="margin-top:16px"><button data-r="n">إلغاء</button><button class="${danger?'bad':'p'}" data-r="y">${esc(ok)}</button></div>`);return !!x&&x.r==='y'}
 let tt;function toast(m,label,fn){const T=$('toast');T.hidden=false;T.innerHTML='<span></span>'+(label?'<button></button>':'');T.firstChild.textContent=m;if(label){const b=T.querySelector('button');b.textContent=label;b.onclick=()=>{T.hidden=true;fn()}}clearTimeout(tt);T.onclick=e=>{if(!e.target.closest('button'))T.hidden=true};tt=setTimeout(()=>T.hidden=true,label?6000:(NV.on?2200:3200))}
 
@@ -495,7 +496,7 @@ function menu(){
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2>${esc(nm)}</h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 40 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 41 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -605,7 +606,7 @@ async function detail(s){
   const ph=s.phone?String(s.phone).replace(/[^\d+]/g,''):'';
   const R=(l,v)=>v?`<div><span>${l}</span><b>${v}</b></div>`:'';
   const day=s.done&&s.at?ymd(new Date(s.at)):dayOf(s);
-  const x=await modal(`${dhead(esc(s.name||'عميل'),s.done?'':HB_EDIT+HB_DEL)}<div class="inv">${ph?`<div><span>التليفون</span><b class="ph"><bdi dir="ltr">${esc(s.phone)}</bdi>${ctl(ph,!s.done)}</b></div>`:''}${R('العنوان',esc(s.addr))}${R('عمارة',esc(s.bld))}${R('شقة',esc(s.apt))}${R('الأوردر',esc(s.ord))}${R('رقم الفاتورة',esc(s.inv))}${R('الدفع',s.cash?'كاش'+(s.amt!=null?' · '+money(s.amt):''):'فيزا')}${R('الميعاد',DN[new Date(day+'T12:00').getDay()]+' '+day)}${R('الحالة',s.done?'اتسلّم'+(s.got!=null?' · استلمت '+money(s.got):''):'مستني التسليم')}${s.lat==null&&!s.done?R('الموقع','مش محدد'):''}</div>`);
+  const x=await modal(`${dhead(esc(s.name||'عميل')+(s.inv?`<small class="mut" style="display:block;font-weight:400;font-size:13px;margin-top:2px">فاتورة ${esc(s.inv)}</small>`:''),s.done?'':HB_EDIT+HB_DEL)}<div class="inv">${ph?`<div><span>التليفون</span><b class="ph"><bdi dir="ltr">${esc(s.phone)}</bdi>${ctl(ph,!s.done)}</b></div>`:''}${R('العنوان',esc(s.addr))}${R('عمارة',esc(s.bld))}${R('شقة',esc(s.apt))}${R('الأوردر',esc(s.ord))}${R('الدفع',s.cash?'كاش'+(s.amt!=null?' · '+money(s.amt):''):'فيزا')}${R('الميعاد',DN[new Date(day+'T12:00').getDay()]+' '+day)}${R('الحالة',s.done?'اتسلّم'+(s.got!=null?' · استلمت '+money(s.got):''):'مستني التسليم')}${s.lat==null&&!s.done?R('الموقع','مش محدد'):''}</div>`);
   if(x&&x.r==='edit')orderForm(s);else if(x&&x.r==='del')del(s);
 }
 async function deleteAccount(){
