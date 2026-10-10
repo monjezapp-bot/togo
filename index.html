@@ -483,7 +483,7 @@ function menu(){
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2>${esc(nm)}</h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 36 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 37 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -677,6 +677,18 @@ function findAmountOld(LN,T){
   const c=[...T.matchAll(/(\d[\d,]*(?:\.\d{1,2})?)\s*(?:EGP|L\.?E|ج\.?\s?م|جنيه)/gi)].map(x=>parseFloat(x[1].replace(/,/g,''))).filter(x=>x>0);
   return c.length?Math.max(...c):undefined;
 }
+/* one-line address -> address / building / apartment */
+const NUMS=s=>String(s||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+function splitAddr(raw){
+  let t=NUMS(raw).replace(/\s+/g,' ').trim(),bld='',apt='',m;
+  const rb=/(?:^|[\s,،\-])و?\s*(?:عمار[ةه]|بناي[ةه]|مبن[ىي]|عقار|فيلا|فيله|bu\w*ding|bldg|bld|villa)\s*(?:رقم|no\.?|#)?\s*[:\-]?\s*(\d+[A-Za-z]?)/i;
+  const ra=/(?:^|[\s,،\-])و?\s*(?:شق[ةه]|وحد[ةه]|apart\w*|apt|flat|unit)\s*(?:رقم|no\.?|#)?\s*[:\-]?\s*(\d+[A-Za-z]?)/i;
+  if((m=t.match(rb))){bld=m[1];t=t.replace(m[0],' ')}
+  if((m=t.match(ra))){apt=m[1];t=t.replace(m[0],' ')}
+  t=t.replace(/(?<!\d)(?:\+?20|0020)?0?1[0125](?:[\s\-]?\d){8}(?!\d)/g,' ').replace(/(^|\s)دور[ةه]\s+/g,'$1دور ');
+  t=t.replace(/\s*[,،\-]\s*(?:[,،\-]\s*)+/g,'، ').replace(/\s{2,}/g,' ').replace(/\s+([,،])/g,'$1').replace(/^[\s,،\-]+|[\s,،\-]+$/g,'');
+  return{addr:t,bld,apt};
+}
 const jclean=s=>String(s||'').replace(/^[^\p{L}\p{N}]+/u,'').replace(/^[\u0600-\u06FF]{1,2}\s*[,،]\s*/,'').replace(/[|_~]+/g,' ').replace(/\s+[a-z]{1,2}$/,'').replace(/\s{2,}/g,' ').trim();
 function shipBlock(LO,LN){
   const k=LN.findIndex(l=>/shipping details|بيانات الشحن|تفاصيل الشحن|عنوان الشحن/i.test(l));if(k<0)return null;
@@ -705,6 +717,7 @@ function parseInvoice(raw){
   const out={...lg};Object.keys(o).forEach(k=>{if(o[k]!==undefined&&o[k]!=='')out[k]=o[k]});
   const sb=shipBlock(LO,LN);if(sb){if(sb.name&&sb.name.length<70)out.name=sb.name;if(sb.addr)out.addr=sb.addr}
   const items=findItems(LO,LN);if(items)out.ord=items;
+  if(out.addr){const s=splitAddr(out.addr);if(s.bld||s.apt){out.addr=s.addr||out.addr;if(!out.bld&&s.bld)out.bld=s.bld;if(!out.apt&&s.apt)out.apt=s.apt}}
   ['bld','apt'].forEach(k=>{if(out[k]!=null){const v=DG(out[k]);if(/^\d{1,4}[A-Za-z]?$/.test(v))out[k]=v;else delete out[k]}});
   return out;
 }
@@ -795,7 +808,7 @@ async function ocrFill(e){
 async function orderForm(s){
   let cash=s?s.cash:true;const v=s||{};
   const get=()=>{const g=i=>$('f-'+i).value.trim();return{name:g('name'),phone:g('phone'),addr:g('addr'),bld:g('bld'),apt:g('apt'),ord:g('ord'),inv:g('inv'),amt:g('amt'),date:g('date'),link:g('link')}};
-  const wire=()=>{$('f-ph').onchange=ocrFill;$('f-ph2').onchange=ocrFill;$('f-cash').onclick=()=>{cash=true;$('f-cash').classList.add('on');$('f-visa').classList.remove('on')};$('f-visa').onclick=()=>{cash=false;$('f-visa').classList.add('on');$('f-cash').classList.remove('on')}};
+  const wire=()=>{const sa=()=>{const el=$('f-addr'),b=$('f-bld'),a=$('f-apt');if(!el||!el.value)return;const s=splitAddr(el.value);if(s.bld&&!b.value)b.value=s.bld;if(s.apt&&!a.value)a.value=s.apt;if(s.bld||s.apt)el.value=s.addr||el.value};$('f-addr').onchange=sa;$('f-addr').onpaste=()=>setTimeout(sa,0);$('f-ph').onchange=ocrFill;$('f-ph2').onchange=ocrFill;$('f-cash').onclick=()=>{cash=true;$('f-cash').classList.add('on');$('f-visa').classList.remove('on')};$('f-visa').onclick=()=>{cash=false;$('f-visa').classList.add('on');$('f-cash').classList.remove('on')}};
   while(true){
     const p=modal(`<button class="cx" data-r="x" aria-label="إغلاق">✕</button><h2 class="cxh">${s?'تعديل الأوردر':'أوردر جديد'}</h2><div class="row" style="margin:8px 0"><label class="p big" for="f-ph" style="display:grid;place-items:center;border-radius:18px;font-weight:600;font-size:17px;text-align:center">تصوير الفاتورة</label><label class="big" for="f-ph2" style="display:grid;place-items:center;border-radius:18px;font-weight:600;font-size:17px;text-align:center;background:var(--bg)">من المعرض</label></div><input type="file" id="f-ph" accept="image/*" capture="environment" hidden><input type="file" id="f-ph2" accept="image/*" hidden><p class="mut" id="f-ocr"></p><input id="f-name" placeholder="اسم العميل" value="${esc(v.name)}"><input id="f-phone" placeholder="رقم التليفون" inputmode="tel" value="${esc(v.phone)}"><input id="f-addr" placeholder="العنوان" value="${esc(v.addr)}"><div class="row"><input id="f-bld" placeholder="عمارة" value="${esc(v.bld)}"><input id="f-apt" placeholder="شقة" value="${esc(v.apt)}"></div><input id="f-ord" placeholder="المنتجات" value="${esc(v.ord)}"><div class="row"><input id="f-inv" placeholder="رقم الفاتورة" value="${esc(v.inv)}"><input id="f-amt" placeholder="المبلغ" inputmode="decimal" value="${v.amt??''}"></div><div class="seg" style="margin-top:8px"><button type="button" id="f-cash" class="${cash?'on':''}">كاش</button><button type="button" id="f-visa" class="${cash?'':'on'}">فيزا</button></div><label><small>موعد التسليم</small><input type="date" id="f-date" value="${s?dayOf(s):selDay>=today()?selDay:today()}" min="${today()}"></label><textarea id="f-link" rows="2" placeholder="لينك الموقع (اختياري)"></textarea><div class="row"><button class="p" data-r="save">حفظ</button></div>`,get,wire);
     const x=await p;ocrStop();if(!x||x.r==='x')return;const f=x.v;
