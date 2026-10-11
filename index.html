@@ -185,6 +185,16 @@ dialog .row button{min-height:48px;font-size:16px}
 .wr{cursor:pointer}.wc{align-self:center;font-style:normal;color:var(--mut);font-size:24px;line-height:1;padding-inline-start:2px}
 dialog{scroll-padding-top:84px}
 dialog.flat .dh{position:static;margin:0 0 10px;padding:0}
+.ow-top{display:flex;align-items:center;gap:8px;margin-bottom:10px}.ow-nav{flex:none;width:44px;height:44px;min-height:44px;padding:0;border-radius:50%;display:grid;place-items:center;font-size:26px;line-height:1;background:#fff;color:var(--ink)}
+.ow-mid{flex:1;text-align:center;display:flex;flex-direction:column}.ow-mid b{font-size:17px}.ow-mid small{color:var(--mut)}
+.ow-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.ow-day{min-height:80px;padding:8px 0;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:#fff;font-size:12px;color:var(--mut);border:1.5px solid transparent}
+.ow-day b{font-size:19px;color:var(--ink)}.ow-day .cn{min-width:20px;height:20px;border-radius:99px;background:#eef1f6;color:var(--ink);font-size:12px;font-style:normal;display:grid;place-items:center;padding:0 5px}.ow-day .cn.z{visibility:hidden}
+.ow-day.fu{background:#fff7f0;border-color:#ffe6d2}.ow-day.fu .cn{background:#ffe3d0;color:#b45309}.ow-day.t{border-color:var(--pri)}
+.ow-day.on{background:var(--ink);color:var(--bg)}.ow-day.on b{color:var(--bg)}.ow-day.on .cn{background:#ffffff2e;color:var(--bg)}
+.ow-dh{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 2px 0}.ow-dh small{display:block}.ow-today{min-height:38px;padding:0 18px;border-radius:99px;background:var(--pri);color:#fff;font-size:14px}
+.ow-go{width:100%;margin:2px 0 12px;min-height:46px;border-radius:14px;background:#fff1e8;color:var(--pri)}
+body.night .ow-day,body.night .ow-nav{background:#2b2f36}body.night .ow-day.fu{background:#3a2a1d;border-color:#5a3a22}body.night .ow-day.on{background:var(--ink)}body.night .ow-day .cn{background:#3a3f48}
+*{-webkit-tap-highlight-color:transparent}body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}input,textarea,pre,.sel{-webkit-user-select:text;user-select:text}.wr:active,.item:active,.ow-day:active{opacity:.7}
 </style>
 </head>
 <body>
@@ -497,7 +507,7 @@ function menu(){
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2>${esc(nm)}</h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 42 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 43 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -586,17 +596,22 @@ function pProfile(){
   $('da').onclick=deleteAccount;
   $('ps').onclick=async()=>{PF={name:$('pn').value.trim(),phone:$('pp').value.trim(),rate:parseFloat($('pr').value)||0};sv('togo_profile',PF);const r=await write({t:'cs',d:{courier_id:uid,full_name:PF.name,phone:PF.phone,rate:PF.rate,working:work,updated_at:new Date().toISOString()}});toast(r.error?'ماتحفظش على السيرفر':r.queued?'اتحفظ على الموبايل وهيتزامن لما النت يرجع':'اتحفظ')};
 }
+const MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'],DS=['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
 function pOrders(){
-  const s0=new Date(wk);s0.setDate(s0.getDate()-s0.getDay());
+  const s0=new Date(wk);s0.setDate(s0.getDate()-((s0.getDay()+1)%7));
   const days=[...Array(7)].map((_,i)=>{const d=new Date(s0);d.setDate(s0.getDate()+i);return d});
-  const cnt=k=>S.filter(s=>(s.done&&s.at?ymd(new Date(s.at)):dayOf(s))===k).length;
-  const L=S.filter(s=>(s.done&&s.at?ymd(new Date(s.at)):dayOf(s))===selDay);
-  $('vb').innerHTML=`<div class="row" style="margin:0 0 10px"><button data-w="-7">‹ الأسبوع اللي فات</button><button data-w="7">الأسبوع الجاي ›</button></div><div class="days">${days.map(d=>{const k=ymd(d);return `<button class="day ${k===selDay?'on':''} ${k===today()?'t':''}" data-d="${k}">${DN[d.getDay()]}<b>${d.getDate()}</b>${cnt(k)} أوردر</button>`}).join('')}</div><div class="card" style="margin-top:12px;padding:4px 16px">${L.length?L.map(s=>`<div class="item" data-o="${s.id}"><b class="nm">${esc(s.name||'عميل')}</b>${s.done?'<span class="tag d">تم</span>':`<span class="tag">لسه</span><button class="sm" data-e="${s.id}">تعديل</button><button class="sm" data-pp="${s.id}">تأجيل</button>`}</div>`).join(''):'<p class="mut" style="padding:16px 0">مفيش أوردرات في اليوم ده.</p>'}</div><button class="p big fab" data-add="1">+ أوردر جديد</button>`;
+  const kd=s=>s.done&&s.at?ymd(new Date(s.at)):dayOf(s),cnt=k=>S.filter(s=>kd(s)===k).length,L=S.filter(s=>kd(s)===selDay),td=today();
+  const a=days[0],b=days[6],lab=a.getMonth()===b.getMonth()?MN[a.getMonth()]+' '+a.getFullYear():MN[a.getMonth()]+' – '+MN[b.getMonth()]+' '+b.getFullYear();
+  const sd=new Date(selDay+'T12:00'),dn=L.filter(s=>s.done).length,pe=L.length-dn,away=selDay!==td||ymd(days[0])>td||ymd(days[6])<td;
+  const keys=[...new Set(S.map(kd))].filter(k=>k!==selDay),t0=sd.getTime(),near=keys.sort((x,y)=>Math.abs(new Date(x+'T12:00')-t0)-Math.abs(new Date(y+'T12:00')-t0))[0],nd=near?new Date(near+'T12:00'):null;
+  $('vb').innerHTML=`<div class="ow-top"><button class="ow-nav" data-w="-7" aria-label="الأسبوع اللي فات">›</button><div class="ow-mid"><b>${lab}</b><small>${a.getDate()} – ${b.getDate()}</small></div><button class="ow-nav" data-w="7" aria-label="الأسبوع الجاي">‹</button></div><div class="ow-strip">${days.map(d=>{const k=ymd(d),c=cnt(k);return `<button class="ow-day ${k===selDay?'on':''} ${k===td?'t':''} ${k>td&&c?'fu':''}" data-d="${k}">${DS[d.getDay()]}<b>${d.getDate()}</b><i class="cn ${c?'':'z'}">${c||0}</i></button>`}).join('')}</div><div class="ow-dh"><div><b>${DN[sd.getDay()]} ${sd.getDate()} ${MN[sd.getMonth()]}</b><small class="mut">${L.length?L.length+' أوردر · '+dn+' اتسلّم · '+pe+' لسه':'مفيش أوردرات'}</small></div>${away?'<button class="ow-today" data-td="1">اليوم</button>':''}</div><div class="card" style="margin-top:10px;padding:4px 16px">${L.length?L.map(s=>`<div class="item" data-o="${s.id}"><b class="nm">${esc(s.name||'عميل')}</b>${s.done?'<span class="tag d">تم</span>':`<span class="tag">لسه</span><button class="sm" data-e="${s.id}">تعديل</button><button class="sm" data-pp="${s.id}">تأجيل</button>`}</div>`).join(''):`<p class="mut" style="padding:16px 0">مفيش أوردرات في اليوم ده.</p>${near?`<button class="ow-go" data-nr="${near}">أقرب يوم فيه أوردرات: ${DN[nd.getDay()]} ${nd.getDate()} ${MN[nd.getMonth()]}</button>`:''}`}</div><button class="p big fab" data-add="1">+ أوردر جديد</button>`;
 }
 $('vb').onclick=async e=>{
   const t=e.target.closest('button');if(!t){const r=e.target.closest('[data-o]');if(r)detail(S.find(s=>s.id===r.dataset.o));return}const g=k=>t.dataset[k];
   if(g('w')){wk.setDate(wk.getDate()+ +g('w'));pOrders()}
   else if(g('d')){selDay=g('d');pOrders()}
+  else if(g('td')){wk.setTime(Date.now());selDay=today();pOrders()}
+  else if(g('nr')){selDay=g('nr');wk.setTime(new Date(g('nr')+'T12:00').getTime());pOrders()}
   else if(g('add'))orderForm(null);
   else if(g('e'))orderForm(S.find(s=>s.id===g('e')));
   else if(g('pp'))postpone(S.find(s=>s.id===g('pp')));
