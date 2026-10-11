@@ -195,6 +195,11 @@ dialog.flat .dh{position:static;margin:0 0 10px;padding:0}
 .ow-go{width:100%;margin:2px 0 12px;min-height:46px;border-radius:14px;background:#fff1e8;color:var(--pri)}
 body.night .ow-day,body.night .ow-nav{background:#2b2f36}body.night .ow-day.fu{background:#3a2a1d;border-color:#5a3a22}body.night .ow-day.on{background:var(--ink)}body.night .ow-day .cn{background:#3a3f48}
 *{-webkit-tap-highlight-color:transparent}body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}input,textarea,pre,.sel{-webkit-user-select:text;user-select:text}.wr:active,.item:active,.ow-day:active{opacity:.7}
+.ow-nav{width:40px;height:40px;min-height:40px;background:none;box-shadow:none;color:var(--ink)}
+button.ow-mid{flex:1;min-height:44px;padding:0;background:none;box-shadow:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0}.ow-mid small{color:var(--pri);font-size:12px;font-weight:600}
+.ow-top{margin-bottom:6px}.ow-day{min-height:68px;padding:6px 0;gap:2px}.ow-day .cn{background:none;min-width:0;height:14px;padding:0;font-size:12px;color:var(--mut)}.ow-day.fu .cn{background:none;color:#b45309}.ow-day.on .cn{background:none;color:var(--bg)}
+.ow-dh{margin:12px 4px 0}.ow-go{width:auto;display:block;margin:14px auto;min-height:40px;padding:0 18px;border-radius:99px;font-size:14px}.wc svg{width:18px;height:18px}
+.ow-dh,.ow-dh+.card{animation:owf .25s ease}@keyframes owf{from{opacity:.35}to{opacity:1}}
 </style>
 </head>
 <body>
@@ -204,7 +209,7 @@ body.night .ow-day,body.night .ow-nav{background:#2b2f36}body.night .ow-day.fu{b
 <div id="plist"></div>
 <div id="sheet"><button class="rb on" id="loc" aria-label="موقعي">◎</button><button id="gon" hidden aria-label="ابدأ الملاحة"></button><div id="sc"></div></div>
 <div id="menu"><nav id="nav"></nav></div>
-<div id="view"><header><button class="rb" id="vx" aria-label="رجوع" style="box-shadow:none;background:var(--bg)">›</button><h2 id="vt"></h2></header><div id="vb"></div></div>
+<div id="view"><header><button class="rb" id="vx" aria-label="رجوع" style="box-shadow:none;background:var(--bg)"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button><h2 id="vt"></h2></header><div id="vb"></div></div>
 <div id="nv" hidden><div id="nbw"><div id="nb"><div id="nbi"></div><div id="nbt"><b id="nbd"></b><span id="nbx"></span></div><button id="nx" aria-label="إنهاء الملاحة">✕</button></div><div id="nth" hidden></div><div id="nalt"></div><div id="nst" hidden></div></div><div id="nsn" hidden></div><div id="nctl"><button id="nov" aria-label="الملاحة"></button><button class="on" id="nrc" aria-label="موقعي">◎</button></div></div>
 <div id="toast" hidden></div>
 <dialog id="dg"></dialog>
@@ -507,7 +512,7 @@ function menu(){
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2>${esc(nm)}</h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 43 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 45 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -539,7 +544,7 @@ function walletCalc(k='today'){
 function periods(){const n=new Date(),t0=new Date(n.getFullYear(),n.getMonth(),n.getDate()),w0=new Date(t0);w0.setDate(t0.getDate()-((t0.getDay()+1)%7));const m0=new Date(n.getFullYear(),n.getMonth(),1),dn=S.filter(s=>s.done&&s.at),c=d0=>dn.filter(s=>new Date(s.at)>=d0).length;return[['اليوم',c(t0)],['هذا الأسبوع',c(w0)],['هذا الشهر',c(m0)]]}
 function pWallet(){
   const w=walletCalc(WP.k),L={today:'اليوم',yest:'أمس',week:'هذا الأسبوع',month:'هذا الشهر',day:'يوم محدد'},lab=WP.k==='day'?(WP.d||'—'):L[WP.k];
-  const rt=+PF.rate||0,rowsH=w.rows.map(s=>{const am=s.cash?(s.got??s.amt??0):(s.amt??0),df=s.cash&&s.got!=null&&s.amt!=null&&Math.abs(s.got-s.amt)>0.009;return `<div class="wr" data-o="${s.id}"><div class="wl"><b>${esc(s.name||'عميل')}</b><small class="mut">${DN[new Date(s.at).getDay()]} ${new Date(s.at).getDate()}/${new Date(s.at).getMonth()+1} · ${clk(new Date(s.at))}${s.inv?' · فاتورة '+esc(s.inv):''}${df?' · الفاتورة '+money(s.amt):''}</small></div><div class="wv"><b>${s.cash?'+ '+money(am):'فيزا · '+money(am)}</b><small class="mut">أجرك ${money(rt)}</small></div><i class="wc" aria-hidden="true">‹</i></div>`}).join('');
+  const rt=+PF.rate||0,rowsH=w.rows.map(s=>{const am=s.cash?(s.got??s.amt??0):(s.amt??0),df=s.cash&&s.got!=null&&s.amt!=null&&Math.abs(s.got-s.amt)>0.009;return `<div class="wr" data-o="${s.id}"><div class="wl"><b>${esc(s.name||'عميل')}</b><small class="mut">${DN[new Date(s.at).getDay()]} ${new Date(s.at).getDate()}/${new Date(s.at).getMonth()+1} · ${clk(new Date(s.at))}${s.inv?' · فاتورة '+esc(s.inv):''}${df?' · الفاتورة '+money(s.amt):''}</small></div><div class="wv"><b>${s.cash?'+ '+money(am):'فيزا · '+money(am)}</b><small class="mut">أجرك ${money(rt)}</small></div><i class="wc" aria-hidden="true">${CHL}</i></div>`}).join('');
   $('vb').innerHTML=`<div class="wp">${Object.keys(L).map(k=>`<button data-wk="${k}" class="${WP.k===k?'on':''}">${L[k]}</button>`).join('')}</div>${WP.k==='day'?`<input type="date" id="wd" class="wd" value="${WP.d||today()}" max="${today()}">`:''}<div class="owe"><small>دخلك · ${lab}</small><div>${money(w.com)}</div></div><div class="card"><div class="sum"><span>أوردرات اتسلّمت (${lab})</span><b>${w.n}</b></div><div class="sum"><span>سعر الأوردر</span><b>${money(PF.rate)}</b></div><div class="sum"><span>كاش اتحصّل (${w.cashN})</span><b>${money(w.col)}</b></div><div class="sum"><span>فيزا</span><b>${w.visa}</b></div><div class="sum due"><span>المطلوب تسلّمه للشركة<small class="mut" style="display:block;font-weight:400">${money(w.col)} − ${money(w.com)}</small></span><b>${money(w.owed)}</b></div></div><div class="card" style="margin-top:12px"><h3 class="wt">تفاصيل كل أوردر</h3>${rowsH||'<p class="mut" style="margin:8px 0">مفيش أوردرات اتسلّمت في الفترة دي.</p>'}</div>${PF.rate?'':'<p class="mut">حدّد سعر الأوردر من «الملف الشخصي» عشان يتحسب أجرك.</p>'}`;
   $('vb').querySelectorAll('[data-wk]').forEach(b=>b.onclick=()=>{WP.k=b.dataset.wk;if(WP.k==='day'&&!WP.d)WP.d=today();pWallet()});
   const wd=$('wd');if(wd)wd.onchange=()=>{WP.d=wd.value;pWallet()};
@@ -597,14 +602,15 @@ function pProfile(){
   $('ps').onclick=async()=>{PF={name:$('pn').value.trim(),phone:$('pp').value.trim(),rate:parseFloat($('pr').value)||0};sv('togo_profile',PF);const r=await write({t:'cs',d:{courier_id:uid,full_name:PF.name,phone:PF.phone,rate:PF.rate,working:work,updated_at:new Date().toISOString()}});toast(r.error?'ماتحفظش على السيرفر':r.queued?'اتحفظ على الموبايل وهيتزامن لما النت يرجع':'اتحفظ')};
 }
 const MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'],DS=['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
+const CHR='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',CHL='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
 function pOrders(){
   const s0=new Date(wk);s0.setDate(s0.getDate()-((s0.getDay()+1)%7));
   const days=[...Array(7)].map((_,i)=>{const d=new Date(s0);d.setDate(s0.getDate()+i);return d});
   const kd=s=>s.done&&s.at?ymd(new Date(s.at)):dayOf(s),cnt=k=>S.filter(s=>kd(s)===k).length,L=S.filter(s=>kd(s)===selDay),td=today();
   const a=days[0],b=days[6],lab=a.getMonth()===b.getMonth()?MN[a.getMonth()]+' '+a.getFullYear():MN[a.getMonth()]+' – '+MN[b.getMonth()]+' '+b.getFullYear();
-  const sd=new Date(selDay+'T12:00'),dn=L.filter(s=>s.done).length,pe=L.length-dn,away=selDay!==td||ymd(days[0])>td||ymd(days[6])<td;
+  const sd=new Date(selDay+'T12:00'),pe=L.filter(s=>!s.done).length,away=selDay!==td||ymd(days[0])>td||ymd(days[6])<td;
   const keys=[...new Set(S.map(kd))].filter(k=>k!==selDay),t0=sd.getTime(),near=keys.sort((x,y)=>Math.abs(new Date(x+'T12:00')-t0)-Math.abs(new Date(y+'T12:00')-t0))[0],nd=near?new Date(near+'T12:00'):null;
-  $('vb').innerHTML=`<div class="ow-top"><button class="ow-nav" data-w="-7" aria-label="الأسبوع اللي فات">›</button><div class="ow-mid"><b>${lab}</b><small>${a.getDate()} – ${b.getDate()}</small></div><button class="ow-nav" data-w="7" aria-label="الأسبوع الجاي">‹</button></div><div class="ow-strip">${days.map(d=>{const k=ymd(d),c=cnt(k);return `<button class="ow-day ${k===selDay?'on':''} ${k===td?'t':''} ${k>td&&c?'fu':''}" data-d="${k}">${DS[d.getDay()]}<b>${d.getDate()}</b><i class="cn ${c?'':'z'}">${c||0}</i></button>`}).join('')}</div><div class="ow-dh"><div><b>${DN[sd.getDay()]} ${sd.getDate()} ${MN[sd.getMonth()]}</b><small class="mut">${L.length?L.length+' أوردر · '+dn+' اتسلّم · '+pe+' لسه':'مفيش أوردرات'}</small></div>${away?'<button class="ow-today" data-td="1">اليوم</button>':''}</div><div class="card" style="margin-top:10px;padding:4px 16px">${L.length?L.map(s=>`<div class="item" data-o="${s.id}"><b class="nm">${esc(s.name||'عميل')}</b>${s.done?'<span class="tag d">تم</span>':`<span class="tag">لسه</span><button class="sm" data-e="${s.id}">تعديل</button><button class="sm" data-pp="${s.id}">تأجيل</button>`}</div>`).join(''):`<p class="mut" style="padding:16px 0">مفيش أوردرات في اليوم ده.</p>${near?`<button class="ow-go" data-nr="${near}">أقرب يوم فيه أوردرات: ${DN[nd.getDay()]} ${nd.getDate()} ${MN[nd.getMonth()]}</button>`:''}`}</div><button class="p big fab" data-add="1">+ أوردر جديد</button>`;
+  $('vb').innerHTML=`<div class="ow-top"><button class="ow-nav" data-w="-7" aria-label="الأسبوع اللي فات">${CHR}</button><button class="ow-mid" data-td="1"><b>${lab}</b>${away?'<small>رجوع لليوم</small>':''}</button><button class="ow-nav" data-w="7" aria-label="الأسبوع الجاي">${CHL}</button></div><div class="ow-strip">${days.map(d=>{const k=ymd(d),c=cnt(k);return `<button class="ow-day ${k===selDay?'on':''} ${k===td?'t':''} ${k>td&&c?'fu':''}" data-d="${k}">${DS[d.getDay()]}<b>${d.getDate()}</b><i class="cn ${c?'':'z'}">${c||0}</i></button>`}).join('')}</div><div class="ow-dh"><b>${DN[sd.getDay()]} ${sd.getDate()} ${MN[sd.getMonth()]}</b><small class="mut">${L.length?L.length+' أوردر'+(pe?' · '+pe+' لسه':''):'مفيش أوردرات'}</small></div>${L.length?`<div class="card" style="margin-top:10px;padding:4px 16px">${L.map(s=>`<div class="item" data-o="${s.id}"><b class="nm">${esc(s.name||'عميل')}</b>${s.done?'<span class="tag d">تم</span>':`<span class="tag">لسه</span><button class="sm" data-e="${s.id}">تعديل</button><button class="sm" data-pp="${s.id}">تأجيل</button>`}</div>`).join('')}</div>`:(near?`<button class="ow-go" data-nr="${near}">أقرب يوم: ${DN[nd.getDay()]} ${nd.getDate()} ${MN[nd.getMonth()]}</button>`:'')}<button class="p big fab" data-add="1">+ أوردر جديد</button>`;
 }
 $('vb').onclick=async e=>{
   const t=e.target.closest('button');if(!t){const r=e.target.closest('[data-o]');if(r)detail(S.find(s=>s.id===r.dataset.o));return}const g=k=>t.dataset[k];
@@ -617,6 +623,11 @@ $('vb').onclick=async e=>{
   else if(g('pp'))postpone(S.find(s=>s.id===g('pp')));
   else if(g('x'))del(S.find(s=>s.id===g('x')));
 };
+/* swipe on the orders page = previous / next day (finger to the left = next day) */
+(()=>{let x0=0,y0=0,t0=0,on=false;const v=$('vb');
+  v.addEventListener('touchstart',e=>{if(page!=='orders'||e.touches.length!==1)return;on=true;x0=e.touches[0].clientX;y0=e.touches[0].clientY;t0=Date.now()},{passive:true});
+  v.addEventListener('touchend',e=>{if(!on)return;on=false;const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.6||Date.now()-t0>700)return;const d=new Date(selDay+'T12:00');d.setDate(d.getDate()+(dx<0?1:-1));selDay=ymd(d);wk.setTime(d.getTime());pOrders()},{passive:true});
+})();
 async function detail(s){
   if(!s)return;
   const ph=s.phone?String(s.phone).replace(/[^\d+]/g,''):'';
