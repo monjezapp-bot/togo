@@ -200,6 +200,7 @@ button.ow-mid{flex:1;min-height:44px;padding:0;background:none;box-shadow:none;d
 .ow-top{margin-bottom:6px}.ow-day{min-height:68px;padding:6px 0;gap:2px}.ow-day .cn{background:none;min-width:0;height:14px;padding:0;font-size:12px;color:var(--mut)}.ow-day.fu .cn{background:none;color:#b45309}.ow-day.on .cn{background:none;color:var(--bg)}
 .ow-dh{margin:12px 4px 0}.ow-go{width:auto;display:block;margin:14px auto;min-height:40px;padding:0 18px;border-radius:99px;font-size:14px}.wc svg{width:18px;height:18px}
 .ow-dh,.ow-dh+.card{animation:owf .25s ease}@keyframes owf{from{opacity:.35}to{opacity:1}}
+.ow-strip{display:flex;gap:6px;overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x;padding:2px 0}.ow-strip::-webkit-scrollbar{display:none}.ow-day{flex:none;width:52px;scroll-snap-align:center}
 </style>
 </head>
 <body>
@@ -248,7 +249,6 @@ if(!isApp)$('ia').hidden=false;
 $('ia').onclick=async()=>{if(inst){inst.prompt();inst=null;return}await modal('<h2>تثبيت التطبيق</h2><p class="mut">افتح قائمة المتصفح ⋮ وبعدين اختار «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».</p><p class="mut">على الآيفون: دوس زرار المشاركة وبعدين «إضافة إلى الشاشة الرئيسية».</p><button class="p w" data-r="ok" style="margin-top:12px">تمام</button>')};
 addEventListener('appinstalled',()=>{$('ia').hidden=true;inst=null});
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
-if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;let rl=0;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl&&!NV.on){rl=1;location.reload()}})}
 ['gesturestart','gesturechange','gestureend'].forEach(t=>addEventListener(t,e=>e.preventDefault()));
 const mq=matchMedia('(prefers-color-scheme: dark)'),THEMES=['auto','light','dark'],THEME_LBL={auto:'تلقائي (زي الموبايل)',dark:'داكن',light:'فاتح'};
 const themeMode=()=>{try{const m=JSON.parse(localStorage.getItem('togo_theme'));return THEMES.includes(m)?m:'auto'}catch(e){return'auto'}};
@@ -512,7 +512,7 @@ function menu(){
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2>${esc(nm)}</h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 45 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 46 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -603,31 +603,36 @@ function pProfile(){
 }
 const MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'],DS=['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
 const CHR='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',CHL='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
+let OWR=false;
 function pOrders(){
-  const s0=new Date(wk);s0.setDate(s0.getDate()-((s0.getDay()+1)%7));
-  const days=[...Array(7)].map((_,i)=>{const d=new Date(s0);d.setDate(s0.getDate()+i);return d});
-  const kd=s=>s.done&&s.at?ymd(new Date(s.at)):dayOf(s),cnt=k=>S.filter(s=>kd(s)===k).length,L=S.filter(s=>kd(s)===selDay),td=today();
-  const a=days[0],b=days[6],lab=a.getMonth()===b.getMonth()?MN[a.getMonth()]+' '+a.getFullYear():MN[a.getMonth()]+' – '+MN[b.getMonth()]+' '+b.getFullYear();
-  const sd=new Date(selDay+'T12:00'),pe=L.filter(s=>!s.done).length,away=selDay!==td||ymd(days[0])>td||ymd(days[6])<td;
-  const keys=[...new Set(S.map(kd))].filter(k=>k!==selDay),t0=sd.getTime(),near=keys.sort((x,y)=>Math.abs(new Date(x+'T12:00')-t0)-Math.abs(new Date(y+'T12:00')-t0))[0],nd=near?new Date(near+'T12:00'):null;
-  $('vb').innerHTML=`<div class="ow-top"><button class="ow-nav" data-w="-7" aria-label="الأسبوع اللي فات">${CHR}</button><button class="ow-mid" data-td="1"><b>${lab}</b>${away?'<small>رجوع لليوم</small>':''}</button><button class="ow-nav" data-w="7" aria-label="الأسبوع الجاي">${CHL}</button></div><div class="ow-strip">${days.map(d=>{const k=ymd(d),c=cnt(k);return `<button class="ow-day ${k===selDay?'on':''} ${k===td?'t':''} ${k>td&&c?'fu':''}" data-d="${k}">${DS[d.getDay()]}<b>${d.getDate()}</b><i class="cn ${c?'':'z'}">${c||0}</i></button>`}).join('')}</div><div class="ow-dh"><b>${DN[sd.getDay()]} ${sd.getDate()} ${MN[sd.getMonth()]}</b><small class="mut">${L.length?L.length+' أوردر'+(pe?' · '+pe+' لسه':''):'مفيش أوردرات'}</small></div>${L.length?`<div class="card" style="margin-top:10px;padding:4px 16px">${L.map(s=>`<div class="item" data-o="${s.id}"><b class="nm">${esc(s.name||'عميل')}</b>${s.done?'<span class="tag d">تم</span>':`<span class="tag">لسه</span><button class="sm" data-e="${s.id}">تعديل</button><button class="sm" data-pp="${s.id}">تأجيل</button>`}</div>`).join('')}</div>`:(near?`<button class="ow-go" data-nr="${near}">أقرب يوم: ${DN[nd.getDay()]} ${nd.getDate()} ${MN[nd.getMonth()]}</button>`:'')}<button class="p big fab" data-add="1">+ أوردر جديد</button>`;
+  const td=today(),kd=s=>s.done&&s.at?ymd(new Date(s.at)):dayOf(s),cnt={};
+  S.forEach(s=>{const k=kd(s);if(k)cnt[k]=(cnt[k]||0)+1});
+  const ks=Object.keys(cnt).concat([td,selDay]).sort(),T=new Date(td+'T12:00').getTime();
+  const lo=new Date(Math.min(new Date(ks[0]+'T12:00').getTime(),T-60*864e5)),hi=new Date(Math.max(new Date(ks[ks.length-1]+'T12:00').getTime(),T+60*864e5));
+  const days=[];for(let d=new Date(lo);d<=hi&&days.length<420;d.setDate(d.getDate()+1))days.push(new Date(d));
+  const L=S.filter(s=>kd(s)===selDay),sd=new Date(selDay+'T12:00'),pe=L.filter(s=>!s.done).length,t0=sd.getTime();
+  const near=Object.keys(cnt).filter(k=>k!==selDay).sort((x,y)=>Math.abs(new Date(x+'T12:00')-t0)-Math.abs(new Date(y+'T12:00')-t0))[0],nd=near?new Date(near+'T12:00'):null;
+  const old=$('vb').querySelector('.ow-strip'),keep=old?old.scrollLeft:null,reuse=keep!=null&&!OWR;OWR=false;
+  $('vb').innerHTML=`<div class="ow-top"><button class="ow-nav" data-sc="1" aria-label="أيام أقدم">${CHR}</button><button class="ow-mid" data-td="1"><b>${MN[sd.getMonth()]} ${sd.getFullYear()}</b>${selDay!==td?'<small>رجوع لليوم</small>':''}</button><button class="ow-nav" data-sc="-1" aria-label="أيام أحدث">${CHL}</button></div><div class="ow-strip">${days.map(d=>{const k=ymd(d),c=cnt[k]||0;return `<button class="ow-day ${k===selDay?'on':''} ${k===td?'t':''} ${k>td&&c?'fu':''}" data-d="${k}" data-m="${MN[d.getMonth()]} ${d.getFullYear()}">${DS[d.getDay()]}<b>${d.getDate()}</b><i class="cn ${c?'':'z'}">${c||0}</i></button>`}).join('')}</div><div class="ow-dh"><b>${DN[sd.getDay()]} ${sd.getDate()} ${MN[sd.getMonth()]}</b><small class="mut">${L.length?L.length+' أوردر'+(pe?' · '+pe+' لسه':''):'مفيش أوردرات'}</small></div>${L.length?`<div class="card" style="margin-top:10px;padding:4px 16px">${L.map(s=>`<div class="item" data-o="${s.id}"><b class="nm">${esc(s.name||'عميل')}</b>${s.done?'<span class="tag d">تم</span>':`<span class="tag">لسه</span><button class="sm" data-e="${s.id}">تعديل</button><button class="sm" data-pp="${s.id}">تأجيل</button>`}</div>`).join('')}</div>`:(near?`<button class="ow-go" data-nr="${near}">أقرب يوم: ${DN[nd.getDay()]} ${nd.getDate()} ${MN[nd.getMonth()]}</button>`:'')}<button class="p big fab" data-add="1">+ أوردر جديد</button>`;
+  const st=$('vb').querySelector('.ow-strip'),mb=$('vb').querySelector('.ow-mid b');
+  if(st){
+    if(reuse)st.scrollLeft=keep;else{const sel=st.querySelector('.on');if(sel)st.scrollLeft+=(sel.getBoundingClientRect().left+sel.offsetWidth/2)-(st.getBoundingClientRect().left+st.clientWidth/2)}
+    let tm=0;st.onscroll=()=>{clearTimeout(tm);tm=setTimeout(()=>{const r=st.getBoundingClientRect(),cx=r.left+r.width/2;let best=null,bd=1e9;st.querySelectorAll('.ow-day').forEach(b=>{const q=b.getBoundingClientRect(),dd=Math.abs(q.left+q.width/2-cx);if(dd<bd){bd=dd;best=b}});if(best&&mb)mb.textContent=best.dataset.m},90)};
+  }
 }
 $('vb').onclick=async e=>{
   const t=e.target.closest('button');if(!t){const r=e.target.closest('[data-o]');if(r)detail(S.find(s=>s.id===r.dataset.o));return}const g=k=>t.dataset[k];
   if(g('w')){wk.setDate(wk.getDate()+ +g('w'));pOrders()}
   else if(g('d')){selDay=g('d');pOrders()}
-  else if(g('td')){wk.setTime(Date.now());selDay=today();pOrders()}
-  else if(g('nr')){selDay=g('nr');wk.setTime(new Date(g('nr')+'T12:00').getTime());pOrders()}
+  else if(g('td')){wk.setTime(Date.now());selDay=today();OWR=true;pOrders()}
+  else if(g('sc')){const st=$('vb').querySelector('.ow-strip');if(st)st.scrollBy({left:+g('sc')*300,behavior:'smooth'})}
+  else if(g('nr')){selDay=g('nr');wk.setTime(new Date(g('nr')+'T12:00').getTime());OWR=true;pOrders()}
   else if(g('add'))orderForm(null);
   else if(g('e'))orderForm(S.find(s=>s.id===g('e')));
   else if(g('pp'))postpone(S.find(s=>s.id===g('pp')));
   else if(g('x'))del(S.find(s=>s.id===g('x')));
 };
-/* swipe on the orders page = previous / next day (finger to the left = next day) */
-(()=>{let x0=0,y0=0,t0=0,on=false;const v=$('vb');
-  v.addEventListener('touchstart',e=>{if(page!=='orders'||e.touches.length!==1)return;on=true;x0=e.touches[0].clientX;y0=e.touches[0].clientY;t0=Date.now()},{passive:true});
-  v.addEventListener('touchend',e=>{if(!on)return;on=false;const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.6||Date.now()-t0>700)return;const d=new Date(selDay+'T12:00');d.setDate(d.getDate()+(dx<0?1:-1));selDay=ymd(d);wk.setTime(d.getTime());pOrders()},{passive:true});
-})();
+
 async function detail(s){
   if(!s)return;
   const ph=s.phone?String(s.phone).replace(/[^\d+]/g,''):'';
