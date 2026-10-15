@@ -1,11 +1,10 @@
-const V='togo-v50',TILES='togo-tiles-v1',LIBS='togo-libs-v1';
+const V='togo-v51',TILES='togo-tiles-v1',LIBS='togo-libs-v1';
 const KEEP=[V,TILES,LIBS];
 const SHELL=['./','index.html','install.html','manifest.webmanifest','config.js','togo-core.js','icon-192.png','icon-512.png','logo.png'];
 const LIB_URLS=[
   'https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js',
   'https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css',
   'https://cdn.jsdelivr.net/npm/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js',
-  'https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&display=swap',
   'https://esm.sh/@neondatabase/neon-js',
   'https://tiles.openfreemap.org/styles/liberty'
 ];
