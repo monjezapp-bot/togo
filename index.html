@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover, interactive-widget=resizes-content">
-<meta name="theme-color" content="#0f2238">
+<meta name="theme-color" content="#0f2238"><meta name="togo-build" content="rider-48">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -206,6 +206,7 @@ button.ow-mid{flex:1;min-height:44px;padding:0;background:none;box-shadow:none;d
 <body>
 <div id="map"></div>
 <div id="splash"><img src="logo.png" alt="ToGo"></div>
+<script>/* safety net, registered before the app module: a startup failure can never leave the logo stuck */(function(){function off(){var s=document.getElementById("splash");if(s)s.classList.add("off")}setTimeout(off,4000);addEventListener("error",off);addEventListener("unhandledrejection",off)})();</script>
 <div class="top"><button class="rb" id="mn" aria-label="القائمة">☰</button><div class="prog" id="prog"></div><button class="rb" id="rf" aria-label="تحديث"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4.5V11h-6.5"/></svg></button></div>
 <div id="plist"></div>
 <div id="sheet"><button class="rb on" id="loc" aria-label="موقعي">◎</button><button id="gon" hidden aria-label="ابدأ الملاحة"></button><div id="sc"></div></div>
@@ -231,12 +232,17 @@ button.ow-mid{flex:1;min-height:44px;padding:0;background:none;box-shadow:none;d
 <script src="config.js"></script><script src="togo-core.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script type="module">
-import {createClient} from 'https://esm.sh/@neondatabase/neon-js';
 const NEAR=1000,DWELL=240;
-const db=createClient({
-  auth:{url:'__PRIVATE_AUTH_NOT_CONFIGURED__'},
-  dataApi:{url:'__PRIVATE_DATA_API_NOT_CONFIGURED__'}
-});
+/* The legacy data layer starts ONLY when the runtime is explicitly configured with real links. In demo or unconfigured mode nothing connects anywhere. */
+const AUTH_URL='__PRIVATE_AUTH_NOT_CONFIGURED__',DATA_URL='__PRIVATE_DATA_API_NOT_CONFIGURED__',CFG=window.TOGO_CONFIG||{};
+const LIVE=!CFG.demo&&CFG.runtime==='configured'&&!AUTH_URL.startsWith('__')&&!DATA_URL.startsWith('__');
+const OFFR=()=>Promise.resolve({data:null,error:{message:'غير متصل'}});
+let db;
+if(LIVE){const {createClient}=await import('https://esm.sh/@neondatabase/neon-js');db=createClient({auth:{url:AUTH_URL},dataApi:{url:DATA_URL}})}
+else{const q=()=>{const o={};['select','eq','neq','in','is','gte','lte','order','limit','insert','update','upsert','delete','single','maybeSingle'].forEach(m=>o[m]=()=>o);o.then=(ok,no)=>Promise.resolve({data:null,error:{message:'غير متصل'}}).then(ok,no);return o};
+ db={from:q,rpc:OFFR,auth:{getSession:()=>Promise.resolve({data:null}),signOut:OFFR,signIn:{email:OFFR},signUp:{email:OFFR}}}}
+{const bar=document.createElement('div');bar.id='demobar';bar.style.cssText='position:fixed;z-index:60;inset-inline:0;bottom:0;pointer-events:none;text-align:center;font-size:12px;font-weight:700;padding:3px 8px calc(3px + env(safe-area-inset-bottom));background:#fff1e8;color:#b04a0b';
+ bar.textContent=LIVE?'':(CFG.demo?'وضع عرض تجريبي: بيانات مصطنعة ولا تُرسل لأي خادم. (إصدار 48)':'غير متصل: الربط غير مهيأ. (إصدار 48)');if(!LIVE)document.body.appendChild(bar)}
 const $=id=>document.getElementById(id);
 let inst=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();inst=e});
 const isApp=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
@@ -346,8 +352,8 @@ setInterval(()=>{if(Q.length)sync()},15000);
 badge();
 
 /* ---------- map ---------- */
-maplibregl.setRTLTextPlugin('https://cdn.jsdelivr.net/npm/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js',true);
-const map=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/liberty',center:[31.24,30.05],zoom:11,attributionControl:{compact:true}});
+try{maplibregl.setRTLTextPlugin('https://cdn.jsdelivr.net/npm/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js',true)}catch(e){}
+const map=typeof maplibregl==='undefined'?new Proxy({},{get:()=>()=>({})}):new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/liberty',center:[31.24,30.05],zoom:11,attributionControl:{compact:true}});
 const empty={type:'FeatureCollection',features:[]};
 const setLine=(id,c)=>{const s=map.getSource(id);if(s)s.setData(c&&c.length>1?{type:'Feature',geometry:{type:'LineString',coordinates:c}}:empty)};
 map.on('load',()=>{
@@ -508,7 +514,7 @@ function menu(){
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2>${esc(nm)}</h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 47 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 48 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -655,7 +661,7 @@ async function del(s){if(!await ask('حذف الأوردر',`هيتمسح ${s.na
 
 /* ---------- order form (add / edit) ---------- */
 function parse(t){t=decodeURIComponent(t||'');for(const x of[/[?&](?:q|ll|query|destination|center)=(-?\d+\.\d+)[, ]+(-?\d+\.\d+)/,/@(-?\d+\.\d+),(-?\d+\.\d+)/,/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/,/(-?\d{1,2}\.\d{3,})\s*,\s*(-?\d{1,3}\.\d{3,})/]){const m=t.match(x);if(m)return{lat:+m[1],lng:+m[2]}}return null}
-async function coordsFrom(s){const c=parse(s);if(c)return c;const m=(s||'').match(/https?:\/\/\S+/);if(!m)return null;try{const j=await(await fetch('__PRIVATE_LOCATION_RESOLVER_NOT_CONFIGURED__'+encodeURIComponent(m[0]),tmo(6000))).json();return j.lat?j:null}catch(e){return null}}
+async function coordsFrom(s){const c=parse(s);if(c)return c;const m=(s||'').match(/https?:\/\/\S+/);if(!m)return null;try{if(String('__PRIVATE_LOCATION_RESOLVER_NOT_CONFIGURED__').startsWith('__'))return null;const j=await(await fetch('__PRIVATE_LOCATION_RESOLVER_NOT_CONFIGURED__'+encodeURIComponent(m[0]),tmo(6000))).json();return j.lat?j:null}catch(e){return null}}
 function parseInvoiceLegacy(raw){
   const L=raw.split(/\r?\n/).map(s=>s.trim()).filter(Boolean),T=L.join('\n'),o={};let m;
   if((m=T.match(/\b(01[0125]\d{8})\b/)))o.phone=m[1];else if((m=T.match(/(?:phone|tel)[ \t]*[:.]?[ \t]*([+\d][\d \t\-]{8,14}\d)/i)))o.phone=m[1].replace(/[ \t\-]/g,'');
@@ -1180,6 +1186,7 @@ addEventListener('popstate',()=>{
   exitT=Date.now();toast('اضغط رجوع مرة تانية للخروج');
 });
 async function boot(){
+  if(!LIVE){uid='demo';work=false;$('auth').style.display='none';hideSplash();go('assigned');return}
   let data=null;
   try{({data}=await withT(db.auth.getSession(),6000))}catch(e){}
   const cu=ld('togo_uid',null);
@@ -1231,7 +1238,7 @@ return `<div class="card"><div class="hd"><div><h2>${esc(r.customer_name||'بد�
 ${ps?`<div class="rcpt" style="color:${ps[1]}">${ps[0]}</div>`:''}<div class="row"><button class="p" data-rep="${esc(r.id)}">إبلاغ عن التنفيذ</button></div></div>`}
 function asDraw(){const b=$('vb');b.onclick=e=>{const a=e.target.closest('[data-rep]');if(a)report(a.dataset.rep);else if(e.target.closest('#asr'))pAssigned()};
 const dm=DM?'<div class="rcpt">وضع عرض تجريبي: بيانات مصطنعة ولا تُرسل للخادم.</div>':'';
-if(AS.rows===null){b.innerHTML=dm+`<div class="card"><h2>تعذر تحميل التكليفات</h2><p class="mut">${esc(AS.err==='UNCONFIGURED'?'الاتصال غير مهيأ بعد. لا توجد بيانات.':TC.errText({code:AS.err}))}</p><button class="p w" id="asr">تحديث</button></div>`;return}
+if(AS.rows===null){b.innerHTML=dm+`<div class="card"><h2>تعذر تحميل التكليفات</h2><p class="mut">${esc(AS.err==='UNCONFIGURED'?'غير متصل: الربط غير مهيأ. لا توجد بيانات.':TC.errText({code:AS.err}))}</p><button class="p w" id="asr">تحديث</button></div>`;return}
 b.innerHTML=dm+'<button class="w" id="asr" style="margin-bottom:12px">تحديث التكليفات</button>'+(AS.rows.length?AS.rows.map(acard).join(''):'<div class="card"><h2>مفيش تكليفات حاليًا</h2><p class="mut">الخادم أكد إن مفيش تكليف نشط.</p></div>')}
 async function report(id){const r=(AS.rows||[]).find(x=>x.id===id);if(!r)return;const old=RP[id];
 const x=await modal(`<h2>إبلاغ عن التنفيذ</h2><p class="mut">${esc(r.customer_name||'')}. الإبلاغ لا يعني اعتماد الإدارة.</p><label><small>نوع الإبلاغ</small><select id="rk" class="wd">${KINDS.map(k=>`<option value="${k[0]}"${old&&old.kind===k[0]?' selected':''}>${k[1]}</option>`).join('')}</select></label><label><small>المبلغ اللي اتحصّل فعلًا (فاضي لو مفيش)</small><input id="rm" inputmode="decimal" placeholder="مثال: 650" value="${old&&old.col?esc(old.col):''}"></label><label><small>ملاحظة أو دليل (مطلوب)</small><textarea id="re" rows="2" maxlength="2000">${old?esc(old.ev):''}</textarea></label>${DM?'<label><small>محاكاة تجريبية للرد</small><select id="rd" class="wd"><option value="ok">يتسجل</option><option value="acc">يتقبل</option><option value="off">انقطاع</option><option value="st">نسخة قديمة</option><option value="rej">رفض</option></select></label>':''}<div class="row"><button data-r="n">إلغاء</button><button class="p" data-r="go">مراجعة</button></div>`,()=>({k:$('rk').value,m:$('rm').value.trim(),e:$('re').value.trim(),d:DM?$('rd').value:'ok'}));
@@ -1248,11 +1255,13 @@ saveRP();asDraw()}
 async function pRWallet(){const b=$('vb');b.onclick=null;b.innerHTML='<div class="card">جارٍ التحميل…</div>';let w=null,h=null,er='';
 try{if(DM){w=[{earned_minor:'430050',paid_minor:'300000',cash_custody_minor:'250000',as_of:new Date().toISOString()}];h=[['a1','wage_payable','0','3000'],['a2','courier_cash','108000','0'],['a3','wage_payable','50000','0']].map((x,i)=>({journal_id:'demo-journal-'+x[0],line_no:1,effective_at:new Date(Date.now()-i*864e5).toISOString(),account_code:x[1],debit_minor:x[2],credit_minor:x[3],return_job_id:i===1?'demo-return':null}))}else{w=(await TC.api('/rider/wallet')).rows;try{h=(await TC.api('/rider/wallet/history')).rows}catch(e){h=null}}}catch(e){er=e.code}
 const dm=DM?'<div class="rcpt">وضع عرض تجريبي: بيانات مصطنعة ولا تُرسل للخادم.</div>':'';
-if(er||!w||!w.length){b.innerHTML=dm+`<div class="card"><h2>لسه مفيش بيانات مؤكدة</h2><p class="mut">${er?esc(er==='UNCONFIGURED'?'الاتصال غير مهيأ بعد.':TC.errText({code:er})):'الخادم لم يرجّع رصيدًا بعد.'} هذا ليس رصيدًا صفرًا.</p></div>`;return}
+if(er||!w||!w.length){b.innerHTML=dm+`<div class="card"><h2>لسه مفيش بيانات مؤكدة</h2><p class="mut">${er?esc(er==='UNCONFIGURED'?'غير متصل: الربط غير مهيأ.':TC.errText({code:er})):'الخادم لم يرجّع رصيدًا بعد.'} هذا ليس رصيدًا صفرًا.</p></div>`;return}
 b.innerHTML=dm+w.map(r=>`<div class="card"><h2>المحفظة (${esc(r.currency||'EGP')})</h2><div class="sum"><span>الأجر المستحق/المعترف به</span><b>${TC.egp(r.earned_minor)}</b></div><div class="sum"><span>المدفوع فعليًا</span><b>${TC.egp(r.paid_minor)}</b></div><div class="sum"><span>كاش في عهدتك</span><b>${TC.egp(r.cash_custody_minor)}</b></div><p class="mut" style="font-size:13px">آخر تحديث: ${cairo(r.as_of)} (توقيت القاهرة). المستحق ليس مدفوعًا، والكاش في العهدة ليس مرتبًا.</p></div>`).join('')+
 '<div class="card"><h2>سجل الحركات</h2>'+(h===null?'<p class="mut">تعذر تحميل السجل: غير معروف.</p>':!h.length?'<p class="mut">مفيش حركات مؤكدة.</p>':h.map(r=>`<div class="wr"><div class="wl"><b>حركة على حساب «${esc(r.account_code)}»</b><small class="mut">${cairo(r.effective_at)} · مرجع ${esc(String(r.journal_id).slice(-8))}/${esc(r.line_no)}${r.return_job_id?' · مرتبطة بخدمة استرجاع':''}</small></div><div class="wv"><span>مدين ${TC.egp(r.debit_minor)}</span><span>دائن ${TC.egp(r.credit_minor)}</span></div></div>`).join('')+'<p class="mut" style="font-size:13px">حتى 1000 حركة بلا ضمان للتاريخ الكامل ولا فلتر تاريخ من الخادم. التسمية حسب الحساب والمرجع فقط، والخصم المعتمد لا يُسمّى راتبًا مدفوعًا.</p>')+'</div>'}
 
-draw();boot();
+setTimeout(()=>{try{hideSplash()}catch(e){const sp=$('splash');if(sp)sp.classList.add('off')}},4000);
+try{draw()}catch(e){}
+boot();
 </script>
 </body>
 </html>
