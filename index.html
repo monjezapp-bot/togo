@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover, interactive-widget=resizes-content">
-<meta name="theme-color" content="#0f2238"><meta name="togo-build" content="rider-65">
+<meta name="theme-color" content="#0f2238"><meta name="togo-build" content="rider-66">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -546,7 +546,7 @@ function validMapZone(z){const b=z&&z.bounds;return !!(z&&typeof z.id==='string'
 function zoneBounds(z){const b=z.bounds,m=Math.max(0,Math.min(5,Number(z.margin_km)||0)),dy=m/111.32,dx=dy/Math.cos((b[0][1]+b[1][1])*Math.PI/360);return [[b[0][0]-dx,b[0][1]-dy],[b[1][0]+dx,b[1][1]+dy]]}
 function showMapZone(force=false){if(!ready||!mapZone||NV.on||(!force&&zoneUserMoved))return;
  zoneOverview=true;follow=false;$('loc').classList.remove('on');map.stop();
- map.fitBounds(zoneBounds(mapZone),{padding:{top:150,bottom:Math.min(Math.round(innerHeight*.38),320),left:26,right:26},bearing:0,pitch:0,duration:0});
+ map.fitBounds(zoneBounds(mapZone),{padding:{top:88,bottom:Math.min(Math.round(innerHeight*.30),Math.max(100,innerHeight-$('sheet').getBoundingClientRect().top+16)),left:12,right:12},bearing:0,pitch:0,duration:0});
 }
 function acceptMapZone(z){if(!validMapZone(z))return;const changed=JSON.stringify(mapZone)!==JSON.stringify(z);mapZone=z;
  if(changed&&zoneOverview&&!zoneUserMoved)showMapZone();
@@ -748,7 +748,7 @@ function menu(){
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2><button class="profile-name" data-p="profile">${esc(nm)}</button></h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home'&&x[0]!=='assigned').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 65 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 66 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
