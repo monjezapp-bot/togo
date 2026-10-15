@@ -221,26 +221,21 @@ button.ow-mid{flex:1;min-height:44px;padding:0;background:none;box-shadow:none;d
     <input id="lp" type="tel" inputmode="tel" placeholder="رقم التليفون" autocomplete="username">
     <input id="lw" type="password" inputmode="numeric" placeholder="كلمة السر" autocomplete="current-password">
     <button class="p w big" id="in" style="margin-top:14px">دخول</button>
-    <button class="alt" id="to-up">معندكش حساب؟ <b>سجّل حساب جديد</b></button>
-  </div>
-  <div id="f-up" hidden>
-    <input id="sn" placeholder="الاسم" autocomplete="name">
-    <input id="sp" type="tel" inputmode="tel" placeholder="رقم التليفون" autocomplete="tel">
-    <input id="sw" type="password" inputmode="numeric" maxlength="6" placeholder="كلمة السر (٦ أرقام)" autocomplete="new-password">
-    <button class="p w big" id="up" style="margin-top:14px">إنشاء الحساب</button>
-    <button class="alt" id="to-in">عندك حساب؟ <b>سجّل دخولك</b></button>
+    
   </div>
   <div id="amsg"></div>
+  <p style="font-size:14px;margin-top:10px">الحساب بتنشئه الإدارة. لو نسيت كلمة السر، كلّم الإدارة وهتتأكد من هويتك وتسترجع حسابك. مفيش استرجاع تلقائي من هنا.</p>
   <button class="w" id="ia" hidden style="margin-top:16px;background:#ffffff22;color:#fff">ثبّت التطبيق على موبايلك</button>
 </div></div>
 
+<script src="config.js"></script><script src="togo-core.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script type="module">
 import {createClient} from 'https://esm.sh/@neondatabase/neon-js';
 const NEAR=1000,DWELL=240;
 const db=createClient({
-  auth:{url:'https://ep-noisy-feather-b72o2ma5.neonauth.c-13.us-east-1.aws.neon.tech/neondb/auth'},
-  dataApi:{url:'https://ep-noisy-feather-b72o2ma5.apirest.c-13.us-east-1.aws.neon.tech/neondb/rest/v1'}
+  auth:{url:'__PRIVATE_AUTH_NOT_CONFIGURED__'},
+  dataApi:{url:'__PRIVATE_DATA_API_NOT_CONFIGURED__'}
 });
 const $=id=>document.getElementById(id);
 let inst=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();inst=e});
@@ -497,7 +492,7 @@ async function deliver(n){
 async function undo(n){const{error}=await stopUpd(n.id,{done:false,done_at:null,cash_collected:null,received:null,receipt_kept:null},['receipt_kept']);if(error)return toast('ماقدرتش أتراجع');Object.assign(n,{done:false,at:null,got:null,rk:null});optimize()}
 
 /* ---------- menu & pages ---------- */
-const PAGES=[['home','الخريطة'],['orders','الأوردرات'],['wallet','المحفظة'],['profile','الملف الشخصي'],['support','الدعم الفني']];
+const PAGES=[['home','الخريطة'],['assigned','التكليفات'],['orders','الأوردرات'],['wallet','المحفظة'],['profile','الملف الشخصي'],['support','الدعم الفني']];
 async function shareApp(){
   const url=location.origin+location.pathname.replace(/[^/]*$/,'')+'install.html';
   const data={title:'تطبيق ToGo',text:'جرّب تطبيق ToGo 🚚 — تطبيق للمناديب بينظّم مسار التوصيل ويحسب حسابك:',url};
@@ -506,13 +501,14 @@ async function shareApp(){
 }
 const MI={support:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9 11h6M9 14h4"/>',orders:'<path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',wallet:'<path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v10a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-9H5a2 2 0 0 1-2-2z"/><circle cx="16.5" cy="13.5" r="1"/>',profile:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',install:'<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',tour:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/>',share:'<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.9l7.6-3.8M8.2 13.1l7.6 3.8"/>',out:'<path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4M16 8l4 4-4 4M20 12H9"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',auto:'<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/>'};
 const mic=k=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MI[k]}</svg>`;
+MI.assigned=MI.orders;
 function menu(){
   if(open&&sheetSet)sheetSet(false);$('plist').classList.remove('on');
   const tm=themeMode(),nm=String(PF.name||'ToGo'),it=(k,t,x)=>`<button data-p="${k}" class="mi ${x||''}"><span class="ic">${mic(k)}</span>${t}${k==='support'&&SP.unread?`<i class="bd">${SP.unread}</i>`:''}</button>`;
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2>${esc(nm)}</h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 46 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 47 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -525,7 +521,7 @@ function go(p){
   if(p==='install'){if(inst){inst.prompt();inst=null}return}
   page=p;const v=$('view');
   clearInterval(SP.t);if(p==='home'){v.classList.remove('on');return}
-  $('vb').style.padding='';$('vb').style.overflow='';$('vt').textContent=PAGES.find(x=>x[0]===p)[1];v.classList.add('on');({orders:pOrders,wallet:pWallet,profile:pProfile,support:pSupport})[p]();
+  $('vb').style.padding='';$('vb').style.overflow='';$('vt').textContent=PAGES.find(x=>x[0]===p)[1];v.classList.add('on');({orders:pOrders,wallet:pRWallet,assigned:pAssigned,profile:pProfile,support:pSupport})[p]();
 }
 const wday=t=>ymd(new Date(new Date(t).getTime()-5*36e5));
 const WP={k:'today',d:''};
@@ -659,7 +655,7 @@ async function del(s){if(!await ask('حذف الأوردر',`هيتمسح ${s.na
 
 /* ---------- order form (add / edit) ---------- */
 function parse(t){t=decodeURIComponent(t||'');for(const x of[/[?&](?:q|ll|query|destination|center)=(-?\d+\.\d+)[, ]+(-?\d+\.\d+)/,/@(-?\d+\.\d+),(-?\d+\.\d+)/,/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/,/(-?\d{1,2}\.\d{3,})\s*,\s*(-?\d{1,3}\.\d{3,})/]){const m=t.match(x);if(m)return{lat:+m[1],lng:+m[2]}}return null}
-async function coordsFrom(s){const c=parse(s);if(c)return c;const m=(s||'').match(/https?:\/\/\S+/);if(!m)return null;try{const j=await(await fetch('https://br-polished-fire-b7bwdesx-resolve.compute.c-13.us-east-1.aws.neon.tech/?url='+encodeURIComponent(m[0]),tmo(6000))).json();return j.lat?j:null}catch(e){return null}}
+async function coordsFrom(s){const c=parse(s);if(c)return c;const m=(s||'').match(/https?:\/\/\S+/);if(!m)return null;try{const j=await(await fetch('__PRIVATE_LOCATION_RESOLVER_NOT_CONFIGURED__'+encodeURIComponent(m[0]),tmo(6000))).json();return j.lat?j:null}catch(e){return null}}
 function parseInvoiceLegacy(raw){
   const L=raw.split(/\r?\n/).map(s=>s.trim()).filter(Boolean),T=L.join('\n'),o={};let m;
   if((m=T.match(/\b(01[0125]\d{8})\b/)))o.phone=m[1];else if((m=T.match(/(?:phone|tel)[ \t]*[:.]?[ \t]*([+\d][\d \t\-]{8,14}\d)/i)))o.phone=m[1].replace(/[ \t\-]/g,'');
@@ -1208,8 +1204,7 @@ const pwOf=d=>ar2en(d)+'@togo';
 $('lp').oninput=()=>{$('lw').inputMode=$('lp').value.includes('@')?'text':'numeric'};
 let pending=null;
 const amsg=t=>{$('amsg').textContent=t};
-const show=up=>{$('f-in').hidden=up;$('f-up').hidden=!up;$('atag').textContent=up?'أنشئ حسابك وابدأ شغلك.':'سجّل دخولك وابدأ شغلك.';amsg('')};
-$('to-up').onclick=()=>show(true);$('to-in').onclick=()=>show(false);
+const show=up=>{$('f-in').hidden=up;$('atag').textContent=up?'أنشئ حسابك وابدأ شغلك.':'سجّل دخولك وابدأ شغلك.';amsg('')};
 async function run(btn,fn){const t=btn.textContent;btn.disabled=true;btn.textContent='ثواني...';try{await fn()}catch(e){amsg('في مشكلة في الاتصال، جرّب تاني')}btn.disabled=false;btn.textContent=t}
 $('in').onclick=()=>{
   const id=$('lp').value.trim(),pw=$('lw').value;
@@ -1217,14 +1212,46 @@ $('in').onclick=()=>{
   const email=id.includes('@')?id:phoneEmail(normPhone(id));
   run($('in'),async()=>{const r=await db.auth.signIn.email({email,password:id.includes('@')?pw:pwOf(pw)});if(r.error){amsg('رقم التليفون أو كلمة السر غلط');return}amsg('');boot()});
 };
-$('up').onclick=()=>{
-  const name=$('sn').value.trim(),ph=normPhone($('sp').value),pw=$('sw').value;
-  if(!name)return amsg('اكتب اسمك');
-  if(ph.length<10||ph.length>13)return amsg('رقم التليفون مش صحيح');
-  if(!/^\d{6}$/.test(ar2en(pw)))return amsg('كلمة السر لازم ٦ أرقام');
-  run($('up'),async()=>{const r=await db.auth.signUp.email({email:phoneEmail(ph),password:pwOf(pw),name});if(r.error){amsg(/exist|already|taken/i.test(r.error.message||'')?'الرقم ده مسجّل قبل كده. سجّل دخولك.':(r.error.message||'ماتسجّلش، جرّب تاني'));return}pending={name,phone:ph};PF={...PF,name,phone:ph};sv('togo_profile',PF);amsg('');boot()});
-};
-async function signOut(){if(!await ask('تسجيل الخروج',Q.length?'فيه '+Q.length+' تعديل لسه ماتزامنش، وهيتمسحوا لو خرجت. افتح النت الأول لو عايزهم يتزامنوا.':'هتحتاج تدخل بالإيميل وكلمة السر تاني.','اخرج',true))return;try{await db.auth.signOut()}catch(e){}sv('togo_uid',null);sv(QK,[]);sv(RK,[]);location.reload()}
+async function signOut(){if(!await ask('تسجيل الخروج',Q.length?'فيه '+Q.length+' تعديل لسه ماتزامنش، وهيتمسحوا لو خرجت. افتح النت الأول لو عايزهم يتزامنوا.':'هتحتاج تدخل بالإيميل وكلمة السر تاني.','اخرج',true))return;try{await db.auth.signOut()}catch(e){}sv('togo_uid',null);sv('togo_rep',{});sv(QK,[]);sv(RK,[]);location.reload()}
+/* ===== ToGo rider: contract flows (assignments, reports, wallet). The server decides; nothing here is accounting. ===== */
+const TC=window.TogoCore,DM=TC.mode()==='demo',AS={rows:null,err:''},RP=ld('togo_rep',{}),saveRP=()=>sv('togo_rep',RP);
+const MODE={cod:'كاش عند العميل',prepaid_company:'مدفوع بالكامل للشركة',mixed_company:'دفع مختلط'};
+const REPS={sending:['جاري الإرسال','#1d4ed8'],recorded:['وصل التقرير، في انتظار مراجعة الإدارة','#1d4ed8'],accepted:['اتقبل (تجريبي)','#15803d'],rejected:['اترفض (تجريبي): سبب تجريبي','#991b1b'],stale:['البيانات قديمة: حدّث التكليفات وراجع من جديد','#b45309'],failed:['تعذر الإرسال: لم يُسجَّل. أعد المحاولة بنفس الطلب','#b45309']};
+const KINDS=[['delivered','تم التسليم'],['failed_attempt','تعذر التسليم'],['collection','تحصيل فعلي']];
+const cairo=t=>t?new Date(t).toLocaleString('en-GB',{timeZone:'Africa/Cairo',dateStyle:'short',timeStyle:'short'}):'غير معروف';
+const DEMO_ROWS=[['1','cod','108000','عميل تجريبي ١',30.04,31.23],['2','mixed_company','65000','عميل تجريبي ٢',30.05,31.24],['3','prepaid_company','0','عميل تجريبي ٣',30.06,31.25],['4','mixed_company',null,'عميل تجريبي ٤',null,null]].map(([i,m,d,n,la,ln])=>({id:'demo-'+i,leader_order_id:'ORD-DEMO-'+i,leader_version:3,currency:'EGP',state:'assigned',courier_minor:3000,mode:m,customer_due_minor:d,customer_name:n,phone:'0100000000'+i,address:'عنوان تجريبي '+i,lat:la,lng:ln}));
+function minor(v){const t=String(v).trim().replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/٫/g,'.');if(!/^\d+(\.\d{1,2})?$/.test(t))throw new Error('اكتب مبلغًا موجبًا بحد أقصى رقمين بعد العلامة');const[w,p='']=t.split('.'),n=BigInt(w)*100n+BigInt(p.padEnd(2,'0'));if(n>4500000000000000n)throw new Error('المبلغ أكبر من الحد المسموح');return Number(n)}
+async function asLoad(){AS.err='';try{AS.rows=DM?DEMO_ROWS:(await TC.api('/rider/assignments')).rows||[];Object.keys(RP).forEach(k=>{if(!AS.rows.some(r=>r.id===k))delete RP[k]});saveRP()}catch(e){AS.rows=null;AS.err=e.code;if(e.code===401||e.code===403){Object.keys(RP).forEach(k=>delete RP[k]);saveRP()}}}
+async function pAssigned(){const b=$('vb');b.innerHTML='<div class="card">جارٍ التحميل…</div>';await asLoad();asDraw()}
+function acard(r){const due=r.mode&&r.customer_due_minor!=null,pl=!due?'طريقة الدفع غير محسومة. راجع الإدارة قبل أي تحصيل.':r.mode==='prepaid_company'?'لا يوجد تحصيل من العميل.':r.mode==='mixed_company'?'العميل دفع جزءًا للشركة، والباقي عليك.':'المبلغ حسب تأكيد الشركة.',p=RP[r.id],ps=p&&REPS[p.state];
+return `<div class="card"><div class="hd"><div><h2>${esc(r.customer_name||'بدون اسم')}</h2><p class="mut">طلب ${esc(String(r.leader_order_id).slice(0,12))}</p></div>${r.phone?`<a class="call" href="tel:${esc(r.phone)}" aria-label="اتصال">📞</a>`:''}</div>
+<p class="addr">${esc(r.address||'العنوان غير متاح')}</p>${r.lat!=null&&r.lng!=null?`<p><a href="https://www.google.com/maps?q=${+r.lat},${+r.lng}" target="_blank" rel="noopener">فتح الموقع في الخريطة</a></p>`:'<p class="rcpt w2">الموقع ناقص: تواصل مع الإدارة. لا يتم تخمين موقع من العنوان.</p>'}
+<div class="facts"><div class="fact cash"><small>المطلوب من العميل</small><b>${due?TC.egp(r.customer_due_minor):'غير محدد'}</b></div><div class="fact"><small>أجرك (مستحق، وليس مدفوعًا)</small><b>${TC.egp(r.courier_minor)}</b></div></div>
+<div class="rcpt"><b>${MODE[r.mode]||'غير محسومة'}:</b> ${pl}</div><p class="mut" style="font-size:13px">ثمن البضاعة ورسوم التوصيل كل واحد لوحده غير متاحين للمندوب حاليًا (يحتاج ربط في الخادم).</p>
+${ps?`<div class="rcpt" style="color:${ps[1]}">${ps[0]}</div>`:''}<div class="row"><button class="p" data-rep="${esc(r.id)}">إبلاغ عن التنفيذ</button></div></div>`}
+function asDraw(){const b=$('vb');b.onclick=e=>{const a=e.target.closest('[data-rep]');if(a)report(a.dataset.rep);else if(e.target.closest('#asr'))pAssigned()};
+const dm=DM?'<div class="rcpt">وضع عرض تجريبي: بيانات مصطنعة ولا تُرسل للخادم.</div>':'';
+if(AS.rows===null){b.innerHTML=dm+`<div class="card"><h2>تعذر تحميل التكليفات</h2><p class="mut">${esc(AS.err==='UNCONFIGURED'?'الاتصال غير مهيأ بعد. لا توجد بيانات.':TC.errText({code:AS.err}))}</p><button class="p w" id="asr">تحديث</button></div>`;return}
+b.innerHTML=dm+'<button class="w" id="asr" style="margin-bottom:12px">تحديث التكليفات</button>'+(AS.rows.length?AS.rows.map(acard).join(''):'<div class="card"><h2>مفيش تكليفات حاليًا</h2><p class="mut">الخادم أكد إن مفيش تكليف نشط.</p></div>')}
+async function report(id){const r=(AS.rows||[]).find(x=>x.id===id);if(!r)return;const old=RP[id];
+const x=await modal(`<h2>إبلاغ عن التنفيذ</h2><p class="mut">${esc(r.customer_name||'')}. الإبلاغ لا يعني اعتماد الإدارة.</p><label><small>نوع الإبلاغ</small><select id="rk" class="wd">${KINDS.map(k=>`<option value="${k[0]}"${old&&old.kind===k[0]?' selected':''}>${k[1]}</option>`).join('')}</select></label><label><small>المبلغ اللي اتحصّل فعلًا (فاضي لو مفيش)</small><input id="rm" inputmode="decimal" placeholder="مثال: 650" value="${old&&old.col?esc(old.col):''}"></label><label><small>ملاحظة أو دليل (مطلوب)</small><textarea id="re" rows="2" maxlength="2000">${old?esc(old.ev):''}</textarea></label>${DM?'<label><small>محاكاة تجريبية للرد</small><select id="rd" class="wd"><option value="ok">يتسجل</option><option value="acc">يتقبل</option><option value="off">انقطاع</option><option value="st">نسخة قديمة</option><option value="rej">رفض</option></select></label>':''}<div class="row"><button data-r="n">إلغاء</button><button class="p" data-r="go">مراجعة</button></div>`,()=>({k:$('rk').value,m:$('rm').value.trim(),e:$('re').value.trim(),d:DM?$('rd').value:'ok'}));
+if(!x||x.r!=='go')return;const v=x.v;if(!v.e)return toast('اكتب ملاحظة أو دليل');let col;if(v.m){try{col=minor(v.m)}catch(e){return toast(e.message)}}else if(v.k==='collection')return toast('اكتب المبلغ المحصّل');
+const kl=KINDS.find(k=>k[0]===v.k)[1],low=col!=null&&r.customer_due_minor!=null&&BigInt(col)<BigInt(r.customer_due_minor);
+if(!await ask('مراجعة قبل الإرسال',`${kl}. المحصّل فعلًا: ${col!=null?TC.egp(col):'لم يُحدد'}. المطلوب حسب الخطة: ${TC.egp(r.customer_due_minor)}.${low?' التحصيل أقل من المطلوب: هيتراجع مع الإدارة ولن يتعدل الباقي تلقائيًا.':''}`,'أرسل'))return;
+const sig=JSON.stringify([v.k,col,v.e]),sid=old&&old.sig===sig&&old.state!=='recorded'?old.sid:crypto.randomUUID();
+RP[id]={sid,sig,kind:v.k,col:v.m,ev:v.e,state:'sending'};saveRP();asDraw();
+const body={source_event_id:sid,assignment_id:id,expected_version:r.leader_version,kind:v.k,evidence_ref:v.e,device_at:new Date().toISOString()};if(col!=null)body.collected_minor=col;
+try{if(DM){await new Promise(z=>setTimeout(z,600));if(v.d==='off')throw Object.assign(new Error(),{code:'OFFLINE'});if(v.d==='st')throw Object.assign(new Error(),{code:409})}else await TC.api('/rider/reports',body);
+RP[id].state=DM&&v.d==='rej'?'rejected':DM&&v.d==='acc'?'accepted':'recorded'}
+catch(e){if(e.code===401||e.code===403){AS.rows=null;AS.err=e.code;Object.keys(RP).forEach(k=>delete RP[k])}else RP[id].state=e.code===409?'stale':'failed'}
+saveRP();asDraw()}
+async function pRWallet(){const b=$('vb');b.onclick=null;b.innerHTML='<div class="card">جارٍ التحميل…</div>';let w=null,h=null,er='';
+try{if(DM){w=[{earned_minor:'430050',paid_minor:'300000',cash_custody_minor:'250000',as_of:new Date().toISOString()}];h=[['a1','wage_payable','0','3000'],['a2','courier_cash','108000','0'],['a3','wage_payable','50000','0']].map((x,i)=>({journal_id:'demo-journal-'+x[0],line_no:1,effective_at:new Date(Date.now()-i*864e5).toISOString(),account_code:x[1],debit_minor:x[2],credit_minor:x[3],return_job_id:i===1?'demo-return':null}))}else{w=(await TC.api('/rider/wallet')).rows;try{h=(await TC.api('/rider/wallet/history')).rows}catch(e){h=null}}}catch(e){er=e.code}
+const dm=DM?'<div class="rcpt">وضع عرض تجريبي: بيانات مصطنعة ولا تُرسل للخادم.</div>':'';
+if(er||!w||!w.length){b.innerHTML=dm+`<div class="card"><h2>لسه مفيش بيانات مؤكدة</h2><p class="mut">${er?esc(er==='UNCONFIGURED'?'الاتصال غير مهيأ بعد.':TC.errText({code:er})):'الخادم لم يرجّع رصيدًا بعد.'} هذا ليس رصيدًا صفرًا.</p></div>`;return}
+b.innerHTML=dm+w.map(r=>`<div class="card"><h2>المحفظة (${esc(r.currency||'EGP')})</h2><div class="sum"><span>الأجر المستحق/المعترف به</span><b>${TC.egp(r.earned_minor)}</b></div><div class="sum"><span>المدفوع فعليًا</span><b>${TC.egp(r.paid_minor)}</b></div><div class="sum"><span>كاش في عهدتك</span><b>${TC.egp(r.cash_custody_minor)}</b></div><p class="mut" style="font-size:13px">آخر تحديث: ${cairo(r.as_of)} (توقيت القاهرة). المستحق ليس مدفوعًا، والكاش في العهدة ليس مرتبًا.</p></div>`).join('')+
+'<div class="card"><h2>سجل الحركات</h2>'+(h===null?'<p class="mut">تعذر تحميل السجل: غير معروف.</p>':!h.length?'<p class="mut">مفيش حركات مؤكدة.</p>':h.map(r=>`<div class="wr"><div class="wl"><b>حركة على حساب «${esc(r.account_code)}»</b><small class="mut">${cairo(r.effective_at)} · مرجع ${esc(String(r.journal_id).slice(-8))}/${esc(r.line_no)}${r.return_job_id?' · مرتبطة بخدمة استرجاع':''}</small></div><div class="wv"><span>مدين ${TC.egp(r.debit_minor)}</span><span>دائن ${TC.egp(r.credit_minor)}</span></div></div>`).join('')+'<p class="mut" style="font-size:13px">حتى 1000 حركة بلا ضمان للتاريخ الكامل ولا فلتر تاريخ من الخادم. التسمية حسب الحساب والمرجع فقط، والخصم المعتمد لا يُسمّى راتبًا مدفوعًا.</p>')+'</div>'}
+
 draw();boot();
 </script>
 </body>

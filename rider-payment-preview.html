@@ -1,0 +1,28 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0f2238">
+<title>ToGo | معاينة الدفع والتقرير (تجريبي)</title><link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&display=swap">
+<style>
+:root{--ink:#111827;--mut:#64748b;--line:#e5e9ef;--bg:#f1f4f8;--pri:#f26a1b;--navy:#0f2238;--ok:#15803d;--bad:#dc2626;--r:14px}
+*{box-sizing:border-box}body{margin:0;font:500 16px/1.5 "Readex Pro",Tahoma,sans-serif;color:var(--ink);background:var(--bg)}
+button,select{font:inherit;font-weight:600;border:0;border-radius:var(--r);min-height:48px;padding:0 16px;background:#fff;color:var(--ink)}
+button:focus-visible,select:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
+header{background:var(--navy);color:#fff;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;gap:12px}header img{height:36px;width:auto}
+#mode{padding:10px 16px;font-weight:700;font-size:14px}#mode.demo{background:#fff1e8;color:#b04a0b}#mode.unc{background:#fee2e2;color:#991b1b}#mode.live{background:#e8f6ed;color:var(--ok)}
+main{padding:14px;max-width:1100px;width:100%;margin:0 auto}.card{background:#fff;border-radius:18px;padding:16px;margin-bottom:12px}
+.grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}.k{background:var(--bg);border-radius:14px;padding:12px}.k small{display:block;color:var(--mut)}.k b{font-size:22px;display:block;overflow-wrap:anywhere}.k.gap b{font-size:15px;color:#b45309}
+.banner{border-radius:14px;padding:12px 14px;margin-bottom:12px;font-weight:600}.warn{background:#fef3c7;color:#92400e}.err{background:#fee2e2;color:#991b1b}.info{background:#e8f0fe;color:#1d4ed8}
+.tag{font-size:12px;padding:2px 10px;border-radius:99px;background:var(--bg);color:var(--mut)}.big{font-size:34px;font-weight:700;color:var(--pri)}
+</style></head><body>
+<header><img src="logo.png" alt="ToGo"><b>معاينة تجريبية للمندوب</b></header>
+<div id="mode" class="demo">بيانات مصطنعة لمعاينة الواجهة فقط. لا تُرسل إلى الخادم.</div>
+<main><div class="card"><h2>طريقة الدفع</h2><p class="tag">المندوب يستلم الوضع والباقي فقط، وليس توزيع الأجزاء.</p><div id="pay"></div></div>
+<div class="card"><h2>حالات التقرير (تجريبية)</h2><div id="st" class="grid"></div></div></main>
+<script src="config.js"></script><script src="togo-core.js"></script>
+<script>
+const T=TogoCore;
+const C=[['كاش عند العميل','cod','108000','المبلغ حسب تأكيد الشركة.'],['مدفوع بالكامل للشركة','prepaid_company','0','لا يوجد تحصيل من العميل. هذا ليس مرتبك.'],['دفع مختلط','mixed_company','65000','جزء دفعه العميل للشركة. الباقي عليك.'],['مدفوع ناقص أو مبهم',null,null,'يحتاج مراجعة الإدارة. لا نخمّن الباقي.']];
+document.getElementById('pay').innerHTML=C.map(c=>'<div class="k" style="margin:8px 0"><small>'+c[0]+'</small><div class="big">'+(c[2]===null?'غير معروف':'المطلوب من العميل '+T.egp(c[2]))+'</div><small>'+c[3]+'</small></div>').join('');
+const S=[['جاري الإرسال','info'],['وصل التقرير، في انتظار مراجعة الإدارة','info'],['اتقبل','ok'],['اترفض (مع السبب إن وُجد)','err'],['تعذر الإرسال أو البيانات قديمة. حدّث وراجع من جديد','warn']];
+document.getElementById('st').innerHTML=S.map(s=>'<div class="banner '+(s[1]==='ok'?'info':s[1])+'">'+s[0]+'</div>').join('');
+</script></body></html>

@@ -1,6 +1,6 @@
-const V='togo-v46',TILES='togo-tiles-v1',LIBS='togo-libs-v1';
+const V='togo-v47',TILES='togo-tiles-v1',LIBS='togo-libs-v1';
 const KEEP=[V,TILES,LIBS];
-const SHELL=['./','index.html','install.html','manifest.webmanifest','icon-192.png','icon-512.png','logo.png'];
+const SHELL=['./','index.html','install.html','manifest.webmanifest','config.js','togo-core.js','icon-192.png','icon-512.png','logo.png'];
 const LIB_URLS=[
   'https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js',
   'https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css',
@@ -60,6 +60,7 @@ self.addEventListener('fetch',e=>{
   const r=e.request;
   if(r.method!=='GET')return;
   const u=new URL(r.url);
+  if(u.origin===location.origin&&u.pathname.startsWith('/api/'))return;
   if(u.origin===location.origin){e.respondWith(netFirst(r,3500));return}
   if(u.hostname==='tiles.openfreemap.org'){e.respondWith(swr(r,TILES,MAX_TILES));return}
   if(u.hostname==='esm.sh'||u.hostname.endsWith('.esm.sh')||u.hostname==='cdn.jsdelivr.net'||u.hostname==='fonts.googleapis.com'||u.hostname==='fonts.gstatic.com'){e.respondWith(swr(r,LIBS));return}
