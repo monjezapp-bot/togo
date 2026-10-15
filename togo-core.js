@@ -9,9 +9,34 @@ const keys=new Map();
 const requestKey=i=>{if(!keys.has(i))keys.set(i,crypto.randomUUID());return keys.get(i)};
 const clearKey=i=>keys.delete(i);
 const fail=(m,code)=>Object.assign(new Error(m),{code});
+/* U1 rider adapter: rider contract paths go straight to the database RPCs through the
+   signed-in Neon client (window.__togoDb). No server. The engine still decides everything. */
+async function riderRpc(path,body){
+ const d=window.__togoDb;
+ if(!d){if(window.__togoAuthFail)window.__togoAuthFail();throw fail('انتهت الجلسة. سجّل الدخول من جديد.',401)}
+ const once=(fn,arg)=>d.rpc(fn,arg);
+ const rpcCall=async(fn,arg)=>{const waits=[1500,2500,4000,5000];let r=await once(fn,arg);let t=0;
+  while(r.error&&/Trusted current session required/i.test(String(r.error.message||''))&&t<waits.length){await new Promise(z=>setTimeout(z,waits[t]));r=await once(fn,arg);t++}
+  return r};
+ const wrap=p=>p.then(r=>{if(r.error){const e=r.error;const msg=String(e.message||'');
+   const code=e.code==='PT401'?401:e.code==='PT403'?403:e.code==='PT409'?409:e.code==='PT404'?404:(/jwt|expired|unauthor/i.test(msg)?401:e.code||'SRV');
+   if(code===401&&window.__togoAuthFail)window.__togoAuthFail();
+   throw fail(e.messageArabic||msg,code)}return r.data});
+ if(path==='/rider/wallet')return{rows:await wrap(rpcCall('rider_wallet',{}))};
+ if(path==='/rider/wallet/history')return{rows:await wrap(rpcCall('rider_wallet_history',{p_limit:1000,p_offset:0}))};
+ if(path==='/rider/assignments')return{rows:await wrap(rpcCall('rider_assignments',{}))};
+ if(path==='/rider/reports'&&!body)return{rows:await wrap(rpcCall('rider_report_status',{p_limit:100,p_offset:0}))};
+ if(path==='/rider/reports'&&body){
+  if(body.kind==='collection')throw fail('التحصيل يُسجَّل ضمن إبلاغ التسليم في النظام الجديد. الإبلاغ المنفصل عن التحصيل غير متاح.','UNSUPPORTED');
+  const args={source_event_id:body.source_event_id,assignment_id:body.assignment_id,kind:body.kind,
+    collected_minor:body.collected_minor==null?null:body.collected_minor,device_at:body.device_at||new Date().toISOString(),
+    note:body.evidence_ref||null,problem_note:body.problem_note||null};
+  return{result:await wrap(rpcCall('submit_rider_report',args))}}
+ throw fail('مسار غير معروف',404)}
 async function api(path,body){
  if(mode()==='demo')throw fail('وضع العرض: لا اتصال بالخادم','DEMO');
  if(mode()==='unconfigured')throw fail('غير متصل: الربط غير مهيأ','UNCONFIGURED');
+ if(path.startsWith('/rider/'))return riderRpc(path,body);
  let res;try{res=await fetch('/api'+path,{method:body?'POST':'GET',credentials:'same-origin',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined})}
  catch(e){throw fail('تعذر الاتصال بالخادم. لم يتأكد أي شيء.','OFFLINE')}
  let j=null;try{j=await res.json()}catch(e){}
