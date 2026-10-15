@@ -441,7 +441,7 @@ const etaTxt=()=>NV.on&&NV.eta?NV.eta:leg?`${Math.max(1,Math.round(leg.duration/
 function draw(){
   const d=doneToday().length,left=active().length,tot=d+left;
   $('prog').innerHTML=`<b>${d} من ${tot}</b><span>طلبات ▾</span><div class="bar"><i style="width:${tot?d/tot*100:0}%"></i></div>`;
-  const n=nextStop(),key=[work,n&&n.id,wasNear,n&&[n.name,n.phone,n.addr,n.bld,n.apt,n.ord,n.amt,n.cash].join('|'),left].join('~');
+  const n=nextStop(),key=[work,submitting,n&&n.id,wasNear,n&&[n.name,n.phone,n.addr,n.bld,n.apt,n.ord,n.amt,n.cash].join('|'),left].join('~');
   if(key===lastKey){const e=$('eta');if(e)e.textContent=etaTxt();return}
   lastKey=key;$('gon').hidden=!(work&&n);let h;
   if(!work){
@@ -1337,4 +1337,4 @@ try{draw()}catch(e){}
 boot();
 </script>
 </body>
-  </html>
+    </html>
