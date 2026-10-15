@@ -483,7 +483,7 @@ $('sheet').onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;({start
 /* ---------- dialogs ---------- */
 const dg=$('dg');
 /* DB helpers: keep working even if an optional new column has not been added yet */
-let busy=null;
+let busy=null;let submitting=false;
 function shut(){dg.classList.add('out');busy=new Promise(r=>setTimeout(()=>{dg.classList.remove('out');dg.close();busy=null;r()},300))}
 const ico=p=>`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
 const HB_EDIT=`<button class="hb" data-r="edit" aria-label="تعديل">${ico('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>')}</button>`;
@@ -503,6 +503,7 @@ if(await ask('إنهاء المناوبة',owedTxt,'إنهاء المناوبة'
 /* ---------- delivery ---------- */
 async function deliver(n){
   if(!n)return;
+  if(submitting)return toast('جاري التسجيل…');
   const far=()=>!me||hav(me,n)*1000>NEAR;
   const farMsg=()=>me?'أنت بعيد '+Math.round(hav(me,n)*1000)+' مترًا عن العميل. اقترب حتى '+NEAR+' مترًا ثم سجّل التسليم.':'تعذر تحديد موقعك. فعّل GPS.';
   if(far())return toast(farMsg());
@@ -521,16 +522,21 @@ async function deliver(n){
   if(window.__togoDb){
     const ev=rk?'استلم نسخة الفاتورة من العميل':'لم يستلم نسخة الفاتورة من العميل';
     const sig=JSON.stringify(['delivered',got,rk]),old=RP[n.id],sid=old&&old.sig===sig&&old.state!=='recorded'?old.sid:crypto.randomUUID();
-    RP[n.id]={sid,sig,kind:'delivered',col:got,ev,state:'sending'};saveRP();
-    try{
-      await TC.api('/rider/reports',{source_event_id:sid,assignment_id:n.id,kind:'delivered',collected_minor:n.cash?Math.round(got*100):0,device_at:at,evidence_ref:ev});
-      RP[n.id].state='recorded';saveRP();
-    }catch(e){
-      RP[n.id].state=e.code===409?'stale':'failed';saveRP();
-      return toast(e.code===409?'البيانات قديمة: حدّث الصفحة وراجع من جديد':(TC.errText(e)||'لم يُحفظ، حاول مجددًا'))
-    }
+    RP[n.id]={sid,sig,kind:'delivered',col:got,ev,state:'sending',at};saveRP();
+    submitting=true;
     Object.assign(n,{done:true,at,got,rk});if(PICK===n.id)PICK=null;wasNear=false;open=false;const cont=NV.on;if(cont)NV.hold=1;
-    toast('وصل التقرير، في انتظار مراجعة الإدارة');
+    toast('جاري التسجيل…');
+    let res=null,err=null;
+    try{res=await TC.api('/rider/reports',{source_event_id:sid,assignment_id:n.id,kind:'delivered',collected_minor:n.cash?Math.round(got*100):0,device_at:at,evidence_ref:ev})}
+    catch(e){err=e}
+    submitting=false;
+    if(err){
+      RP[n.id].state=err.code===409?'stale':'failed';saveRP();
+      Object.assign(n,{done:false,at:null,got:null,rk:null});draw();
+      return toast(err.code===409?'البيانات قديمة: حدّث الصفحة وراجع من جديد':(TC.errText(err)||'لم يُحفظ، حاول مجددًا'))
+    }
+    RP[n.id].state='recorded';RP[n.id].settled=!!(res&&res.result&&res.result.settled);saveRP();
+    toast('تم التسليم ✓');
     me&&(me={lat:n.lat,lng:n.lng});await optimize();if(cont){NV.hold=0;navNext()}
     return
   }
@@ -559,7 +565,7 @@ function menu(){
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2>${esc(nm)}</h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home'&&x[0]!=='assigned').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 52 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 53 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -1274,7 +1280,7 @@ let authResetShown=false;
 window.__togoAuthFail=()=>{if(authResetShown)return;authResetShown=true;window.__togoDb=null;amsg('انتهت الجلسة. سجّل الدخول من جديد. بياناتك المحلية محفوظة.');$('auth').style.display='flex'};
 $('in').addEventListener('click',()=>{authResetShown=false});
 const MODE={cod:'نقدًا عند العميل',prepaid_company:'مدفوع بالكامل للشركة',mixed_company:'دفع مختلط'};
-const REPS={sending:['جاري الإرسال','#1d4ed8'],recorded:['وصل التقرير، في انتظار مراجعة الإدارة','#1d4ed8'],accepted:['قُبل (تجريبي)','#15803d'],rejected:['رُفض (تجريبي): سبب تجريبي','#991b1b'],stale:['البيانات قديمة: حدّث مشاويرك وراجع من جديد','#b45309'],failed:['تعذر الإرسال: لم يُسجَّل. أعد المحاولة بنفس الطلب','#b45309']};
+const REPS={sending:['جاري الإرسال','#1d4ed8'],recorded:['سُجّل التقرير ✓','#15803d'],accepted:['قُبل (تجريبي)','#15803d'],rejected:['رُفض (تجريبي): سبب تجريبي','#991b1b'],stale:['البيانات قديمة: حدّث مشاويرك وراجع من جديد','#b45309'],failed:['تعذر الإرسال: لم يُسجَّل. أعد المحاولة بنفس الطلب','#b45309']};
 const KINDS=[['delivered','تم التسليم'],['failed_attempt','تعذر التسليم']];
 const cairo=t=>t?new Date(t).toLocaleString('en-GB',{timeZone:'Africa/Cairo',dateStyle:'short',timeStyle:'short'}):'غير معروف';
 const DEMO_ROWS=[['1','cod','108000','عميل تجريبي ١',30.04,31.23],['2','mixed_company','65000','عميل تجريبي ٢',30.05,31.24],['3','prepaid_company','0','عميل تجريبي ٣',30.06,31.25],['4','mixed_company',null,'عميل تجريبي ٤',null,null]].map(([i,m,d,n,la,ln])=>({id:'demo-'+i,leader_order_id:'ORD-DEMO-'+i,leader_version:3,currency:'EGP',state:'assigned',courier_minor:3000,mode:m,customer_due_minor:d,customer_name:n,phone:'0100000000'+i,address:'عنوان تجريبي '+i,lat:la,lng:ln}));
@@ -1310,16 +1316,24 @@ function legacyHistory(){try{const leg=JSON.parse(localStorage.getItem('togo_leg
  leg.sort((a,b)=>new Date(b.at)-new Date(a.at));
  const rows=leg.slice(0,50).map(s=>{const am=s.cash?(s.got??s.amt??0):(s.amt??0);return `<div class="wr"><div class="wl"><b>${esc(s.name||'عميل')}</b><small class="mut">${DN[new Date(s.at).getDay()]} ${new Date(s.at).getDate()}/${new Date(s.at).getMonth()+1} · ${clk(new Date(s.at))}${s.inv?' · فاتورة '+esc(s.inv):''}</small></div><div class="wv"><b>${s.cash?'+ '+money(am):'بطاقة · '+money(am)}</b></div></div>`}).join('');
  return '<div class="card"><h2>سجل قديم قبل الربط</h2><p class="mut" style="font-size:13px">حركات من السجل المحلي القديم (إدارة ذاتية): ليست من حسابات الشركة وليست مرجعًا ماليًا معتمدًا. الأرقام المالية المعتمدة في «سجل الحركات» أعلاه فقط.</p>'+rows+(leg.length>50?'<p class="mut" style="font-size:13px">أحدث 50 حركة قديمة فقط هي المعروضة.</p>':'')+'</div>'}catch(e){return''}}
-async function pRWallet(){const b=$('vb');b.onclick=null;b.innerHTML='<div class="card">جارٍ التحميل…</div>';let w=null,h=null,er='';
-try{if(DM){w=[{payable_minor:'130050',paid_minor:null,cash_custody_minor:'250000',as_of:null}];h=[['a1','wage_payable','0','3000'],['a2','courier_cash','108000','0'],['a3','wage_payable','50000','0']].map((x,i)=>({journal_id:'demo-journal-'+x[0],line_no:1,effective_at:new Date(Date.now()-i*864e5).toISOString(),account_code:x[1],debit_minor:x[2],credit_minor:x[3],return_job_id:i===1?'demo-return':null}))}else{w=(await TC.api('/rider/wallet')).rows;try{h=(await TC.api('/rider/wallet/history')).rows}catch(e){h=null}}}catch(e){er=e.code}
+async function pRWallet(){const b=$('vb');b.onclick=null;b.innerHTML='<div class="card">جارٍ التحميل…</div>';let w=null,mv=null,er='';
+try{if(DM){w=[{payable_minor:'130050',paid_minor:null,cash_custody_minor:'250000',as_of:null}];mv=[{t:'delivery',at:new Date(Date.now()-864e5).toISOString(),kind:'delivered',ref:'DEMO-1',company:'شركة تجريبية',collected_minor:'108000',wage_minor:'3000',delivery_minor:'108000',product_minor:'100000'},{t:'settlement',at:new Date().toISOString(),journal_id:'demo-journal-s1',memo:'',cash_delta_minor:'-50000',payable_delta_minor:'0'}]}else{
+try{const ar=(await TC.api('/rider/assignments')).rows||[];const ids=new Set(ar.map(r=>r.id));let ch=false;Object.keys(RP).forEach(k=>{if(!ids.has(k)){delete RP[k];ch=true}});if(ch)saveRP()}catch(e){}
+w=(await TC.api('/rider/wallet')).rows;try{mv=(await TC.api('/rider/movements')).rows}catch(e){mv=null}}}catch(e){er=e.code}
 const dm=DM?'<div class="rcpt">وضع عرض تجريبي: بيانات مصطنعة ولا تُرسل للخادم.</div>':'';
 if(er||!w||!w.length){b.innerHTML=dm+`<div class="card"><h2>لا توجد بيانات مؤكدة بعد</h2><p class="mut">${er?esc(er==='UNCONFIGURED'?'غير متصل: الربط غير مهيأ.':TC.errText({code:er})):'الخادم لم يرجّع رصيدًا بعد.'} هذا ليس رصيدًا صفرًا.</p></div>`;return}
+const pend=Object.values(RP).filter(v=>v&&v.state==='recorded'&&v.kind==='delivered'&&!v.settled);
+const pendCard=pend.length?`<div class="card"><h2>قيد التسوية</h2><p class="mut" style="font-size:13px">تسليمات سجّلتها وتُراجَع قبل دخولها دفتر الأستاذ. المبالغ كما أبلغتَ عنها وليست أرصدة مؤكدة.</p>${pend.map(v=>`<div class="wr"><div class="wl"><b>تسليم مسجّل</b><small class="mut">${v.at?cairo(v.at):''}</small></div><div class="wv"><b>${v.col!=null?money(+v.col):'غير محدد'}</b></div></div>`).join('')}</div>`:'';
+const mline=r=>{if(r.t==='delivery'){const share=BigInt(r.delivery_minor||0)-BigInt(r.wage_minor||0);return `<div class="wr"><div class="wl"><b>تم تسليم أوردر ${esc(r.ref||'بدون مرجع')}</b><small class="mut">${cairo(r.at)}${r.company?' · '+esc(r.company):''}</small><small class="mut" style="display:block">تم تحصيل ${TC.egp(r.collected_minor)} · أجرة المشوار ${TC.egp(r.wage_minor)} · نصيب الشركة ${TC.egp(share.toString())}${BigInt(r.product_minor||0)>0n?' · ثمن البضاعة '+TC.egp(r.product_minor):''}</small></div><div class="wv"><b>+ ${TC.egp(r.collected_minor)}</b><small class="mut">أجرك ${TC.egp(r.wage_minor)}</small></div></div>`}
+const cd=BigInt(r.cash_delta_minor||0),pd=BigInt(r.payable_delta_minor||0),parts=[];if(cd<0n)parts.push('سلّمت للشركة '+TC.egp((-cd).toString()));if(cd>0n)parts.push('استلمت نقدية '+TC.egp(cd.toString()));if(pd<0n)parts.push('صُرفت مستحقات '+TC.egp((-pd).toString()));if(pd>0n)parts.push('مستحقات إضافية '+TC.egp(pd.toString()));
+return `<div class="wr"><div class="wl"><b>تسوية مع الشركة</b><small class="mut">${cairo(r.at)} · مرجع ${esc(String(r.journal_id).slice(-8))}</small></div><div class="wv"><small class="mut">${esc(parts.join(' · ')||'حركة')}</small></div></div>`};
 b.innerHTML=dm+w.map(r=>`<div class="card"><h2>المحفظة (${esc(r.currency||'EGP')})</h2><div class="sum"><span>مستحقاتك الحالية عند الشركة (صافي)</span><b>${TC.egp(r.payable_minor)}</b></div><div class="sum"><span>المدفوع فعليًا</span><b>${r.paid_minor==null?'غير محدد من الحسابات':TC.egp(r.paid_minor)}</b></div><div class="sum"><span>نقدية في عهدتك</span><b>${TC.egp(r.cash_custody_minor)}</b></div><p class="mut" style="font-size:13px">${r.as_of?'آخر تحديث: '+cairo(r.as_of)+' (توقيت القاهرة). ':'الرصيد الحالي حسب دفتر الأستاذ. '}المستحق ليس مدفوعًا، والنقدية في العهدة ليست مرتبة.</p></div>`).join('')+
-'<div class="card"><h2>سجل الحركات</h2>'+(h===null?'<p class="mut">تعذر تحميل السجل: غير معروف.</p>':!h.length?'<p class="mut">لا توجد حركات مؤكدة.</p>':h.map(r=>`<div class="wr"><div class="wl"><b>حركة على حساب «${esc(acctLabel(r.account_code))}»</b><small class="mut">${cairo(r.effective_at)} · مرجع ${esc(String(r.journal_id).slice(-8))}/${esc(r.line_no)}${r.return_job_id?' · مرتبطة بخدمة استرجاع':''}</small></div><div class="wv"><span>مدين ${TC.egp(r.debit_minor)}</span><span>دائن ${TC.egp(r.credit_minor)}</span></div></div>`).join('')+'<p class="mut" style="font-size:13px">حتى 1000 حركة بلا ضمان للتاريخ الكامل ولا عامل تصفية للتاريخ من الخادم. التسمية حسب الحساب والمرجع فقط، والخصم المعتمد لا يُسمّى راتبًا مدفوعًا.</p>')+'</div>'+legacyHistory()}
+pendCard+
+'<div class="card"><h2>سجل الحركات</h2>'+(mv===null?'<p class="mut">تعذر تحميل السجل: غير معروف.</p>':!mv.length?'<p class="mut">لا توجد حركات مؤكدة.</p>':mv.map(mline).join('')+'<p class="mut" style="font-size:13px">كل الأرقام هنا من دفتر أستاذ الشركة كما اعتمدها النظام.</p>')+'</div>'+legacyHistory()}
 
 setTimeout(()=>{try{hideSplash()}catch(e){const sp=$('splash');if(sp)sp.classList.add('off')}},4000);
 try{draw()}catch(e){}
 boot();
 </script>
 </body>
-                              </html>
+  </html>
