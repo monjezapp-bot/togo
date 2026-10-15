@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover, interactive-widget=resizes-content">
-<meta name="theme-color" content="#0f2238"><meta name="togo-build" content="rider-64">
+<meta name="theme-color" content="#0f2238"><meta name="togo-build" content="rider-65">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -162,11 +162,8 @@ body.night .engine-orders .eo-week button,body.night .engine-orders .eo-actions 
 .disclosure{padding:0;overflow:hidden}.disclosure>summary{list-style:none;display:flex;align-items:center;gap:12px;min-height:62px;padding:16px;cursor:pointer}.disclosure>summary::-webkit-details-marker{display:none}.disclosure>summary::after{content:'+';margin-inline-start:auto;color:var(--mut);font-size:23px;font-weight:400;flex:none}.disclosure[open]>summary::after{content:'−'}.disclosure>summary>span{min-width:0;font-weight:600}.eo-card>summary>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.disclosure-body{padding:0 16px 16px;border-top:1px solid var(--line)}.disclosure-body>.eo-status{display:inline-block;margin-top:14px}.disclosure-body>p:first-child{margin-top:14px}.wallet-summary summary>b,.wallet-history summary>b{margin-inline-start:auto;text-align:end;white-space:nowrap;font-size:16px}.wallet-summary summary small,.wallet-history summary small{display:block;color:var(--mut);font-weight:400;font-size:11px;margin-top:3px}.wallet-hero{border-radius:22px;padding:24px;background:#111827;color:#fff;margin:16px 0 20px;text-align:center}.wallet-hero small{color:#c2ccdb;font-size:13px}.wallet-hero>div{font-size:38px;font-weight:800;margin:12px 0}.wallet-hero>span{font-size:12px;color:#c2ccdb}.wallet-period{justify-content:center;gap:6px}.wallet-period button{min-height:40px;font-size:12px;padding:0 12px}.wallet-move{margin:12px 0 0;border:1px solid var(--line);border-radius:12px}.wallet-move>summary{font-size:13px;min-height:54px}.wallet-history .disclosure-body{padding-inline:12px}.wallet-history .sum{font-size:13px;gap:10px}.wallet-summary>summary>span{font-size:14px}
 
 /* v62: a camera preset, never a delivery fence. */
-#zone-view{position:fixed;z-index:3;top:calc(82px + env(safe-area-inset-top));left:14px;right:14px;max-width:332px;margin:auto;padding:10px 14px;min-height:44px;border:1px solid var(--line);border-radius:18px;background:var(--bg);color:var(--ink);box-shadow:0 3px 14px #0001;font-size:12px;text-align:center}
 .profile-name{all:unset;cursor:pointer;min-height:44px;display:inline-flex;align-items:center}.profile-name:focus-visible{outline:2px solid var(--pri);outline-offset:3px;border-radius:6px}
-#zone-view::before{content:'⌖ ';color:var(--pri)}
-#zone-view small{display:block;font-size:10px;color:var(--mut);margin-top:4px}
-body.navon #zone-view{display:none}
+body.navon .first-view{padding:4px 0}.first-view div{height:66px;margin:12px 0;border-radius:16px;background:var(--line);opacity:.45}.first-view div:first-child{height:150px}
 </style>
 <style>
 :root{--ink:#111827;--mut:#64748b;--line:#e5e9ef;--bg:#f1f4f8;--pri:#f26a1b;--ok:#15803d;--bad:#dc2626;--r:14px}
@@ -388,11 +385,8 @@ body.night button:focus-visible,body.night a:focus-visible,body.night summary:fo
 .confirm-effect{font-size:13px;line-height:1.8;margin:12px 0 0;color:var(--mut)}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 /* v62: a camera preset, never a delivery fence. */
-#zone-view{position:fixed;z-index:3;top:calc(82px + env(safe-area-inset-top));left:14px;right:14px;max-width:332px;margin:auto;padding:10px 14px;min-height:44px;border:1px solid var(--line);border-radius:18px;background:var(--bg);color:var(--ink);box-shadow:0 3px 14px #0001;font-size:12px;text-align:center}
 .profile-name{all:unset;cursor:pointer;min-height:44px;display:inline-flex;align-items:center}.profile-name:focus-visible{outline:2px solid var(--pri);outline-offset:3px;border-radius:6px}
-#zone-view::before{content:'⌖ ';color:var(--pri)}
-#zone-view small{display:block;font-size:10px;color:var(--mut);margin-top:4px}
-body.navon #zone-view{display:none}
+body.navon .first-view{padding:4px 0}.first-view div{height:66px;margin:12px 0;border-radius:16px;background:var(--line);opacity:.45}.first-view div:first-child{height:150px}
 </style>
 </head>
 <body>
@@ -400,7 +394,6 @@ body.navon #zone-view{display:none}
 <div id="splash"><img src="logo.png" alt="ToGo"></div>
 <script>/* safety net, registered before the app module: a startup failure can never leave the logo stuck */(function(){function off(){var s=document.getElementById("splash");if(s)s.classList.add("off")}setTimeout(off,4000);addEventListener("error",off);addEventListener("unhandledrejection",off)})();</script>
 <div class="top"><button class="rb" id="mn" aria-label="القائمة">☰</button><div class="prog" id="prog"></div><button class="rb" id="rf" aria-label="تحديث"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4.5V11h-6.5"/></svg></button></div>
-<button id="zone-view" hidden aria-label="عرض الزون كاملًا"></button>
 <div id="plist"></div>
 <div id="sheet"><button class="rb on" id="loc" aria-label="موقعي">◎</button><button id="gon" hidden aria-label="ابدأ الملاحة"></button><div id="sc"></div></div>
 <div id="menu"><nav id="nav"></nav></div>
@@ -556,17 +549,15 @@ function showMapZone(force=false){if(!ready||!mapZone||NV.on||(!force&&zoneUserM
  map.fitBounds(zoneBounds(mapZone),{padding:{top:150,bottom:Math.min(Math.round(innerHeight*.38),320),left:26,right:26},bearing:0,pitch:0,duration:0});
 }
 function acceptMapZone(z){if(!validMapZone(z))return;const changed=JSON.stringify(mapZone)!==JSON.stringify(z);mapZone=z;
- $('zone-view').hidden=false;$('zone-view').innerHTML=esc(z.name);
  if(changed&&zoneOverview&&!zoneUserMoved)showMapZone();
 }
 async function loadMapZone(){const who=uid,key='togo_map_zone:'+who;const cached=ld(key,null);if(validMapZone(cached))acceptMapZone(cached);
- try{const r=await withT(db.rpc('rider_wallet',{}));if(uid!==who)return;if(r.error)throw r.error;
+ try{const r=await withT(db.rpc('rider_wallet',{}));if(uid!==who)return;if(r.error)throw r.error;warmWallet(r.data);
   const z=Array.isArray(r.data)?r.data[0]?.map_zone:null;
   if(validMapZone(z)){sv(key,z);acceptMapZone(z)}
-  else{localStorage.removeItem(key);mapZone=null;$('zone-view').hidden=true;zoneOverview=false}
+  else{localStorage.removeItem(key);mapZone=null;zoneOverview=false}
  }catch(e){if(!cached){zoneOverview=false;zoneUserMoved=true}}
 }
-$('zone-view').onclick=()=>{zoneUserMoved=false;showMapZone(true)};
 addEventListener('pageshow',()=>{if(uid&&page==='home'){zoneUserMoved=false;showMapZone(true)}});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&uid&&page==='home'&&!NV.on){zoneUserMoved=false;showMapZone(true)}});
 const empty={type:'FeatureCollection',features:[]};
@@ -757,7 +748,7 @@ function menu(){
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2><button class="profile-name" data-p="profile">${esc(nm)}</button></h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home'&&x[0]!=='assigned').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 64 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 65 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -850,7 +841,7 @@ const MN=['يناير','فبراير','مارس','أبريل','مايو','يون
 const CHR='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',CHL='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
 const RO={date:today(),filter:'active',query:'',rows:null,history:null,error:'',historyError:'',busy:false};
 async function pEngineOrders(refresh=false,background=false){const b=$('vb');b.classList.add('engine-orders');b.onclick=null;
-const oldSignature=JSON.stringify([RO.rows,RO.history,RO.error,RO.historyError]),opened=background?b.querySelector('[data-order][open]')?.dataset.order:null,scroll=b.scrollTop;if(refresh||!RO.rows){if(RO.busy)return;RO.busy=true;if(!background)b.innerHTML='<div class="card">جارٍ تحميل الأوردرات…</div>';try{RO.rows=(await TC.api('/rider/assignments')).rows||[];RO.error=''}catch(e){RO.error=TC.errText(e)}try{RO.history=(await TC.api('/rider/movements')).rows||[];RO.historyError=''}catch(e){RO.historyError=TC.errText(e)}RO.busy=false;if(page!=='orders')return;if(background&&oldSignature===JSON.stringify([RO.rows,RO.history,RO.error,RO.historyError]))return}
+const oldSignature=JSON.stringify([RO.rows,RO.history,RO.error,RO.historyError]),opened=background?b.querySelector('[data-order][open]')?.dataset.order:null,scroll=b.scrollTop;if(refresh||!RO.rows){if(RO.busy)return;RO.busy=true;if(!background)b.innerHTML=firstView('الأوردرات');try{RO.rows=(await TC.api('/rider/assignments')).rows||[];RO.error=''}catch(e){RO.error=TC.errText(e)}try{RO.history=(await TC.api('/rider/movements')).rows||[];RO.historyError=''}catch(e){RO.historyError=TC.errText(e)}RO.busy=false;if(page!=='orders')return;if(background&&oldSignature===JSON.stringify([RO.rows,RO.history,RO.error,RO.historyError]))return}
 const completed=(RO.history||[]).filter(r=>r.t==='delivery').map(r=>({...r,id:r.journal_id||r.ref,done:true,date:ymd(new Date(r.at))}));const activeRows=(RO.rows||[]).map(r=>({...r,done:false,date:r.delivery_date||today()}));const dates=new Map();completed.forEach(r=>dates.set(r.date,(dates.get(r.date)||0)+1));const base=new Date(RO.date+'T12:00:00'),week=new Date(base);week.setDate(base.getDate()-((base.getDay()+1)%7));const days=Array.from({length:7},(_,i)=>{const x=new Date(week);x.setDate(x.getDate()+i);return x});const q=RO.query.trim().toLowerCase();const rows=(RO.filter==='done'?completed.filter(r=>r.date===RO.date):activeRows).filter(r=>(!q||[r.customer_name,r.ref,r.address,r.phone,r.invoice_no].some(v=>String(v||'').toLowerCase().includes(q))));
 const card=r=>`<details class="card eo-card disclosure" data-order="${esc(r.id)}"><summary><span>${esc(r.customer_name||(r.done?'أوردر '+(r.ref||'بدون مرجع'):'عميل'))}</span></summary><div class="disclosure-body"><span class="eo-status ${r.done?'done':''}">${r.done?'تم التسليم':'بانتظار التسليم'}</span><p class="eo-ref">مرجع الأوردر: ${esc(r.ref||r.invoice_no||r.id)}</p>${r.done?`<p class="mut">${cairo(r.at)} · ${esc(r.company||'')}</p>`:`<p class="eo-address">${esc([r.address,r.building&&'عمارة '+r.building,r.apartment&&'شقة '+r.apartment].filter(Boolean).join('، ')||'العنوان غير متاح')}</p>${r.order_details?`<p>${esc(r.order_details)}</p>`:''}`}<div class="eo-money"><span>${r.done?'تم تحصيله':'المطلوب من العميل'}<b>${TC.egp(r.done?r.collected_minor:r.customer_due_minor)}</b></span><span>أجرة مشوارك<b>${TC.egp(r.done?r.wage_minor:r.courier_minor)}</b></span></div>${r.done?'':`${r.lat==null||r.lng==null?'<p class="eo-warning">الموقع غير محدد. تواصل مع الإدارة قبل التوجّه.</p>':''}<div class="eo-actions">${r.lat!=null&&r.lng!=null?`<button class="p" data-eomap="${r.id}">على الخريطة</button>`:''}${r.phone?`<a href="tel:${esc(String(r.phone).replace(/[^\d+]/g,''))}" aria-label="اتصال بالعميل">اتصال</a>`:''}</div>`}</div></details>`;
 b.innerHTML=`<div class="wp eo-filters">${[['active','المتبقي'],['done','سجل التسليم']].map(([k,l])=>`<button data-eof="${k}" class="${RO.filter===k?'on':''}">${l}</button>`).join('')}<button id="eo-refresh" aria-label="تحديث الأوردرات">تحديث</button></div>${RO.filter==='done'?`<div class="eo-top"><button data-eow="-7" aria-label="الأسبوع السابق">${CHR}</button><button data-eotoday>اليوم</button><button data-eow="7" aria-label="الأسبوع التالي">${CHL}</button></div><label class="eo-date">${MN[base.getMonth()]} ${base.getFullYear()}<input id="eo-date" type="date" value="${RO.date}"></label><div class="eo-week">${days.map(d=>{const k=ymd(d);return `<button data-eodate="${k}" class="${k===RO.date?'selected':''} ${k===today()?'today':''}" aria-label="${DN[d.getDay()]} ${k}"><small>${DS[d.getDay()]}</small><b>${d.getDate()}</b><small>${dates.get(k)||0}</small></button>`}).join('')}</div>`:''}<label class="eo-search"><input id="eo-search" type="search" placeholder="ابحث بالاسم أو المرجع أو العنوان" value="${esc(RO.query)}"></label><div class="eo-caption"><b>${RO.filter==='done'?DN[base.getDay()]+' '+base.getDate()+' '+MN[base.getMonth()]:'الأوردرات النشطة'}</b><span>${rows.length} أوردر</span></div>${RO.error?`<div class="card"><p class="eo-warning">تعذر تحميل الأوردرات الحالية: ${esc(RO.error)}. القائمة ليست مؤكدة.</p></div>`:''}${RO.historyError?'<div class="card"><p class="eo-warning">تعذر تحميل سجل التسليمات.</p></div>':''}${rows.length?rows.map(card).join(''):`<div class="card eo-empty"><h3>لا توجد أوردرات مطابقة</h3><p class="mut">${RO.filter==='done'?'جرّب يومًا آخر أو غيّر البحث.':'لا توجد أوردرات نشطة مطابقة للبحث.'}</p></div>`}<p class="mut eo-note">${RO.filter==='done'&&RO.history&&RO.history.length>=1000?'أحدث 1000 حركة فقط.':'التسليم من الخريطة.'}</p>`;
@@ -1131,7 +1122,7 @@ async function orderForm(s){if(window.__togoDb)return toast('تعديل الطل
 /* ---------- auth & boot ---------- */
 let lastSet='';
 async function load(){if(Q.length)await sync();if(!Q.length&&navigator.onLine!==false){let r;
- if(window.__togoDb){try{const rr=await withT(window.__togoDb.rpc('rider_assignments',{}));r=rr.error?{error:rr.error}:{data:(rr.data||[]).map(a=>({id:a.id,lat:a.lat,lng:a.lng,customer_name:a.customer_name,phone:a.phone,address:a.address,order_details:a.order_details||null,building:a.building||null,apartment:a.apartment||null,invoice_no:a.invoice_no||null,amount:a.mode==='cod'&&a.customer_due_minor!=null?a.customer_due_minor/100:null,cash:a.mode==='cod',done:false,done_at:null,received:null,receipt_kept:null,delivery_date:a.delivery_date||null}))}}catch(e){r={error:e}}}
+ if(window.__togoDb){try{const rr=await withT(window.__togoDb.rpc('rider_assignments',{}));if(!rr.error)RO.rows=rr.data||[];r=rr.error?{error:rr.error}:{data:(rr.data||[]).map(a=>({id:a.id,lat:a.lat,lng:a.lng,customer_name:a.customer_name,phone:a.phone,address:a.address,order_details:a.order_details||null,building:a.building||null,apartment:a.apartment||null,invoice_no:a.invoice_no||null,amount:a.mode==='cod'&&a.customer_due_minor!=null?a.customer_due_minor/100:null,cash:a.mode==='cod',done:false,done_at:null,received:null,receipt_kept:null,delivery_date:a.delivery_date||null}))}}catch(e){r={error:e}}}
  else{try{r=await withT(db.from('stops').select('*'))}catch(e){r={error:e}}}if(!r.error&&r.data){if(window.__togoDb&&!localStorage.getItem('togo_legacy_stash')){const old0=localStorage.getItem(RK);if(old0&&old0!=='[]'&&old0!=='null')localStorage.setItem('togo_legacy_stash',old0)}RAW=r.data;sv(RK,RAW);S=r.data.map(row);loadOk=1}}const k=active().filter(s=>s.lat!=null).map(s=>s.id).sort().join();if(k!==lastSet){lastSet=k;optimize()}else draw();if(page==='orders'){if(window.__togoDb)pEngineOrders(true,true);else pOrders()}if(page==='wallet'){if(window.__togoDb)pRWallet(true);else pWallet()}}
 const hideSplash=()=>setTimeout(()=>$('splash').classList.add('off'),300);setTimeout(hideSplash,7000);
 addEventListener('contextmenu',e=>{if(!e.target.closest('input,textarea'))e.preventDefault()});
@@ -1500,7 +1491,7 @@ const cairo=t=>t?new Date(t).toLocaleString('en-GB',{timeZone:'Africa/Cairo',dat
 const DEMO_ROWS=[['1','cod','108000','عميل تجريبي ١',30.04,31.23],['2','mixed_company','65000','عميل تجريبي ٢',30.05,31.24],['3','prepaid_company','0','عميل تجريبي ٣',30.06,31.25],['4','mixed_company',null,'عميل تجريبي ٤',null,null]].map(([i,m,d,n,la,ln])=>({id:'demo-'+i,leader_order_id:'ORD-DEMO-'+i,leader_version:3,currency:'EGP',state:'assigned',courier_minor:3000,mode:m,customer_due_minor:d,customer_name:n,phone:'0100000000'+i,address:'عنوان تجريبي '+i,lat:la,lng:ln}));
 function minor(v){const t=String(v).trim().replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/٫/g,'.');if(!/^\d+(\.\d{1,2})?$/.test(t))throw new Error('أدخل مبلغًا موجبًا بحد أقصى رقمين بعد العلامة');const[w,p='']=t.split('.'),n=BigInt(w)*100n+BigInt(p.padEnd(2,'0'));if(n>4500000000000000n)throw new Error('المبلغ أكبر من الحد المسموح');return Number(n)}
 async function asLoad(){AS.err='';try{AS.rows=DM?DEMO_ROWS:(await TC.api('/rider/assignments')).rows||[];Object.keys(RP).forEach(k=>{if(!AS.rows.some(r=>r.id===k))delete RP[k]});saveRP()}catch(e){AS.rows=null;AS.err=e.code;if(e.code===401||e.code===403){Object.keys(RP).forEach(k=>delete RP[k]);saveRP()}}}
-async function pAssigned(){const b=$('vb');b.innerHTML='<div class="card">جارٍ التحميل…</div>';await asLoad();asDraw()}
+async function pAssigned(){const b=$('vb');b.innerHTML=firstView('المشاوير');await asLoad();asDraw()}
 function acard(r){const due=r.mode&&r.customer_due_minor!=null,pl=!due?'طريقة الدفع غير محسومة. راجع الإدارة قبل أي تحصيل.':r.mode==='prepaid_company'?'لا يوجد تحصيل من العميل.':r.mode==='mixed_company'?'العميل دفع جزءًا للشركة، والباقي عليك.':'المبلغ حسب تأكيد الشركة.',p=RP[r.id],ps=p&&REPS[p.state];
 return `<div class="card"><div class="hd"><div><h2>${esc(r.customer_name||'بدون اسم')}</h2><p class="mut">طلب ${esc(String(r.leader_order_id).slice(0,12))}</p></div>${r.phone?`<a class="call" href="tel:${esc(r.phone)}" aria-label="اتصال">📞</a>`:''}</div>
 <p class="addr">${esc(r.address||'العنوان غير متاح')}</p>${r.lat!=null&&r.lng!=null?`<p><a href="https://www.google.com/maps?q=${+r.lat},${+r.lng}" target="_blank" rel="noopener">فتح الموقع في الخريطة</a></p>`:'<p class="rcpt w2">الموقع ناقص: تواصل مع الإدارة. لا يتم تخمين موقع من العنوان.</p>'}
@@ -1533,8 +1524,11 @@ function legacyHistory(){try{const leg=JSON.parse(localStorage.getItem('togo_leg
 const RW={k:'today',d:''};
 const walletDay=at=>{const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Africa/Cairo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(at));const get=k=>parts.find(p=>p.type===k).value;return get('year')+'-'+get('month')+'-'+get('day')};
 function walletRange(){const t=walletDay(new Date()),d=new Date(t+'T12:00:00Z'),prev=n=>{const x=new Date(d);x.setUTCDate(x.getUTCDate()-n);return x.toISOString().slice(0,10)};if(RW.k==='yest')return[prev(1),prev(1)];if(RW.k==='week')return[prev((d.getUTCDay()+1)%7),t];if(RW.k==='month')return[t.slice(0,7)+'-01',t];if(RW.k==='day')return[RW.d||t,RW.d||t];return[t,t]}
-let walletSignature='',walletCache=null,walletRequest=0;
-async function pRWallet(background=false,local=false){if(page!=='wallet')return;if(!local&&!background&&walletCache){pRWallet(false,true);return pRWallet(true)}const b=$('vb'),opened=[...b.querySelectorAll('details[open]')].map(x=>x.dataset.wkey),scroll=b.scrollTop;b.onclick=null;if(!walletCache&&!background)b.innerHTML='<div class="card" role="status">جارٍ تحميل المحفظة…</div>';let w=null,mv=null,er='';const request=local?walletRequest:++walletRequest;
+let walletSignature='',walletCache=null,walletRequest=0,walletWarm=null;
+function firstView(kind){return '<div class="first-view" aria-busy="true" aria-label="تحميل '+kind+'"><div></div><div></div><div></div></div>'}
+function warmWallet(w){if(walletWarm||!Array.isArray(w))return;const who=uid,request=walletRequest;walletWarm=(async()=>{let mv=null;try{mv=(await TC.api('/rider/movements')).rows}catch(e){}if(uid!==who)return;if(request===walletRequest&&!walletCache)walletCache={w,mv,er:''};if(mv!==null)RO.history=mv;})().finally(()=>walletWarm=null)}
+
+async function pRWallet(background=false,local=false){if(page!=='wallet')return;if(!walletCache&&walletWarm){$('vb').innerHTML=firstView('المحفظة');await walletWarm;if(page!=='wallet')return;if(walletCache)return pRWallet(false,true);}if(!local&&!background&&walletCache){pRWallet(false,true);return pRWallet(true)}const b=$('vb'),opened=[...b.querySelectorAll('details[open]')].map(x=>x.dataset.wkey),scroll=b.scrollTop;b.onclick=null;if(!walletCache&&!background)b.innerHTML=firstView('المحفظة');let w=null,mv=null,er='';const request=local?walletRequest:++walletRequest;
 if(local&&walletCache){({w,mv,er}=walletCache)}else{ 
 try{if(DM){w=[{payable_minor:'130050',paid_minor:null,cash_custody_minor:'250000',net_remittance_minor:'119950'}];mv=[{t:'delivery',at:new Date().toISOString(),kind:'delivered',ref:'DEMO-1',company:'شركة تجريبية',collected_minor:'108000',wage_minor:'3000',delivery_minor:'8000',product_minor:'100000'}]}else{w=(await TC.api('/rider/wallet')).rows;try{mv=(await TC.api('/rider/movements')).rows}catch(e){mv=null}}}catch(e){er=TC.errText(e)}
 if(request!==walletRequest)return;walletCache={w,mv,er};}if(page!=='wallet')return;const signature=JSON.stringify([w,mv,er,RW,walletDay(new Date())]);if(background&&signature===walletSignature)return;walletSignature=signature;if(er||!w||!w.length){b.innerHTML=`<div class="card"><h2>لا توجد بيانات مؤكدة بعد</h2><p class="mut">${esc(er||'الخادم لم يرجّع رصيدًا بعد.')} هذا ليس رصيدًا صفرًا.</p><button id="rwr">إعادة المحاولة</button></div>`;$('rwr').onclick=pRWallet;return}
@@ -1552,4 +1546,4 @@ try{draw()}catch(e){}
 boot();
 </script>
 </body>
-  </html>
+</html>
