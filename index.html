@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover, interactive-widget=resizes-content">
-<meta name="theme-color" content="#0f2238"><meta name="togo-build" content="rider-63">
+<meta name="theme-color" content="#0f2238"><meta name="togo-build" content="rider-64">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -372,7 +372,7 @@ body.night .engine-orders .eo-week button,body.night .engine-orders .eo-actions 
 
 .delivery-ready{margin-top:14px;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:var(--bg)}.delivery-ready h3{font-size:14px;margin:0 0 10px}.delivery-ready p{font-size:13px;line-height:1.7;margin:6px 0;color:var(--mut)}.delivery-ready p span{margin-inline-end:6px;color:var(--mut)}body.night .delivery-ready{background:#111827}
 /* v61: no fade-to-map between pages or local period changes */
-#view,#view.on{transition:none;transform:none}#menu,#menu.on,#menu nav,#menu.on nav{transition:none}.ow-dh,.ow-dh+.card{animation:none}.wallet-range{display:block;margin-top:8px;font-size:11px!important;color:#c2ccdb}
+#view,#view.on{transition:none;transform:none}#menu{background:transparent}dialog[open],dialog[open]::backdrop,dialog.out,dialog.out::backdrop{animation:none!important}#menu,#menu.on,#menu nav,#menu.on nav{transition:none}.ow-dh,.ow-dh+.card{animation:none}.wallet-range{display:block;margin-top:8px;font-size:11px!important;color:#c2ccdb}
 /* v58: compact feedback, accessible actions, safe confirmation hierarchy */
 button:disabled{opacity:.45;cursor:not-allowed}
 #toast,body.navon #toast{top:calc(86px + env(safe-area-inset-top));bottom:auto;inset-inline:auto;left:50%;right:auto;transform:translateX(-50%);width:max-content;max-width:calc(100% - 48px);max-height:35dvh;border-radius:99px;padding:7px 14px;font-size:13px;gap:8px;animation:toast58 .18s ease-out}
@@ -560,8 +560,9 @@ function acceptMapZone(z){if(!validMapZone(z))return;const changed=JSON.stringif
  if(changed&&zoneOverview&&!zoneUserMoved)showMapZone();
 }
 async function loadMapZone(){const who=uid,key='togo_map_zone:'+who;const cached=ld(key,null);if(validMapZone(cached))acceptMapZone(cached);
- try{const r=await withT(db.rpc('rider_map_zone',{}));if(uid!==who)return;if(r.error)throw r.error;
-  if(validMapZone(r.data)){sv(key,r.data);acceptMapZone(r.data)}
+ try{const r=await withT(db.rpc('rider_wallet',{}));if(uid!==who)return;if(r.error)throw r.error;
+  const z=Array.isArray(r.data)?r.data[0]?.map_zone:null;
+  if(validMapZone(z)){sv(key,z);acceptMapZone(z)}
   else{localStorage.removeItem(key);mapZone=null;$('zone-view').hidden=true;zoneOverview=false}
  }catch(e){if(!cached){zoneOverview=false;zoneUserMoved=true}}
 }
@@ -673,7 +674,7 @@ $('sheet').onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;({start
 const dg=$('dg');
 /* DB helpers: keep working even if an optional new column has not been added yet */
 let busy=null;let submitting=false;
-function shut(){dg.classList.add('out');busy=new Promise(r=>setTimeout(()=>{dg.classList.remove('out');dg.close();busy=null;r()},300))}
+function shut(){dg.classList.remove('out');dg.close();busy=null}
 const ico=p=>`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
 const HB_EDIT=`<button class="hb" data-r="edit" aria-label="تعديل">${ico('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>')}</button>`;
 const HB_DEL=`<button class="hb del" data-r="del" aria-label="حذف">${ico('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>')}</button>`;
@@ -756,7 +757,7 @@ function menu(){
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2><button class="profile-name" data-p="profile">${esc(nm)}</button></h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home'&&x[0]!=='assigned').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 63 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 64 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -1551,4 +1552,4 @@ try{draw()}catch(e){}
 boot();
 </script>
 </body>
-</html>
+  </html>
