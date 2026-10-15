@@ -1,4 +1,4 @@
-const V='togo-v56c',TILES='togo-tiles-v1',LIBS='togo-libs-v1';
+const V='togo-v57',TILES='togo-tiles-v1',LIBS='togo-libs-v1';
 const KEEP=[V,TILES,LIBS];
 const SHELL=['./','index.html','install.html','manifest.webmanifest','config.js','togo-core.js','icon-192.png','icon-512.png','logo.png'];
 const LIB_URLS=[
@@ -16,10 +16,10 @@ self.addEventListener('install',e=>{e.waitUntil((async()=>{
   await Promise.all(SHELL.map(u=>c.add(u).catch(()=>{})));
   const l=await caches.open(LIBS);
   await Promise.all(LIB_URLS.map(u=>l.add(u).catch(()=>{})));
-  await self.skipWaiting();
+  // Updates wait until all old app windows are closed. Never take over an active delivery.
 })())});
 
-self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>!KEEP.includes(x)).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>!KEEP.includes(x)).map(x=>caches.delete(x)))))});
 
 // the app itself: network first (updates reach the phone), but give up after a few seconds so a weak connection
 // falls back to the cached copy instead of hanging
