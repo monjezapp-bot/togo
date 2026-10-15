@@ -21,7 +21,8 @@ async function riderRpc(path,body){
  const wrap=p=>p.then(r=>{if(r.error){const e=r.error;const msg=String(e.message||'');
    const code=e.code==='PT401'?401:e.code==='PT403'?403:e.code==='PT409'?409:e.code==='PT404'?404:(/jwt|expired|unauthor/i.test(msg)?401:e.code||'SRV');
    if(code===401&&window.__togoAuthFail)window.__togoAuthFail();
-   throw fail(e.messageArabic||msg,code)}return r.data});
+   const friendly=/Partial delivery\/collection|Exact remaining collection/.test(msg)?'المبلغ المستلم لا يطابق المطلوب. راجع المبلغ؛ لم يُسجّل التسليم ولم تتحرك المحفظة.':/Closed, stale|already finalized/.test(msg)?'حالة الأوردر تغيرت. حدّث الأوردرات قبل المحاولة؛ لم يُسجّل تسليم جديد.':/Damaged order|damaged or invalid/.test(msg)?'هذا الأوردر يحتاج مراجعة من الإدارة قبل تسجيل التسليم.':/No such active assignment/.test(msg)?'الأوردر لم يعد متاحًا للتسليم. حدّث الأوردرات وراجع حالته.':msg;
+   throw fail(e.messageArabic||friendly,code)}return r.data});
  if(path==='/rider/wallet')return{rows:await wrap(rpcCall('rider_wallet',{}))};
  if(path==='/rider/wallet/history')return{rows:await wrap(rpcCall('rider_wallet_history',{p_limit:1000,p_offset:0}))};
  if(path==='/rider/movements')return{rows:await wrap(rpcCall('rider_movements',{p_limit:1000,p_offset:0}))};
