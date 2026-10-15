@@ -24,6 +24,7 @@ async function riderRpc(path,body){
    throw fail(e.messageArabic||msg,code)}return r.data});
  if(path==='/rider/wallet')return{rows:await wrap(rpcCall('rider_wallet',{}))};
  if(path==='/rider/wallet/history')return{rows:await wrap(rpcCall('rider_wallet_history',{p_limit:1000,p_offset:0}))};
+ if(path==='/rider/movements')return{rows:await wrap(rpcCall('rider_movements',{p_limit:1000,p_offset:0}))};
  if(path==='/rider/assignments')return{rows:await wrap(rpcCall('rider_assignments',{}))};
  if(path==='/rider/reports'&&!body)return{rows:await wrap(rpcCall('rider_report_status',{p_limit:100,p_offset:0}))};
  if(path==='/rider/reports'&&body){
