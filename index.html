@@ -450,7 +450,7 @@ function draw(){
     h=`<div id="peek"><div class="grab"><i></i></div><h2>لا يوجد طلب تالٍ</h2><p class="mut">كل طلبات اليوم سُلّمت أو تحتاج إلى موقع.</p><button class="link" data-a="stop">إنهاء المناوبة</button></div>`;
   }else{
     const ph=n.phone?String(n.phone).replace(/[^\d+]/g,''):'';
-    h=`<div id="peek" class="dr"><div class="grab"><i></i></div><div class="hd"><span class="num">1</span><div><h2>${esc(n.name||'عميل')}</h2><p class="mut" id="eta">${etaTxt()}</p></div>${ph?`<a class="call" href="tel:${esc(ph)}" aria-label="اتصال">✆</a>`:''}</div>${wasNear?`<button class="ok w big" data-a="deliver" style="margin-top:12px">تسليم الطلب</button>`:''}</div>
+    h=`<div id="peek" class="dr"><div class="grab"><i></i></div><div class="hd"><span class="num">1</span><div><h2>${esc(n.name||'عميل')}</h2><p class="mut" id="eta">${etaTxt()}</p></div>${ph?`<a class="call" href="tel:${esc(ph)}" aria-label="اتصال">✆</a>`:''}</div>${wasNear?`<button class="ok w big" data-a="deliver" ${submitting?'disabled aria-busy="true"':''} style="margin-top:12px">${submitting?'جاري التسجيل…':'تسليم الطلب'}</button>`:''}</div>
     <div id="det"><p class="addr" style="margin-top:0">${esc(n.addr||'بدون عنوان')}</p><div class="facts">${n.bld?`<div class="fact"><small>عمارة</small><b>${esc(n.bld)}</b></div>`:''}${n.apt?`<div class="fact"><small>شقة</small><b>${esc(n.apt)}</b></div>`:''}<div class="fact ${n.cash?'cash':'visa'}"><small>${n.cash?'نقدًا':'الدفع'}</small><b>${n.cash?money(n.amt):'بطاقة'}</b></div></div>${n.ord?`<p class="mut">${esc(n.ord)}</p>`:''}${ph?`<a class="call" style="width:100%;border-radius:var(--r);height:52px;background:#128c4a;font-size:16px;margin-top:10px" href="${waUrl(ph)}" target="_blank" rel="noopener">واتساب</a>`:''}<button class="link" data-a="stop">إنهاء المناوبة</button></div>`;
   }
   const sh=$('sheet');$('sc').innerHTML=h;
@@ -489,7 +489,7 @@ const ico=p=>`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke
 const HB_EDIT=`<button class="hb" data-r="edit" aria-label="تعديل">${ico('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>')}</button>`;
 const HB_DEL=`<button class="hb del" data-r="del" aria-label="حذف">${ico('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>')}</button>`;
 const dhead=(t,x='')=>`<div class="dh"><button class="hb" data-r="x" aria-label="إغلاق">✕</button><h2>${t}</h2><span class="ia">${x}</span></div>`;
-function modal(html,collect,onOpen){const run=()=>new Promise(res=>{curRes=res;dg.innerHTML=html;dg.classList.toggle('flat',!dg.querySelector('input,textarea,select'));dg.onclick=e=>{if(e.target===dg&&!dg.querySelector('input,textarea,select')){const r=dg.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom){const c=dg.querySelector('[data-r="x"],[data-r="n"]');if(c){c.click();return}}}const b=e.target.closest('[data-r]');if(!b)return;const v=collect?collect():null;dg.onclose=null;shut();res({r:b.dataset.r,v})};dg.oncancel=()=>res(null);dg.onclose=()=>{if(!dg.open)res(null)};dg.showModal();dg.scrollTop=0;if(onOpen)onOpen()});return busy?busy.then(run):run()}
+function modal(html,collect,onOpen){const run=()=>new Promise(res=>{let resolved=false;curRes=res;dg.innerHTML=html;dg.classList.toggle('flat',!dg.querySelector('input,textarea,select'));dg.onclick=e=>{if(e.target===dg&&!dg.querySelector('input,textarea,select')){const r=dg.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom){const c=dg.querySelector('[data-r="x"],[data-r="n"]');if(c){c.click();return}}}const b=e.target.closest('[data-r]');if(!b||b.disabled||resolved)return;resolved=true;const v=collect?collect():null;if(b.id==='dok'){b.disabled=true;b.textContent='جاري التسجيل…'}dg.onclose=null;shut();res({r:b.dataset.r,v})};dg.oncancel=()=>res(null);dg.onclose=()=>{if(!dg.open)res(null)};dg.showModal();dg.scrollTop=0;if(onOpen)onOpen()});return busy?busy.then(run):run()}
 async function ask(t,p,ok,danger){const x=await modal(`<h2>${esc(t)}</h2><p class="mut">${esc(p)}</p><div class="row" style="margin-top:16px"><button data-r="n">إلغاء</button><button class="${danger?'bad':'p'}" data-r="y">${esc(ok)}</button></div>`);return !!x&&x.r==='y'}
 let tt;function toast(m,label,fn){const T=$('toast');T.hidden=false;T.innerHTML='<span></span>'+(label?'<button></button>':'');T.firstChild.textContent=m;if(label){const b=T.querySelector('button');b.textContent=label;b.onclick=()=>{T.hidden=true;fn()}}clearTimeout(tt);T.onclick=e=>{if(!e.target.closest('button'))T.hidden=true};tt=setTimeout(()=>T.hidden=true,label?6000:(NV.on?2200:3200))}
 
@@ -502,7 +502,7 @@ if(await ask('إنهاء المناوبة',owedTxt,'إنهاء المناوبة'
 
 /* ---------- delivery ---------- */
 async function deliver(n){
-  if(!n)return;
+  if(!n||n.done)return;
   if(submitting)return toast('جاري التسجيل…');
   const far=()=>!me||hav(me,n)*1000>NEAR;
   const farMsg=()=>me?'أنت بعيد '+Math.round(hav(me,n)*1000)+' مترًا عن العميل. اقترب حتى '+NEAR+' مترًا ثم سجّل التسليم.':'تعذر تحديد موقعك. فعّل GPS.';
@@ -518,13 +518,14 @@ async function deliver(n){
   if(n.cash){got=parseFloat(String(x.v).replace(/,/g,''));if(isNaN(got)||got<0)return toast('أدخل مبلغًا صحيحًا')}
   if(!rk&&!await ask('تنبيه: الفاتورة مهمة','الشركة تحتاج الفاتورة. اطلبها من العميل قبل المغادرة. هل تسجّل التسليم دون فاتورة؟','سجّل دون فاتورة',true))return;
   if(far())return toast(farMsg());
-  const at=new Date().toISOString();
+  let at=new Date().toISOString();
   if(window.__togoDb){
     const ev=rk?'استلم نسخة الفاتورة من العميل':'لم يستلم نسخة الفاتورة من العميل';
     const sig=JSON.stringify(['delivered',got,rk]),old=RP[n.id],sid=old&&old.sig===sig&&old.state!=='recorded'?old.sid:crypto.randomUUID();
+    if(old&&old.sid===sid&&old.at)at=old.at;
     RP[n.id]={sid,sig,kind:'delivered',col:got,ev,state:'sending',at};saveRP();
     submitting=true;
-    Object.assign(n,{done:true,at,got,rk});if(PICK===n.id)PICK=null;wasNear=false;open=false;const cont=NV.on;if(cont)NV.hold=1;
+    const cont=NV.on;if(cont)NV.hold=1;draw();
     toast('جاري التسجيل…');
     let res=null,err=null;
     try{res=await TC.api('/rider/reports',{source_event_id:sid,assignment_id:n.id,kind:'delivered',collected_minor:n.cash?Math.round(got*100):0,device_at:at,evidence_ref:ev})}
@@ -532,11 +533,12 @@ async function deliver(n){
     submitting=false;
     if(err){
       RP[n.id].state=err.code===409?'stale':'failed';saveRP();
-      Object.assign(n,{done:false,at:null,got:null,rk:null});draw();
+      if(cont)NV.hold=0;draw();
       return toast(err.code===409?'البيانات قديمة: حدّث الصفحة وراجع من جديد':(TC.errText(err)||'لم يُحفظ، حاول مجددًا'))
     }
+    Object.assign(n,{done:true,at,got,rk});if(PICK===n.id)PICK=null;wasNear=false;open=false;draw();
     RP[n.id].state='recorded';RP[n.id].settled=!!(res&&res.result&&res.result.settled);saveRP();
-    toast('تم التسليم ✓');
+    toast(res&&res.result&&res.result.settled?'تم التسليم وإضافة الأجر للمحفظة ✓':'تم التسليم ✓');
     me&&(me={lat:n.lat,lng:n.lng});await optimize();if(cont){NV.hold=0;navNext()}
     return
   }
@@ -565,7 +567,7 @@ function menu(){
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2>${esc(nm)}</h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home'&&x[0]!=='assigned').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 53 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 54 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -1316,20 +1318,19 @@ function legacyHistory(){try{const leg=JSON.parse(localStorage.getItem('togo_leg
  leg.sort((a,b)=>new Date(b.at)-new Date(a.at));
  const rows=leg.slice(0,50).map(s=>{const am=s.cash?(s.got??s.amt??0):(s.amt??0);return `<div class="wr"><div class="wl"><b>${esc(s.name||'عميل')}</b><small class="mut">${DN[new Date(s.at).getDay()]} ${new Date(s.at).getDate()}/${new Date(s.at).getMonth()+1} · ${clk(new Date(s.at))}${s.inv?' · فاتورة '+esc(s.inv):''}</small></div><div class="wv"><b>${s.cash?'+ '+money(am):'بطاقة · '+money(am)}</b></div></div>`}).join('');
  return '<div class="card"><h2>سجل قديم قبل الربط</h2><p class="mut" style="font-size:13px">حركات من السجل المحلي القديم (إدارة ذاتية): ليست من حسابات الشركة وليست مرجعًا ماليًا معتمدًا. الأرقام المالية المعتمدة في «سجل الحركات» أعلاه فقط.</p>'+rows+(leg.length>50?'<p class="mut" style="font-size:13px">أحدث 50 حركة قديمة فقط هي المعروضة.</p>':'')+'</div>'}catch(e){return''}}
+const RW={k:'today',d:''};
+const walletDay=at=>new Intl.DateTimeFormat('en-CA',{timeZone:'Africa/Cairo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(new Date(at).getTime()-5*3600000));
+function walletRange(){const t=walletDay(new Date()),d=new Date(t+'T12:00:00Z'),prev=n=>{const x=new Date(d);x.setUTCDate(x.getUTCDate()-n);return x.toISOString().slice(0,10)};if(RW.k==='yest')return[prev(1),prev(1)];if(RW.k==='week')return[prev((d.getUTCDay()+1)%7),t];if(RW.k==='month')return[t.slice(0,7)+'-01',t];if(RW.k==='day')return[RW.d||t,RW.d||t];return[t,t]}
 async function pRWallet(){const b=$('vb');b.onclick=null;b.innerHTML='<div class="card">جارٍ التحميل…</div>';let w=null,mv=null,er='';
-try{if(DM){w=[{payable_minor:'130050',paid_minor:null,cash_custody_minor:'250000',as_of:null}];mv=[{t:'delivery',at:new Date(Date.now()-864e5).toISOString(),kind:'delivered',ref:'DEMO-1',company:'شركة تجريبية',collected_minor:'108000',wage_minor:'3000',delivery_minor:'108000',product_minor:'100000'},{t:'settlement',at:new Date().toISOString(),journal_id:'demo-journal-s1',memo:'',cash_delta_minor:'-50000',payable_delta_minor:'0'}]}else{
-try{const ar=(await TC.api('/rider/assignments')).rows||[];const ids=new Set(ar.map(r=>r.id));let ch=false;Object.keys(RP).forEach(k=>{if(!ids.has(k)){delete RP[k];ch=true}});if(ch)saveRP()}catch(e){}
-w=(await TC.api('/rider/wallet')).rows;try{mv=(await TC.api('/rider/movements')).rows}catch(e){mv=null}}}catch(e){er=e.code}
-const dm=DM?'<div class="rcpt">وضع عرض تجريبي: بيانات مصطنعة ولا تُرسل للخادم.</div>':'';
-if(er||!w||!w.length){b.innerHTML=dm+`<div class="card"><h2>لا توجد بيانات مؤكدة بعد</h2><p class="mut">${er?esc(er==='UNCONFIGURED'?'غير متصل: الربط غير مهيأ.':TC.errText({code:er})):'الخادم لم يرجّع رصيدًا بعد.'} هذا ليس رصيدًا صفرًا.</p></div>`;return}
-const pend=Object.values(RP).filter(v=>v&&v.state==='recorded'&&v.kind==='delivered'&&!v.settled);
-const pendCard=pend.length?`<div class="card"><h2>قيد التسوية</h2><p class="mut" style="font-size:13px">تسليمات سجّلتها وتُراجَع قبل دخولها دفتر الأستاذ. المبالغ كما أبلغتَ عنها وليست أرصدة مؤكدة.</p>${pend.map(v=>`<div class="wr"><div class="wl"><b>تسليم مسجّل</b><small class="mut">${v.at?cairo(v.at):''}</small></div><div class="wv"><b>${v.col!=null?money(+v.col):'غير محدد'}</b></div></div>`).join('')}</div>`:'';
-const mline=r=>{if(r.t==='delivery'){const share=BigInt(r.delivery_minor||0)-BigInt(r.wage_minor||0);return `<div class="wr"><div class="wl"><b>تم تسليم أوردر ${esc(r.ref||'بدون مرجع')}</b><small class="mut">${cairo(r.at)}${r.company?' · '+esc(r.company):''}</small><small class="mut" style="display:block">تم تحصيل ${TC.egp(r.collected_minor)} · أجرة المشوار ${TC.egp(r.wage_minor)} · نصيب الشركة ${TC.egp(share.toString())}${BigInt(r.product_minor||0)>0n?' · ثمن البضاعة '+TC.egp(r.product_minor):''}</small></div><div class="wv"><b>+ ${TC.egp(r.collected_minor)}</b><small class="mut">أجرك ${TC.egp(r.wage_minor)}</small></div></div>`}
-const cd=BigInt(r.cash_delta_minor||0),pd=BigInt(r.payable_delta_minor||0),parts=[];if(cd<0n)parts.push('سلّمت للشركة '+TC.egp((-cd).toString()));if(cd>0n)parts.push('استلمت نقدية '+TC.egp(cd.toString()));if(pd<0n)parts.push('صُرفت مستحقات '+TC.egp((-pd).toString()));if(pd>0n)parts.push('مستحقات إضافية '+TC.egp(pd.toString()));
-return `<div class="wr"><div class="wl"><b>تسوية مع الشركة</b><small class="mut">${cairo(r.at)} · مرجع ${esc(String(r.journal_id).slice(-8))}</small></div><div class="wv"><small class="mut">${esc(parts.join(' · ')||'حركة')}</small></div></div>`};
-b.innerHTML=dm+w.map(r=>`<div class="card"><h2>المحفظة (${esc(r.currency||'EGP')})</h2><div class="sum"><span>مستحقاتك الحالية عند الشركة (صافي)</span><b>${TC.egp(r.payable_minor)}</b></div><div class="sum"><span>المدفوع فعليًا</span><b>${r.paid_minor==null?'غير محدد من الحسابات':TC.egp(r.paid_minor)}</b></div><div class="sum"><span>نقدية في عهدتك</span><b>${TC.egp(r.cash_custody_minor)}</b></div><p class="mut" style="font-size:13px">${r.as_of?'آخر تحديث: '+cairo(r.as_of)+' (توقيت القاهرة). ':'الرصيد الحالي حسب دفتر الأستاذ. '}المستحق ليس مدفوعًا، والنقدية في العهدة ليست مرتبة.</p></div>`).join('')+
-pendCard+
-'<div class="card"><h2>سجل الحركات</h2>'+(mv===null?'<p class="mut">تعذر تحميل السجل: غير معروف.</p>':!mv.length?'<p class="mut">لا توجد حركات مؤكدة.</p>':mv.map(mline).join('')+'<p class="mut" style="font-size:13px">كل الأرقام هنا من دفتر أستاذ الشركة كما اعتمدها النظام.</p>')+'</div>'+legacyHistory()}
+try{if(DM){w=[{payable_minor:'130050',paid_minor:null,cash_custody_minor:'250000',net_remittance_minor:'119950'}];mv=[{t:'delivery',at:new Date().toISOString(),kind:'delivered',ref:'DEMO-1',company:'شركة تجريبية',collected_minor:'108000',wage_minor:'3000',delivery_minor:'8000',product_minor:'100000'}]}else{w=(await TC.api('/rider/wallet')).rows;try{mv=(await TC.api('/rider/movements')).rows}catch(e){mv=null}}}catch(e){er=TC.errText(e)}
+if(er||!w||!w.length){b.innerHTML=`<div class="card"><h2>لا توجد بيانات مؤكدة بعد</h2><p class="mut">${esc(er||'الخادم لم يرجّع رصيدًا بعد.')} هذا ليس رصيدًا صفرًا.</p><button id="rwr">إعادة المحاولة</button></div>`;$('rwr').onclick=pRWallet;return}
+const labels={today:'اليوم',yest:'أمس',week:'هذا الأسبوع',month:'هذا الشهر',day:'يوم محدد'},range=walletRange(),rows=(mv||[]).filter(r=>{const d=walletDay(r.at);return d>=range[0]&&d<=range[1]}),ds=rows.filter(r=>r.t==='delivery'),sum=k=>ds.reduce((a,r)=>a+BigInt(r[k]||0),0n),income=sum('wage_minor'),cash=sum('collected_minor');
+const line=(label,value)=>`<div class="sum"><span>${label}</span><b>${value}</b></div>`;
+const mline=r=>{if(r.t==='delivery'){const wage=BigInt(r.wage_minor||0),share=BigInt(r.delivery_minor||0)-wage;return `<section class="card" style="margin-top:12px"><h3 style="overflow-wrap:anywhere;margin:0 0 4px">${r.kind==='delivered'?'تم تسليم أوردر':'حركة أوردر'} ${esc(r.ref||'بدون مرجع')}</h3><p class="mut" style="font-size:12px;margin:0 0 10px">${cairo(r.at)}${r.company?' · '+esc(r.company):''}</p>${line('تم تحصيله من العميل',TC.egp(r.collected_minor))}${line('ثمن البضاعة المحصّل للشركة',TC.egp(r.product_minor))}${line('رسوم التوصيل المعتمدة',TC.egp(r.delivery_minor))}${line('نصيب الشركة من التوصيل',TC.egp(share.toString()))}${line('أجرة مشوارك',TC.egp(wage.toString()))}</section>`}
+const cd=BigInt(r.cash_delta_minor||0),pd=BigInt(r.payable_delta_minor||0),parts=[];if(cd<0n)parts.push('نقدية سُلّمت للشركة: '+TC.egp((-cd).toString()));if(cd>0n)parts.push('نقدية استلمتها: '+TC.egp(cd.toString()));if(pd<0n)parts.push('انخفاض المستحق: '+TC.egp((-pd).toString()));if(pd>0n)parts.push('زيادة المستحق: '+TC.egp(pd.toString()));return `<section class="card"><h3>حركة حساب مع الشركة</h3><p class="mut">${cairo(r.at)} · مرجع ${esc(String(r.journal_id).slice(-8))}</p>${parts.map(t=>'<p>'+esc(t)+'</p>').join('')}<small class="mut">قد تكون تسوية أو خصمًا أو صرفًا. انخفاض المستحق وحده لا يثبت دفعًا نقديًا.</small></section>`};
+b.innerHTML=(DM?'<div class="rcpt">عرض تجريبي: بيانات مصطنعة.</div>':'')+`<div class="wp">${Object.entries(labels).map(([k,v])=>`<button data-rwk="${k}" class="${RW.k===k?'on':''}">${v}</button>`).join('')}</div>${RW.k==='day'?`<input id="rwd" class="wd" type="date" value="${RW.d||range[0]}" max="${walletDay(new Date())}">`:''}<div class="owe"><small>دخلك من المشاوير · ${labels[RW.k]}</small><div>${mv===null?'غير معروف':TC.egp(income.toString())}</div></div><div class="card">${line('مشاوير مسجلة في الفترة',mv===null?'غير معروف':String(ds.length))}${line('تحصيل نقدي في الفترة',mv===null?'غير معروف':TC.egp(cash.toString()))}<p class="mut" style="font-size:12px">اليوم المحاسبي يبدأ ٥ صباحًا بتوقيت القاهرة. الملخص للفترة المختارة فقط، وليس إثباتًا بصرف الأجر.</p></div>`+w.map(r=>`<div class="card"><h2>حسابك الحالي مع الشركة</h2>${line('مستحقاتك المتبقية عند الشركة',TC.egp(r.payable_minor))}${line('نقدية في عهدتك',TC.egp(r.cash_custody_minor))}<div class="sum due"><span>المطلوب تسليمه للشركة<small class="mut" style="display:block;font-weight:400">العهدة ${TC.egp(r.cash_custody_minor)} − المستحق ${TC.egp(r.payable_minor)}</small></span><b>${TC.egp(r.net_remittance_minor)}</b></div><p class="mut" style="font-size:12px">الرصيد الحالي لكل الفترات حسب دفتر الأستاذ. المستحق ليس مدفوعًا، والنقدية في العهدة ليست دخلًا.</p></div>`).join('')+`<h2 style="font-size:18px;margin:18px 0 10px">تفاصيل كل حركة · ${labels[RW.k]}</h2>`+(mv===null?'<div class="card"><p>تعذر تحميل الحركات. ملخص الفترة غير معروف، وليس صفرًا.</p><button id="rwr">إعادة المحاولة</button></div>':rows.length?rows.map(mline).join(''):'<div class="card"><p class="mut">لا توجد حركات مسجلة في الفترة المختارة.</p></div>')+`<p class="mut" style="font-size:12px">الأرقام من قيود دفتر الأستاذ فقط. يعرض أحدث 1000 حركة${mv&&mv.length>=1000?'؛ قد يكون تاريخ الفترة غير كامل، فلا تعتمد على الملخص ككشف كامل':''}.</p>`;
+b.querySelectorAll('[data-rwk]').forEach(x=>x.onclick=()=>{RW.k=x.dataset.rwk;pRWallet()});if($('rwd'))$('rwd').onchange=()=>{RW.d=$('rwd').value;pRWallet()};if($('rwr'))$('rwr').onclick=pRWallet;
+}
 
 setTimeout(()=>{try{hideSplash()}catch(e){const sp=$('splash');if(sp)sp.classList.add('off')}},4000);
 try{draw()}catch(e){}
