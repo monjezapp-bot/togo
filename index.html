@@ -794,7 +794,7 @@ b.querySelectorAll('[data-eomap]').forEach(x=>x.onclick=async()=>{const a=RO.row
 
 let OWR=false;
 function pOrders(){
-  if(window.__togoDb){if(RO.busy)return;return pEngineOrders();}
+  if(window.__togoDb){if(RO.busy)return;return pEngineOrders(true);}
   const td=today(),kd=s=>s.done&&s.at?ymd(new Date(s.at)):dayOf(s),cnt={};
   S.forEach(s=>{const k=kd(s);if(k)cnt[k]=(cnt[k]||0)+1});
   const ks=Object.keys(cnt).concat([td,selDay]).sort(),T=new Date(td+'T12:00').getTime();
@@ -1472,4 +1472,4 @@ try{draw()}catch(e){}
 boot();
 </script>
 </body>
-  </html>
+    </html>
