@@ -1,2 +1,2 @@
-/* No keys, no database links. Default: real app, not connected (shows 'غير متصل: الربط غير مهيأ'). demo:true is opt-in for local preview only. runtime:'configured' only after the approved backend is deployed. */
-window.TOGO_CONFIG={demo:false,runtime:'unconfigured'};
+/* Production runtime: connected to the approved delivery-route backend (2026-10-15). demo:true stays opt-in for local preview only. */
+window.TOGO_CONFIG={demo:false,runtime:'configured'};
