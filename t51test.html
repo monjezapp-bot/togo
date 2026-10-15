@@ -543,7 +543,7 @@ async function deliver(n){
 async function undo(n){const{error}=await stopUpd(n.id,{done:false,done_at:null,cash_collected:null,received:null,receipt_kept:null},['receipt_kept']);if(error)return toast('ماقدرتش أتراجع');Object.assign(n,{done:false,at:null,got:null,rk:null});optimize()}
 
 /* ---------- menu & pages ---------- */
-const PAGES=[['home','الخريطة'],['assigned','مشاويري'],['orders','الطلبات'],['wallet','المحفظة'],['profile','الملف الشخصي'],['support','الدعم الفني']];
+const PAGES=[['home','الخريطة'],['assigned','مشاويري'],['orders','الأوردرات'],['wallet','المحفظة'],['profile','الملف الشخصي'],['support','الدعم الفني']];
 async function shareApp(){
   const url=location.origin+location.pathname.replace(/[^/]*$/,'')+'install.html';
   const data={title:'تطبيق ToGo',text:'جرّب تطبيق ToGo 🚚 — تطبيق للمناديب بينظّم مسار التوصيل ويحسب حسابك:',url};
@@ -557,9 +557,9 @@ function menu(){
   if(open&&sheetSet)sheetSet(false);$('plist').classList.remove('on');
   const tm=themeMode(),nm=String(PF.name||'ToGo'),it=(k,t,x)=>`<button data-p="${k}" class="mi ${x||''}"><span class="ic">${mic(k)}</span>${t}${k==='support'&&SP.unread?`<i class="bd">${SP.unread}</i>`:''}</button>`;
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2>${esc(nm)}</h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
-  +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
+  +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home'&&x[0]!=='assigned').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 51 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 52 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -1322,4 +1322,4 @@ try{draw()}catch(e){};window.__t51=(la,ln)=>{me={lat:la,lng:ln,acc:10,spd:0,hd:n
 boot();
 </script>
 </body>
-</html>
+                              </html>
