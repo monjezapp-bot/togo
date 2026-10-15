@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover, interactive-widget=resizes-content">
-<meta name="theme-color" content="#0f2238"><meta name="togo-build" content="rider-48">
+<meta name="theme-color" content="#0f2238"><meta name="togo-build" content="rider-62">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -161,6 +161,11 @@ body.night .engine-orders .eo-week button,body.night .engine-orders .eo-actions 
 .prog{background:#111827;color:#fff}body.night #plist{background:#1f2937;color:var(--ink)}body.night .pi .num{background:#374151;color:#fff}body.night .pi:first-child .num{background:var(--pri)}body.night .prog{background:#1f2937;color:#f3f4f6}body.night #sheet{background:#1f2937;color:var(--ink)}body.night #sheet .item,body.night #sheet .hd,body.night #peek{color:var(--ink)}body.night #sheet .tag{background:#111827;color:var(--mut)}
 .disclosure{padding:0;overflow:hidden}.disclosure>summary{list-style:none;display:flex;align-items:center;gap:12px;min-height:62px;padding:16px;cursor:pointer}.disclosure>summary::-webkit-details-marker{display:none}.disclosure>summary::after{content:'+';margin-inline-start:auto;color:var(--mut);font-size:23px;font-weight:400;flex:none}.disclosure[open]>summary::after{content:'−'}.disclosure>summary>span{min-width:0;font-weight:600}.eo-card>summary>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.disclosure-body{padding:0 16px 16px;border-top:1px solid var(--line)}.disclosure-body>.eo-status{display:inline-block;margin-top:14px}.disclosure-body>p:first-child{margin-top:14px}.wallet-summary summary>b,.wallet-history summary>b{margin-inline-start:auto;text-align:end;white-space:nowrap;font-size:16px}.wallet-summary summary small,.wallet-history summary small{display:block;color:var(--mut);font-weight:400;font-size:11px;margin-top:3px}.wallet-hero{border-radius:22px;padding:24px;background:#111827;color:#fff;margin:16px 0 20px;text-align:center}.wallet-hero small{color:#c2ccdb;font-size:13px}.wallet-hero>div{font-size:38px;font-weight:800;margin:12px 0}.wallet-hero>span{font-size:12px;color:#c2ccdb}.wallet-period{justify-content:center;gap:6px}.wallet-period button{min-height:40px;font-size:12px;padding:0 12px}.wallet-move{margin:12px 0 0;border:1px solid var(--line);border-radius:12px}.wallet-move>summary{font-size:13px;min-height:54px}.wallet-history .disclosure-body{padding-inline:12px}.wallet-history .sum{font-size:13px;gap:10px}.wallet-summary>summary>span{font-size:14px}
 
+/* v62: a camera preset, never a delivery fence. */
+#zone-view{position:fixed;z-index:3;top:calc(82px + env(safe-area-inset-top));left:14px;right:14px;max-width:332px;margin:auto;padding:10px 14px;min-height:44px;border:1px solid var(--line);border-radius:18px;background:var(--bg);color:var(--ink);box-shadow:0 3px 14px #0001;font-size:12px;text-align:center}
+#zone-view::before{content:'⌖ ';color:var(--pri)}
+#zone-view small{display:block;font-size:10px;color:var(--mut);margin-top:4px}
+body.navon #zone-view{display:none}
 </style>
 <style>
 :root{--ink:#111827;--mut:#64748b;--line:#e5e9ef;--bg:#f1f4f8;--pri:#f26a1b;--ok:#15803d;--bad:#dc2626;--r:14px}
@@ -381,6 +386,11 @@ body.night button:focus-visible,body.night a:focus-visible,body.night summary:fo
 .delete-zone button{background:none;color:var(--bad);border:1px solid var(--line);font-size:14px}
 .confirm-effect{font-size:13px;line-height:1.8;margin:12px 0 0;color:var(--mut)}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+/* v62: a camera preset, never a delivery fence. */
+#zone-view{position:fixed;z-index:3;top:calc(82px + env(safe-area-inset-top));left:14px;right:14px;max-width:332px;margin:auto;padding:10px 14px;min-height:44px;border:1px solid var(--line);border-radius:18px;background:var(--bg);color:var(--ink);box-shadow:0 3px 14px #0001;font-size:12px;text-align:center}
+#zone-view::before{content:'⌖ ';color:var(--pri)}
+#zone-view small{display:block;font-size:10px;color:var(--mut);margin-top:4px}
+body.navon #zone-view{display:none}
 </style>
 </head>
 <body>
@@ -388,6 +398,7 @@ body.night button:focus-visible,body.night a:focus-visible,body.night summary:fo
 <div id="splash"><img src="logo.png" alt="ToGo"></div>
 <script>/* safety net, registered before the app module: a startup failure can never leave the logo stuck */(function(){function off(){var s=document.getElementById("splash");if(s)s.classList.add("off")}setTimeout(off,4000);addEventListener("error",off);addEventListener("unhandledrejection",off)})();</script>
 <div class="top"><button class="rb" id="mn" aria-label="القائمة">☰</button><div class="prog" id="prog"></div><button class="rb" id="rf" aria-label="تحديث"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4.5V11h-6.5"/></svg></button></div>
+<button id="zone-view" hidden aria-label="عرض الزون كاملًا"></button>
 <div id="plist"></div>
 <div id="sheet"><button class="rb on" id="loc" aria-label="موقعي">◎</button><button id="gon" hidden aria-label="ابدأ الملاحة"></button><div id="sc"></div></div>
 <div id="menu"><nav id="nav"></nav></div>
@@ -534,6 +545,27 @@ badge();
 /* ---------- map ---------- */
 try{maplibregl.setRTLTextPlugin('https://cdn.jsdelivr.net/npm/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js',true)}catch(e){}
 const map=typeof maplibregl==='undefined'?new Proxy({},{get:()=>()=>({})}):new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/liberty',center:[31.24,30.05],zoom:11,attributionControl:{compact:true}});
+/* Server-owned zones reuse couriers.zone_id. Cache is per signed-in account, camera only. */
+let mapZone=null,zoneOverview=true,zoneUserMoved=false;
+function validMapZone(z){const b=z&&z.bounds;return !!(z&&typeof z.id==='string'&&typeof z.name==='string'&&Array.isArray(b)&&b.length===2&&b.every(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite))&&b[0][0]>=-180&&b[1][0]<=180&&b[0][1]>=-85&&b[1][1]<=85&&b[0][0]<b[1][0]&&b[0][1]<b[1][1])}
+function zoneBounds(z){const b=z.bounds,m=Math.max(0,Math.min(5,Number(z.margin_km)||0)),dy=m/111.32,dx=dy/Math.cos((b[0][1]+b[1][1])*Math.PI/360);return [[b[0][0]-dx,b[0][1]-dy],[b[1][0]+dx,b[1][1]+dy]]}
+function showMapZone(force=false){if(!ready||!mapZone||NV.on||(!force&&zoneUserMoved))return;
+ zoneOverview=true;follow=false;$('loc').classList.remove('on');map.stop();
+ map.fitBounds(zoneBounds(mapZone),{padding:{top:150,bottom:Math.min(Math.round(innerHeight*.38),320),left:26,right:26},bearing:0,pitch:0,duration:0});
+}
+function acceptMapZone(z){if(!validMapZone(z))return;const changed=JSON.stringify(mapZone)!==JSON.stringify(z);mapZone=z;
+ $('zone-view').hidden=false;$('zone-view').innerHTML=esc(z.name);
+ if(changed&&zoneOverview&&!zoneUserMoved)showMapZone();
+}
+async function loadMapZone(){const who=uid,key='togo_map_zone:'+who;const cached=ld(key,null);if(validMapZone(cached))acceptMapZone(cached);
+ try{const r=await withT(db.rpc('rider_map_zone',{}));if(uid!==who)return;if(r.error)throw r.error;
+  if(validMapZone(r.data)){sv(key,r.data);acceptMapZone(r.data)}
+  else{localStorage.removeItem(key);mapZone=null;$('zone-view').hidden=true;zoneOverview=false}
+ }catch(e){if(!cached){zoneOverview=false;zoneUserMoved=true}}
+}
+$('zone-view').onclick=()=>{zoneUserMoved=false;showMapZone(true)};
+addEventListener('pageshow',()=>{if(uid&&page==='home'){zoneUserMoved=false;showMapZone(true)}});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&uid&&page==='home'&&!NV.on){zoneUserMoved=false;showMapZone(true)}});
 const empty={type:'FeatureCollection',features:[]};
 const setLine=(id,c)=>{const s=map.getSource(id);if(s)s.setData(c&&c.length>1?{type:'Feature',geometry:{type:'LineString',coordinates:c}}:empty)};
 map.on('load',()=>{
@@ -545,10 +577,11 @@ map.on('load',()=>{
   map.addLayer({id:'leg',type:'line',source:'leg',layout:lay,paint:{'line-color':'#f26a1b','line-width':7}});
   const arLabels=()=>{try{map.getStyle().layers.forEach(l=>{if(l.type==='symbol'&&l.layout&&l.layout['text-field']&&JSON.stringify(l.layout['text-field']).includes('name'))map.setLayoutProperty(l.id,'text-field',['coalesce',['get','name:ar'],['get','name'],['get','name:latin']])})}catch(e){}};
   arLabels();
-  ready=true;render(true);
+  ready=true;render(true);showMapZone();
 });
+map.on('movestart',e=>{if(e.originalEvent){zoneUserMoved=true;zoneOverview=false}});
 map.on('dragstart',e=>{if(e.originalEvent&&follow){follow=false;$('loc').classList.remove('on')}});
-$('loc').onclick=()=>{if(!me)return toast('بانتظار إشارة GPS');follow=true;$('loc').classList.add('on');cam()};
+$('loc').onclick=()=>{zoneOverview=false;zoneUserMoved=true;if(!me)return toast('بانتظار إشارة GPS');follow=true;$('loc').classList.add('on');cam()};
 const cam=()=>{if(me)map.easeTo({center:[me.lng,me.lat],zoom:Math.max(map.getZoom(),15.5),pitch:0,bearing:0,padding:{top:0,bottom:Math.round(innerHeight*.3),left:0,right:0},duration:800})};
 async function fetchLeg(){
   if(NV.on)return;const n=nextStop();legAt=Date.now();
@@ -560,7 +593,7 @@ function live(){
   if(!navigator.geolocation)return;
   navigator.geolocation.watchPosition(p=>{
     const c=p.coords;me={lat:c.latitude,lng:c.longitude,acc:c.accuracy,spd:gspd(c),hd:c.heading!=null&&!isNaN(c.heading)?c.heading:null,t:Date.now()};
-    if(ready){if(!meMk){const e=document.createElement('div');e.className='me';if(NV.on)e.style.display='none';meMk=new maplibregl.Marker({element:e}).setLngLat([me.lng,me.lat]).addTo(map)}meMk.setLngLat([me.lng,me.lat]);if(follow&&work&&page==='home'&&!NV.on)cam()}
+    if(ready){if(!meMk){const e=document.createElement('div');e.className='me';if(NV.on)e.style.display='none';meMk=new maplibregl.Marker({element:e}).setLngLat([me.lng,me.lat]).addTo(map)}meMk.setLngLat([me.lng,me.lat]);if(!zoneOverview&&follow&&work&&page==='home'&&!NV.on)cam()}
     if(NV.on)navTick();else if(!leg||Date.now()-legAt>25000)fetchLeg();
     const n=nextStop(),near=!!(n&&hav(me,n)*1000<=NEAR);if(near!==wasNear){wasNear=near;draw()}
   },()=>{},{enableHighAccuracy:true,maximumAge:1000,timeout:20000});
@@ -584,7 +617,7 @@ function render(fit){if(PICK){if(!S.some(s=>s.id===PICK&&!s.done))PICK=null;else
   if(ready){
     P.forEach((s,i)=>{const e=document.createElement('div');e.className='pin'+(i?'':' f');e.textContent=i+1;e.onclick=()=>pickStop(s.id);mk.push(new maplibregl.Marker({element:e}).setLngLat([s.lng,s.lat]).addTo(map))});
     const pts=geo||[...(me?[[me.lng,me.lat]]:[]),...P.map(s=>[s.lng,s.lat])];setLine('trip',pts);
-    if(fit&&pts.length>1&&!(follow&&work)&&!NV.on)map.fitBounds(pts.reduce((b,c)=>b.extend(c),new maplibregl.LngLatBounds(pts[0],pts[0])),{padding:{top:90,bottom:Math.round(innerHeight*.4),left:40,right:40},maxZoom:16,duration:600});
+    if(fit&&!zoneOverview&&!zoneUserMoved&&pts.length>1&&!(follow&&work)&&!NV.on)map.fitBounds(pts.reduce((b,c)=>b.extend(c),new maplibregl.LngLatBounds(pts[0],pts[0])),{padding:{top:90,bottom:Math.round(innerHeight*.4),left:40,right:40},maxZoom:16,duration:600});
   }
   if(!NV.on){leg=null;setLine('leg',null);fetchLeg()}
 }
@@ -648,7 +681,7 @@ async function ask(t,p,ok,danger){const x=await modal(`<h2>${esc(t)}</h2><p clas
 let tt;function toast(m,label,fn){const T=$('toast');T.setAttribute('role','status');T.setAttribute('aria-live','polite');T.classList.toggle('detail',m.length>36||!!label);T.hidden=false;T.innerHTML='<span></span>'+(label?'<button></button>':'');T.firstChild.textContent=m;if(label){const b=T.querySelector('button');b.textContent=label;b.onclick=()=>{T.hidden=true;fn()}}clearTimeout(tt);T.onclick=e=>{if(!e.target.closest('button'))T.hidden=true};tt=setTimeout(()=>T.hidden=true,label||m.length>36?6500:2000)}
 
 /* ---------- shift ---------- */
-async function setWork(v){work=v;open=false;if(!v)stopNav();draw();if(v){follow=true;$('loc').classList.add('on');cam()}sv('togo_work',v);if(uid)await write({t:'cs',d:{courier_id:uid,working:v,updated_at:new Date().toISOString()}})}
+async function setWork(v){work=v;open=false;if(!v)stopNav();draw();if(v){zoneOverview=false;zoneUserMoved=true;follow=true;$('loc').classList.add('on');cam()}sv('togo_work',v);if(uid)await write({t:'cs',d:{courier_id:uid,working:v,updated_at:new Date().toISOString()}})}
 async function endWork(){let owedTxt;
 if(window.__togoDb){try{const rows=(await TC.api('/rider/wallet')).rows;if(rows&&rows.length&&rows[0].cash_custody_minor!=null)owedTxt='النقدية في عهدتك حسب آخر رصيد مؤكد من الشركة: '+TC.egp(rows[0].cash_custody_minor)+' (آخر تحديث '+cairo(rows[0].as_of)+'). المطلوب الفعلي تحدده الشركة عند التسوية.';else owedTxt='لا يوجد رصيد مؤكد من الشركة بعد: المطلوب تسليمه غير معروف هنا. لا تعتمد على أي رقم محلي.'}catch(e){owedTxt='تعذر جلب الرصيد المؤكد: المطلوب تسليمه غير معروف. لا تعتمد على أي رقم محلي.'}}
 else{const w=walletCalc();owedTxt='المطلوب تسليمه للشركة: '+money(w.owed)+(w.miss?' · تنبيه: ينقصك '+w.miss+' فاتورة':'')}
@@ -721,7 +754,7 @@ function menu(){
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2>${esc(nm)}</h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home'&&x[0]!=='assigned').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 61 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 62 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -733,7 +766,7 @@ function go(p){
   if(p==='tour')return startTour();
   if(p==='install'){if(inst){inst.prompt();inst=null}return}
   page=p;$('vb').classList.toggle('engine-orders',p==='orders'&&!!window.__togoDb);const v=$('view');
-  clearInterval(SP.t);if(p==='home'){v.classList.remove('on');return}
+  clearInterval(SP.t);if(p==='home'){v.classList.remove('on');zoneUserMoved=false;showMapZone(true);return}
   $('vb').style.padding='';$('vb').style.overflow='';$('vt').textContent=PAGES.find(x=>x[0]===p)[1];v.classList.add('on');({orders:pOrders,wallet:pRWallet,assigned:pAssigned,profile:pProfile,support:pSupport})[p]();
 }
 const wday=t=>ymd(new Date(new Date(t).getTime()-5*36e5));
@@ -1412,7 +1445,7 @@ async function boot(){
   try{({data}=await withT(db.auth.getSession(),6000))}catch(e){}
   const cu=ld('togo_uid',null);
   if(!(data&&data.session)){
-    if(cu&&(!data||navigator.onLine===false)){uid=cu;work=ld('togo_work',false);window.__togoDb=db;$('auth').style.display='none';live();load();hideSplash();setInterval(load,30000);maybeTour();return}
+    if(cu&&(!data||navigator.onLine===false)){uid=cu;work=ld('togo_work',false);window.__togoDb=db;$('auth').style.display='none';loadMapZone();live();load();hideSplash();setInterval(load,30000);maybeTour();return}
     $('auth').style.display='flex';hideSplash();if(pending){show(false);amsg('أُنشئ الحساب. سجّل دخولك الآن.')}return}
   const u=data.user||data.session.user||{};uid=u.id;sv('togo_uid',uid);window.__togoDb=db;$('auth').style.display='none';
   if(!PF.name&&u.name){PF.name=u.name;sv('togo_profile',PF)}
@@ -1423,7 +1456,7 @@ async function boot(){
     work=!Q.some(x=>x.t==='cs')?!!(w.data&&w.data.working):ld('togo_work',false);sv('togo_work',work);
     if(w.data){if(w.data.full_name)PF.name=w.data.full_name;if(w.data.phone)PF.phone=w.data.phone;if(w.data.rate!=null)PF.rate=+w.data.rate;sv('togo_profile',PF)}
   }catch(e){work=ld('togo_work',false)}
-  live();load();hideSplash();setInterval(load,30000);maybeTour();
+  loadMapZone();live();load();hideSplash();setInterval(load,30000);maybeTour();
 }
 const normPhone=v=>{let d=String(v||'').replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/\D/g,'');if(d.startsWith('0020'))d='0'+d.slice(4);else if(d.startsWith('20')&&d.length>=12)d='0'+d.slice(2);else if(d.length===10&&d.startsWith('1'))d='0'+d;return d};
 const acctLabel=c=>{const k=String(c||'').split(':')[0];return {'courier_cash':'نقدية في عهدتك','courier_payable':'مستحقاتك عند الشركة','courier_claim':'مطالبة مسجلة عليك','company_payable':'مستحقات الشركة','company_receivable':'مستحقات على الشركة','treasury':'الخزينة','delivery_revenue':'إيراد التوصيل','return_service_revenue':'إيراد خدمة الاسترجاع','courier_work_cost':'تكلفة عمل الطيار','damage_recovery':'استرداد تلف'}[k]||'حساب دفتر الأستاذ'};
@@ -1449,7 +1482,7 @@ async function signOut(){
  try{
   if(!await ask('تسجيل الخروج',Q.length?'يوجد '+Q.length+' تعديل لم تُزامَن بعد وستُحذف إذا خرجت. اتصل بالإنترنت أولًا إذا أردت مزامنتها.':'ستحتاج إلى تسجيل الدخول بالبريد الإلكتروني وكلمة المرور مجددًا.','تسجيل الخروج',true))return;
   try{const r=await db.auth.signOut();if(r&&r.error)throw r.error}catch(e){toast('تعذر تسجيل الخروج. حاول مجددًا');return}
-  window.__togoDb=null;sv('togo_uid',null);sv('togo_rep',{});sv(QK,[]);sv(RK,[]);location.reload();
+  localStorage.removeItem('togo_map_zone:'+uid);window.__togoDb=null;sv('togo_uid',null);sv('togo_rep',{});sv(QK,[]);sv(RK,[]);location.reload();
  }finally{signingOut=false}
 }
 /* ===== ToGo rider: contract flows (assignments, reports, wallet). The server decides; nothing here is accounting. ===== */
@@ -1516,4 +1549,4 @@ try{draw()}catch(e){}
 boot();
 </script>
 </body>
-    </html>
+  </html>
