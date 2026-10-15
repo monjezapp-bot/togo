@@ -475,7 +475,7 @@ else{const w=walletCalc();owedTxt='المطلوب تسليمه للشركة: '+m
 if(await ask('إنهاء المناوبة',owedTxt,'إنهاء المناوبة',true))setWork(false)}
 
 /* ---------- delivery ---------- */
-async function deliver(n){
+async function deliver(n){if(window.__togoDb){toast('التسليم يُسجَّل من صفحة التكليفات');go('assigned');return}
   if(!n)return;
   const far=()=>!me||hav(me,n)*1000>NEAR;
   const farMsg=()=>me?'أنت بعيد '+Math.round(hav(me,n)*1000)+' مترًا عن العميل. اقترب حتى '+NEAR+' مترًا ثم سجّل التسليم.':'تعذر تحديد موقعك. فعّل GPS.';
@@ -517,7 +517,7 @@ function menu(){
   $('nav').innerHTML=`<div class="mh"><div class="av">${esc([...nm][0].toUpperCase())}</div><div class="mt"><h2>${esc(nm)}</h2><p class="mut" dir="ltr">${esc(PF.phone||'')}</p></div><button class="thb" data-thc aria-label="المظهر">${mic(tm==='light'?'sun':tm==='dark'?'moon':'auto')}<small>${({auto:'تلقائي',light:'نهار',dark:'ليل'})[tm]}</small></button></div>`
   +`<div class="ms">التنقل</div>`+PAGES.filter(x=>x[0]!=='home').map(([k,t])=>it(k,t,k===page?'on':'')).join('')
   +`<div class="ms">المزيد</div>`+(inst?it('install','ثبّت التطبيق على الشاشة'):'')+it('tour','شرح التطبيق')+it('share','مشاركة تطبيق ToGo')
-  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 49 · ملاحة</small>`;
+  +`<button data-p="out" class="mi out"><span class="ic">${mic('out')}</span>تسجيل الخروج</button><small class="mut" style="text-align:center">النسخة 50 · ملاحة</small>`;
   $('menu').classList.add('on');
 }
 $('mn').onclick=menu;
@@ -602,9 +602,9 @@ setInterval(spBadge,20000);setTimeout(spBadge,4000);document.addEventListener('v
 try{navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.t==='support')go('support')})}catch(e){}
 if(/[?&]support=1/.test(location.search))setTimeout(()=>go('support'),2500);
 function pProfile(){
-  $('vb').innerHTML=`<div class="card"><label><small>الاسم</small><input id="pn" value="${esc(PF.name)}"></label><label><small>رقم الهاتف</small><input id="pp" value="${esc(PF.phone)}" inputmode="tel"></label><label><small>سعر الطلب الذي تتقاضاه من الشركة (ج.م)</small><input id="pr" value="${esc(PF.rate||'')}" inputmode="decimal"></label><div class="sfp"><button class="p w" id="ps" style="margin-top:14px">حفظ</button></div></div><button class="w" id="da" style="margin-top:14px;background:none;color:var(--bad)">حذف الحساب نهائيًا</button>`;
+  $('vb').innerHTML=`<div class="card"><label><small>الاسم</small><input id="pn" value="${esc(PF.name)}"></label><label><small>رقم الهاتف</small><input id="pp" value="${esc(PF.phone)}" inputmode="tel"></label>${window.__togoDb?'<p class="mut">أجر التوصيلة تحدّده الشركة في النظام ويظهر مع كل تكليف.</p>':''}<label ${window.__togoDb?'hidden':''}><small>سعر الطلب الذي تتقاضاه من الشركة (ج.م)</small><input id="pr" value="${esc(PF.rate||'')}" inputmode="decimal"></label><div class="sfp"><button class="p w" id="ps" style="margin-top:14px">حفظ</button></div></div><button class="w" id="da" style="margin-top:14px;background:none;color:var(--bad)">حذف الحساب نهائيًا</button>`;
   $('da').onclick=deleteAccount;
-  $('ps').onclick=async()=>{PF={name:$('pn').value.trim(),phone:$('pp').value.trim(),rate:parseFloat($('pr').value)||0};sv('togo_profile',PF);const r=await write({t:'cs',d:{courier_id:uid,full_name:PF.name,phone:PF.phone,rate:PF.rate,working:work,updated_at:new Date().toISOString()}});toast(r.error?'لم يُحفظ على الخادم':r.queued?'حُفظ على الهاتف وسيُزامَن عند عودة الاتصال':'حُفظ')};
+  $('ps').onclick=async()=>{PF={name:$('pn').value.trim(),phone:$('pp').value.trim(),rate:window.__togoDb?PF.rate:(parseFloat($('pr').value)||0)};sv('togo_profile',PF);if(window.__togoDb){toast('حُفظ على الهاتف فقط. بياناتك الرسمية تُحدَّث من الإدارة.');return}const r=await write({t:'cs',d:{courier_id:uid,full_name:PF.name,phone:PF.phone,rate:PF.rate,working:work,updated_at:new Date().toISOString()}});toast(r.error?'لم يُحفظ على الخادم':r.queued?'حُفظ على الهاتف وسيُزامَن عند عودة الاتصال':'حُفظ')};
 }
 const MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'],DS=['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
 const CHR='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',CHL='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
@@ -655,7 +655,7 @@ async function deleteAccount(){
   try{localStorage.clear()}catch(e){}
   location.reload();
 }
-async function postpone(s){
+async function postpone(s){if(window.__togoDb)return toast('التأجيل يتم من الإدارة فقط');
   const t=new Date();t.setDate(t.getDate()+1);
   const x=await modal(`<h2>تأجيل ${esc(s.name||'الطلب')}</h2><input type="date" id="pd" value="${ymd(t)}" min="${today()}"><div class="row" style="margin-top:12px"><button data-r="x">إلغاء</button><button class="p" data-r="ok">تأجيل</button></div>`,()=>$('pd').value);
   if(!x||x.r==='x'||!x.v)return;s.day=x.v;D[s.id]=x.v;sv('togo_days',D);write({t:'upd',id:s.id,d:{delivery_date:x.v}}).then(r=>{if(r.error)toast('لم يُحفظ الموعد على الخادم')});selDay=x.v;wk=new Date(x.v+'T12:00');toast('تم التأجيل إلى يوم '+DN[new Date(x.v+'T12:00').getDay()]);pOrders();optimize();
