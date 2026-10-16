@@ -1,10 +1,9 @@
-const V='togo-v69-fresh',TILES='togo-tiles-v1',LIBS='togo-libs-v1';
+const V='togo-v70',TILES='togo-tiles-v1',LIBS='togo-libs-v1';
 const KEEP=[V,TILES,LIBS];
-const SHELL=['./','index.html','install.html','manifest.webmanifest','config.js','togo-core.js','icon-192.png','icon-512.png','logo.png'];
+const SHELL=['./','index.html','install.html','manifest.webmanifest','config.js','togo-core.js','mapbox-gl-rtl-text.js','icon-192.png','icon-512.png','logo.png'];
 const LIB_URLS=[
   'https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js',
   'https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css',
-  'https://cdn.jsdelivr.net/npm/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js',
   'https://esm.sh/@neondatabase/neon-js',
   'https://tiles.openfreemap.org/styles/liberty'
 ];
