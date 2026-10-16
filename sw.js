@@ -1,4 +1,4 @@
-const V='togo-v69',TILES='togo-tiles-v1',LIBS='togo-libs-v1';
+const V='togo-v69-fresh',TILES='togo-tiles-v1',LIBS='togo-libs-v1';
 const KEEP=[V,TILES,LIBS];
 const SHELL=['./','index.html','install.html','manifest.webmanifest','config.js','togo-core.js','icon-192.png','icon-512.png','logo.png'];
 const LIB_URLS=[
@@ -10,10 +10,10 @@ const LIB_URLS=[
 ];
 const MAX_TILES=1200;
 
-// install: cache the app shell and the libraries it needs. One missing file must not break the install.
+// Install the complete fresh shell atomically. Optional remote libraries may fail.
 self.addEventListener('install',e=>{e.waitUntil((async()=>{
   const c=await caches.open(V);
-  await Promise.all(SHELL.map(u=>c.add(u).catch(()=>{})));
+  await Promise.all(SHELL.map(u=>c.add(new Request(u,{cache:'reload'}))));
   const l=await caches.open(LIBS);
   await Promise.all(LIB_URLS.map(u=>l.add(u).catch(()=>{})));
   // Updates wait until all old app windows are closed. Never take over an active delivery.
