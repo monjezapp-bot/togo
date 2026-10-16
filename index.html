@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover, interactive-widget=resizes-content">
-<meta name="theme-color" content="#0f2238"><meta name="togo-build" content="rider-69">
+<meta name="theme-color" content="#0f2238"><meta name="togo-build" content="rider-70">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -538,7 +538,10 @@ setInterval(()=>{if(Q.length)sync()},15000);
 badge();
 
 /* ---------- map ---------- */
-try{maplibregl.setRTLTextPlugin('https://cdn.jsdelivr.net/npm/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js',true)}catch(e){}
+// Pin and self-host the RTL plugin. Version 0.2.3 registers synchronously with MapLibre 4.7.1 workers. No CDN round trip.
+let rtlTextState='loading';
+function rtlTextUnavailable(){rtlTextState='error';console.warn('تعذر تحميل مكوّن أسماء الخريطة العربية. أعد فتح التطبيق وأنت متصل.');if(typeof toast==='function')toast('تعذر عرض أسماء الخريطة العربية. أعد فتح التطبيق وأنت متصل.')}
+try{Promise.resolve(maplibregl.setRTLTextPlugin(new URL('./mapbox-gl-rtl-text.js',location.href).href,false)).then(()=>{rtlTextState='loaded'},rtlTextUnavailable)}catch(e){rtlTextUnavailable()}
 const map=typeof maplibregl==='undefined'?new Proxy({},{get:()=>()=>({})}):new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/liberty',center:[31.24,30.05],zoom:11,attributionControl:{compact:true}});
 /* Server-owned zones reuse couriers.zone_id. Cache is per signed-in account, camera only. */
 let mapZone=null,zoneOverview=true,zoneUserMoved=false;
