@@ -23,16 +23,23 @@ async function riderRpc(path,body){
    if(code===401&&window.__togoAuthFail)window.__togoAuthFail();
    const friendly=/Partial delivery\/collection|Exact remaining collection/.test(msg)?'المبلغ المستلم لا يطابق المطلوب. راجع المبلغ؛ لم يُسجّل التسليم ولم تتحرك المحفظة.':/Closed, stale|already finalized/.test(msg)?'حالة الأوردر تغيرت. حدّث الأوردرات قبل المحاولة؛ لم يُسجّل تسليم جديد.':/Damaged order|damaged or invalid/.test(msg)?'هذا الأوردر يحتاج مراجعة من الإدارة قبل تسجيل التسليم.':/No such active assignment/.test(msg)?'الأوردر لم يعد متاحًا للتسليم. حدّث الأوردرات وراجع حالته.':msg;
    throw fail(e.messageArabic||friendly,code)}return r.data});
+ if(path==='/rider/periods')return{rows:await wrap(rpcCall('rider_accounting_periods',{}))};
+ if(path==='/rider/period-archive')return{archive:await wrap(rpcCall('rider_period_archive',{p_period:body.period_id}))};
+ if(path==='/rider/period-opening')return{opening:await wrap(rpcCall('rider_period_opening',{p_period:body.period_id}))};
  if(path==='/rider/wallet')return{rows:await wrap(rpcCall('rider_wallet',{}))};
  if(path==='/rider/wallet/history')return{rows:await wrap(rpcCall('rider_wallet_history',{p_limit:1000,p_offset:0}))};
  if(path==='/rider/movements'){
+  const periods=await wrap(rpcCall('rider_accounting_periods',{}));
+  const period=body&&body.period_id?periods.find(p=>p.id===body.period_id):periods.find(p=>p.current);
+  if(!period)throw fail('لا توجد فترة محاسبية حالية مؤكدة. تواصل مع الإدارة.','PERIOD_UNAVAILABLE');
+  const pageCall=args=>rpcCall('rider_period_movements',{p_period:period.id,...args});
   // Read every server page before exposing a complete financial period.
   // Stable journal ordering and a head recheck protect against new rows mid-read.
   const pageSize=1000,maxPages=50,key=r=>String(r.t)+':'+String(r.journal_id),stamp=r=>JSON.stringify(r);
   for(let attempt=0;attempt<2;attempt++){
    const rows=[],seen=new Set();let head=null,changed=false,complete=false;
    for(let page=0;page<maxPages;page++){
-    const part=await wrap(rpcCall('rider_movements',{p_limit:pageSize,p_offset:page*pageSize}));
+    const part=await wrap(pageCall({p_limit:pageSize,p_offset:page*pageSize}));
     if(!Array.isArray(part))throw fail('تعذر تأكيد سجل الحركات الكامل. أعد المحاولة.','HISTORY_INCOMPLETE');
     if(page===0)head=part.slice(0,20).map(stamp);
     for(const row of part){if(!row.journal_id||seen.has(key(row))){changed=true;break}seen.add(key(row));rows.push(row)}
@@ -40,8 +47,8 @@ async function riderRpc(path,body){
     if(part.length<pageSize){complete=true;break}
    }
    if(!complete&&!changed)throw fail('سجل الحركات كبير ولم يكتمل تحميله. ملخص الفترة غير مؤكد؛ تواصل مع الإدارة.','HISTORY_INCOMPLETE');
-   if(!changed&&rows.length>=pageSize){const check=await wrap(rpcCall('rider_movements',{p_limit:20,p_offset:0}));changed=!Array.isArray(check)||JSON.stringify(check.map(stamp))!==JSON.stringify(head)}
-   if(!changed)return{rows,complete:true};
+   if(!changed&&rows.length>=pageSize){const check=await wrap(pageCall({p_limit:20,p_offset:0}));changed=!Array.isArray(check)||JSON.stringify(check.map(stamp))!==JSON.stringify(head)}
+   if(!changed)return{rows,complete:true,period};
   }
   throw fail('اتغير سجل الحركات أثناء التحميل. أعد المحاولة لتأكيد ملخص الفترة.','HISTORY_CHANGED');
  };
