@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover, interactive-widget=resizes-content">
-<meta name="theme-color" content="#0f2238"><meta name="togo-build" content="rider-66">
+<meta name="theme-color" content="#0f2238"><meta name="togo-build" content="rider-67">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -826,10 +826,20 @@ function pSupport(){
   clearInterval(SP.t);SP.t=setInterval(async()=>{if(page!=='support'||document.hidden)return;const n=SP.msgs.length,s=SP.status;if(await spFetch()&&page==='support'&&(SP.msgs.length!==n||SP.status!==s))spRender(false)},7000);
 }
 async function spBadge(){
-  if(!uid||navigator.onLine===false||page==='support')return;
+  if(document.hidden||!uid||navigator.onLine===false||page==='support')return;
   try{const r=await withT(db.from('support_messages').select('id',{count:'exact',head:true}).eq('sender','support').eq('read_by_courier',false),6000);if(r.error)return;const n=r.count||0;if(n>SP.unread){toast('رد من الدعم');spNotify(n)}SP.unread=n;spDot()}catch(e){}
 }
-setInterval(spBadge,20000);setTimeout(spBadge,4000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)spBadge()});
+/* Passive reads stop while this page is hidden. Pending delivery writes keep their existing retry path. */
+let assignmentPoll=null,supportBadgePoll=null;
+function stopReadPolling(){clearInterval(assignmentPoll);clearInterval(supportBadgePoll);assignmentPoll=null;supportBadgePoll=null}
+function pollAssignments(){if(!document.hidden&&uid)load()}
+function startReadPolling(refresh=false){
+  stopReadPolling();if(document.hidden||!uid)return;
+  assignmentPoll=setInterval(pollAssignments,30000);supportBadgePoll=setInterval(spBadge,20000);
+  if(refresh){pollAssignments();spBadge()}
+}
+setTimeout(spBadge,4000);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stopReadPolling();else startReadPolling(true)});
 try{navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.t==='support')go('support')})}catch(e){}
 if(/[?&]support=1/.test(location.search))setTimeout(()=>go('support'),2500);
 function pProfile(){
@@ -1439,7 +1449,7 @@ async function boot(){
   try{({data}=await withT(db.auth.getSession(),6000))}catch(e){}
   const cu=ld('togo_uid',null);
   if(!(data&&data.session)){
-    if(cu&&(!data||navigator.onLine===false)){uid=cu;work=ld('togo_work',false);window.__togoDb=db;$('auth').style.display='none';loadMapZone();live();load();hideSplash();setInterval(load,30000);maybeTour();return}
+    if(cu&&(!data||navigator.onLine===false)){uid=cu;work=ld('togo_work',false);window.__togoDb=db;$('auth').style.display='none';loadMapZone();live();load();hideSplash();startReadPolling();maybeTour();return}
     $('auth').style.display='flex';hideSplash();if(pending){show(false);amsg('أُنشئ الحساب. سجّل دخولك الآن.')}return}
   const u=data.user||data.session.user||{};uid=u.id;sv('togo_uid',uid);window.__togoDb=db;$('auth').style.display='none';
   if(!PF.name&&u.name){PF.name=u.name;sv('togo_profile',PF)}
@@ -1450,7 +1460,7 @@ async function boot(){
     work=!Q.some(x=>x.t==='cs')?!!(w.data&&w.data.working):ld('togo_work',false);sv('togo_work',work);
     if(w.data){if(w.data.full_name)PF.name=w.data.full_name;if(w.data.phone)PF.phone=w.data.phone;if(w.data.rate!=null)PF.rate=+w.data.rate;sv('togo_profile',PF)}
   }catch(e){work=ld('togo_work',false)}
-  loadMapZone();live();load();hideSplash();setInterval(load,30000);maybeTour();
+  loadMapZone();live();load();hideSplash();startReadPolling();maybeTour();
 }
 const normPhone=v=>{let d=String(v||'').replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/\D/g,'');if(d.startsWith('0020'))d='0'+d.slice(4);else if(d.startsWith('20')&&d.length>=12)d='0'+d.slice(2);else if(d.length===10&&d.startsWith('1'))d='0'+d;return d};
 const acctLabel=c=>{const k=String(c||'').split(':')[0];return {'courier_cash':'نقدية في عهدتك','courier_payable':'مستحقاتك عند الشركة','courier_claim':'مطالبة مسجلة عليك','company_payable':'مستحقات الشركة','company_receivable':'مستحقات على الشركة','treasury':'الخزينة','delivery_revenue':'إيراد التوصيل','return_service_revenue':'إيراد خدمة الاسترجاع','courier_work_cost':'تكلفة عمل الطيار','damage_recovery':'استرداد تلف'}[k]||'حساب دفتر الأستاذ'};
@@ -1546,4 +1556,4 @@ try{draw()}catch(e){}
 boot();
 </script>
 </body>
-</html>
+  </html>
